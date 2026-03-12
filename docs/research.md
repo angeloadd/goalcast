@@ -17,18 +17,9 @@
 
 ## 1. Architecture Overview
 
-### Current State
-
-The project currently has:
-- Spring Boot 4.0.3 with Kotlin 2.2.21, Java 21
-- Maven build system
-- Thymeleaf server-side templates for views (`home.html`, `login.html`, `hello.html`)
-- Spring Security with form-based login and in-memory user store
-- Argon2 password encoding via BouncyCastle
-
 ### Target State
 
-We are moving to a **decoupled SPA architecture** where:
+The application is a **decoupled SPA architecture** where:
 - **Spring Boot** acts purely as a REST API server (no Thymeleaf, no server-rendered views)
 - **Angular** is a standalone single-page application that communicates with the backend via HTTP/JSON
 - The two are developed independently but can be packaged together for deployment
@@ -49,7 +40,7 @@ Spring Boot (REST API)
 PostgreSQL Database
 ```
 
-Angular runs in the browser. When a user navigates the app, Angular handles routing client-side. When data is needed (login, load bets, place a bet), Angular sends an HTTP request to a Spring Boot REST endpoint. Spring Boot processes the request, talks to the database, and returns JSON.
+Angular runs in the browser. When a user navigates the app, Angular handles routing client-side. When data is needed (login, check session, load user profile), Angular sends an HTTP request to a Spring Boot REST endpoint. Spring Boot processes the request, talks to the database, and returns JSON.
 
 ---
 
@@ -74,25 +65,20 @@ fantabet/                              # Git repository root
 |   |   |   +-- FantabetApplication.kt           # Application entry point
 |   |   |   +-- config/
 |   |   |   |   +-- WebSecurityConfig.kt          # Spring Security configuration
-|   |   |   |   +-- CorsConfig.kt                 # CORS settings for Angular dev server
 |   |   |   |   +-- JacksonConfig.kt              # JSON serialization settings
 |   |   |   +-- controller/
 |   |   |   |   +-- AuthController.kt             # Login, logout, register endpoints
-|   |   |   |   +-- BetController.kt              # Bet CRUD REST endpoints
 |   |   |   |   +-- UserController.kt             # User profile endpoints
 |   |   |   +-- service/
 |   |   |   |   +-- UserService.kt                # Business logic for users
-|   |   |   |   +-- BetService.kt                 # Business logic for bets
 |   |   |   +-- repository/
 |   |   |   |   +-- UserRepository.kt             # JPA repository interfaces
-|   |   |   |   +-- BetRepository.kt
 |   |   |   +-- model/
 |   |   |   |   +-- User.kt                       # JPA entity classes
-|   |   |   |   +-- Bet.kt
 |   |   |   +-- dto/
 |   |   |   |   +-- LoginRequest.kt               # Data transfer objects
 |   |   |   |   +-- LoginResponse.kt
-|   |   |   |   +-- BetDto.kt
+|   |   |   |   +-- UserDto.kt
 |   |   |   +-- exception/
 |   |   |       +-- GlobalExceptionHandler.kt     # @ControllerAdvice for error responses
 |   |   +-- resources/
@@ -101,7 +87,6 @@ fantabet/                              # Git repository root
 |   |       +-- application-prod.yml               # Production profile overrides
 |   |       +-- db/migration/                      # Flyway SQL migration scripts
 |   |           +-- V1__create_users_table.sql
-|   |           +-- V2__create_bets_table.sql
 |   +-- test/
 |       +-- kotlin/com/fantabet/fantabet/
 |           +-- controller/                        # Integration tests for REST endpoints
@@ -133,7 +118,7 @@ fantabet/                              # Git repository root
 |           |   |   +-- auth.guard.ts               # Route guard for protected pages
 |           |   |   +-- auth.interceptor.ts         # Attaches credentials to requests
 |           |   +-- api/
-|           |       +-- api.service.ts              # Base HTTP wrapper
+|           |       +-- api.service.ts              # Base HTTP wrapper (optional, for shared API logic)
 |           +-- features/              # Feature modules (lazy-loaded)
 |           |   +-- login/
 |           |   |   +-- login.component.ts
@@ -141,14 +126,10 @@ fantabet/                              # Git repository root
 |           |   +-- dashboard/
 |           |   |   +-- dashboard.component.ts
 |           |   |   +-- dashboard.component.html
-|           |   +-- bets/
-|           |       +-- bet-list.component.ts
-|           |       +-- bet-create.component.ts
 |           +-- shared/                # Reusable components, pipes, directives
 |               +-- components/
 |               +-- models/
 |               |   +-- user.model.ts
-|               |   +-- bet.model.ts
 |               +-- pipes/
 |
 +-- docs/                               # Project documentation
@@ -246,7 +227,7 @@ Rule of thumb: try without a `<version>` tag first. If Maven complains about a m
 </dependency>
 ```
 
-For local development, add a Redis container to `docker-compose.yml` (shown in section 5) or configure the dev profile to use in-memory sessions with `spring.session.store-type=none` in `application-dev.yml`.
+For local development, add a Valkey container to `docker-compose.yml` (shown in section 5). The Spring dependencies still say "redis" because they target the Redis wire protocol, which Valkey implements identically.
 
 ### Dependencies to Remove from pom.xml
 
@@ -384,7 +365,7 @@ ng lint
 - An HTML template (what gets rendered)
 - An SCSS file (styles scoped to this component)
 
-**Services** are injectable singletons that hold shared logic and state. The `AuthService` will manage login/logout and expose the current user state. The `ApiService` wraps `HttpClient` for making HTTP calls.
+**Services** are injectable singletons that act as a **middle layer between components and the NgRx store**. Components never dispatch actions directly -- they call service methods instead. Services handle orchestration: they dispatch actions to the store and can also perform simple logic that doesn't need to go through the full action/reducer cycle. This keeps components thin and testable, while keeping the store focused on state transitions. The `AuthService` exposes methods like `login()` and `logout()` that internally dispatch NgRx actions. The `ApiService` wraps `HttpClient` for making HTTP calls (used inside NgRx Effects, not in components directly).
 
 **Interceptors** are middleware for HTTP requests. We use one to ensure every request to the backend includes credentials (the session cookie).
 
@@ -392,7 +373,7 @@ ng lint
 
 **Routing** maps URL paths to components. Angular handles this entirely on the client side -- changing the URL does not make a server request. The browser's history API is used to update the URL bar.
 
-### Standalone Components (Modern Angular) Comment: I would like to manage state with ngrx and signal. While it adds complexity to the project, it makes it easier to reason about the app's state.
+### Standalone Components (Modern Angular)
 
 Modern Angular (v17+) uses **standalone components** by default instead of NgModules. This means:
 - Components declare their own imports directly in the `@Component` decorator
@@ -412,6 +393,398 @@ export class LoginComponent {
   // ...
 }
 ```
+
+### State Management with NgRx Store + Signals
+
+We use the **classic NgRx Store** (`@ngrx/store` + `@ngrx/effects`) with Angular signals integration via `selectSignal`. This gives a clean separation between:
+
+- **Actions**: describe _what happened_ ("user clicked login", "API returned success")
+- **Reducers**: _pure functions_ that compute the next state from the current state + an action (no side effects)
+- **Effects**: handle _side effects_ (API calls, navigation, localStorage) and dispatch new actions when done
+- **Selectors**: derive computed state from the store (memoized)
+- **Services**: middle layer between components and the store -- components call service methods, services dispatch actions
+
+This separation is the core benefit: reducers are pure and predictable, effects handle the messy async world, and the two never mix.
+
+#### The Flow
+
+```
+Component                  Service                   Store
+    |                         |                         |
+    |-- calls login() ------->|                         |
+    |                         |-- dispatch(login) ----->|
+    |                         |                         |-- reducer sets loading=true
+    |                         |                         |-- effect catches login action
+    |                         |                         |     calls HTTP API
+    |                         |                         |     on success: dispatch(loginSuccess)
+    |                         |                         |     on error: dispatch(loginFailure)
+    |                         |                         |
+    |                         |                         |-- reducer sets loading=false, user=data
+    |                         |                         |     (or error=message)
+    |<-- signal updates UI ---|-------------------------|
+```
+
+Components never dispatch actions directly. They call service methods. This keeps components simple and makes it easy to reuse logic across components.
+
+#### Setup
+
+```bash
+cd frontend
+npm install @ngrx/store @ngrx/effects @ngrx/store-devtools
+```
+
+Register the store in `app.config.ts`:
+
+```typescript
+// app.config.ts
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
+import { authReducer } from './core/auth/auth.reducer';
+import { AuthEffects } from './core/auth/auth.effects';
+import { isDevMode } from '@angular/core';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor])),
+    provideStore({ auth: authReducer }),
+    provideEffects(AuthEffects),
+    provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() }),
+  ]
+};
+```
+
+Angular's `isDevMode()` returns `true` when the app is served with `ng serve` (development) and `false` when built with `ng build --configuration=production`. The production build enables Angular's production mode, which makes `isDevMode()` return `false`.
+
+With `logOnly: !isDevMode()`:
+- **Development**: Full DevTools -- time-travel debugging, action log, state inspection, import/export.
+- **Production**: The DevTools extension is completely disabled at the provider level.
+
+Alternatively, you can conditionally include the provider entirely so the DevTools code is tree-shaken out of the production bundle:
+
+```typescript
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor])),
+    provideStore({ auth: authReducer }),
+    provideEffects(AuthEffects),
+    ...(isDevMode() ? [provideStoreDevtools({ maxAge: 25 })] : []),
+  ]
+};
+```
+
+This second approach is slightly better because the `@ngrx/store-devtools` code is not included in the production JavaScript bundle at all, reducing the download size by a few KB.
+
+#### Actions (What Happened)
+
+Actions are simple objects that describe events. They carry no logic. Think of them as a log of "things that happened in the application":
+
+```typescript
+// core/auth/auth.actions.ts
+import { createActionGroup, emptyProps, props } from '@ngrx/store';
+
+export const AuthActions = createActionGroup({
+  source: 'Auth',
+  events: {
+    // Triggered by the service when the user submits the login form
+    'Login': props<{ username: string; password: string }>(),
+    // Triggered by the effect when the API call succeeds
+    'Login Success': props<{ user: User }>(),
+    // Triggered by the effect when the API call fails
+    'Login Failure': props<{ error: string }>(),
+
+    'Logout': emptyProps(),
+    'Logout Success': emptyProps(),
+
+    'Check Session': emptyProps(),
+    'Check Session Success': props<{ user: User }>(),
+    'Check Session Failure': emptyProps(),
+
+    'Clear Error': emptyProps(),
+  },
+});
+```
+
+`createActionGroup` generates typed action creators. `AuthActions.login({ username, password })` creates the action object. `AuthActions.loginSuccess({ user })` creates the success action. These are just data -- no logic, no side effects.
+
+#### Reducer (Pure State Transitions)
+
+The reducer is a pure function. Given the current state and an action, it returns the next state. No API calls, no subscriptions, no async -- just data in, data out:
+
+```typescript
+// core/auth/auth.reducer.ts
+import { createReducer, on } from '@ngrx/store';
+import { AuthActions } from './auth.actions';
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export const initialAuthState: AuthState = {
+  user: null,
+  loading: false,
+  error: null,
+};
+
+export const authReducer = createReducer(
+  initialAuthState,
+
+  // LOGIN: set loading, clear previous error
+  on(AuthActions.login, (state) => ({
+    ...state,
+    loading: true,
+    error: null,
+  })),
+
+  // LOGIN SUCCESS: store user, clear loading
+  on(AuthActions.loginSuccess, (state, { user }) => ({
+    ...state,
+    user,
+    loading: false,
+  })),
+
+  // LOGIN FAILURE: store error, clear loading
+  on(AuthActions.loginFailure, (state, { error }) => ({
+    ...state,
+    loading: false,
+    error,
+  })),
+
+  on(AuthActions.logout, (state) => ({
+    ...state,
+    loading: true,
+  })),
+
+  on(AuthActions.logoutSuccess, () => ({
+    ...initialAuthState,
+  })),
+
+  on(AuthActions.checkSession, (state) => ({
+    ...state,
+    loading: true,
+  })),
+
+  on(AuthActions.checkSessionSuccess, (state, { user }) => ({
+    ...state,
+    user,
+    loading: false,
+  })),
+
+  on(AuthActions.checkSessionFailure, (state) => ({
+    ...state,
+    user: null,
+    loading: false,
+  })),
+
+  on(AuthActions.clearError, (state) => ({
+    ...state,
+    error: null,
+  })),
+);
+```
+
+Each `on()` handles one action and returns a new state object. The spread operator (`...state`) copies existing state and overrides only the fields that change. This is immutable -- the old state object is never modified.
+
+#### Effects (Side Effects)
+
+Effects listen for specific actions, perform async work (API calls), and dispatch new actions based on the result. They never touch the state directly:
+
+```typescript
+// core/auth/auth.effects.ts
+import { Injectable, inject } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { AuthActions } from './auth.actions';
+import { AuthApiService } from './auth-api.service';
+import { catchError, map, switchMap, of, tap } from 'rxjs';
+import { Router } from '@angular/router';
+
+@Injectable()
+export class AuthEffects {
+  private actions$ = inject(Actions);
+  private authApi = inject(AuthApiService);
+  private router = inject(Router);
+
+  // When login action is dispatched -> call API -> dispatch success or failure
+  login$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.login),
+      switchMap(({ username, password }) =>
+        this.authApi.login(username, password).pipe(
+          map(user => AuthActions.loginSuccess({ user })),
+          catchError(() => of(AuthActions.loginFailure({ error: 'Invalid credentials' })))
+        )
+      )
+    )
+  );
+
+  // On login success -> navigate to dashboard
+  loginSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.loginSuccess),
+      tap(() => this.router.navigate(['/dashboard']))
+    ),
+    { dispatch: false }   // This effect doesn't dispatch a new action
+  );
+
+  logout$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.logout),
+      switchMap(() =>
+        this.authApi.logout().pipe(
+          map(() => AuthActions.logoutSuccess()),
+          catchError(() => of(AuthActions.logoutSuccess()))  // Logout locally even if API fails
+        )
+      )
+    )
+  );
+
+  logoutSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.logoutSuccess),
+      tap(() => this.router.navigate(['/login']))
+    ),
+    { dispatch: false }
+  );
+
+  checkSession$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.checkSession),
+      switchMap(() =>
+        this.authApi.getCurrentUser().pipe(
+          map(user => AuthActions.checkSessionSuccess({ user })),
+          catchError(() => of(AuthActions.checkSessionFailure()))
+        )
+      )
+    )
+  );
+}
+```
+
+Notice the clean separation: the effect for `login` knows nothing about what `loading: true` means. It just listens for the `login` action, calls the API, and dispatches either `loginSuccess` or `loginFailure`. The reducer handles the state changes for each of these. No mixing.
+
+`{ dispatch: false }` marks effects that perform navigation or other side effects without dispatching a follow-up action.
+
+#### Selectors (Derived State with Signals)
+
+Selectors extract and derive state. Using `selectSignal` (NgRx 17+) exposes them as Angular signals for use in templates:
+
+```typescript
+// core/auth/auth.selectors.ts
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import { AuthState } from './auth.reducer';
+
+const selectAuthState = createFeatureSelector<AuthState>('auth');
+
+export const selectCurrentUser = createSelector(selectAuthState, (state) => state.user);
+export const selectIsLoggedIn = createSelector(selectAuthState, (state) => state.user !== null);
+export const selectAuthLoading = createSelector(selectAuthState, (state) => state.loading);
+export const selectAuthError = createSelector(selectAuthState, (state) => state.error);
+```
+
+#### API Service (HTTP Layer)
+
+A dedicated API service handles raw HTTP calls. This is the only place `HttpClient` is used for auth. Effects call this service, not `HttpClient` directly:
+
+```typescript
+// core/auth/auth-api.service.ts
+@Injectable({ providedIn: 'root' })
+export class AuthApiService {
+  private http = inject(HttpClient);
+
+  login(username: string, password: string): Observable<User> {
+    return this.http.post<User>('/api/auth/login', { username, password });
+  }
+
+  logout(): Observable<void> {
+    return this.http.post<void>('/api/auth/logout', {});
+  }
+
+  getCurrentUser(): Observable<User> {
+    return this.http.get<User>('/api/auth/me');
+  }
+}
+```
+
+#### Components Interact with the Store Directly
+
+With the full NgRx Store in place, components can dispatch actions and select state directly -- no facade service required for simple cases. Components inject `Store`, use `selectSignal` for reading state, and call `store.dispatch()` for actions:
+
+```typescript
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  template: `
+    @if (isLoggedIn()) {
+      <h1>Welcome, {{ user()?.username }}</h1>
+      <button (click)="onLogout()">Logout</button>
+    }
+  `,
+})
+export class DashboardComponent {
+  private store = inject(Store);
+
+  // Select state as signals -- reactively update the template
+  user = this.store.selectSignal(selectCurrentUser);
+  isLoggedIn = this.store.selectSignal(selectIsLoggedIn);
+
+  onLogout(): void {
+    this.store.dispatch(AuthActions.logout());
+  }
+}
+```
+
+This is clean and direct. The component knows about `AuthActions` and selectors, but that's fine -- NgRx actions and selectors are designed to be the public API of a feature's state.
+
+#### When to Use a Service
+
+Services are **not** needed as a mandatory middle layer. Use a service only when:
+
+- **Complex orchestration**: Logic that dispatches multiple actions in sequence, or needs conditional branching before dispatching (e.g., "check if user exists, then register, then auto-login").
+- **Shared across components**: Multiple components need the same multi-step logic. Instead of duplicating it, extract it into a service.
+- **Easier unit testing**: If a piece of logic is complex enough that you want to test it in isolation (without spinning up a component), a service gives you a clean boundary.
+
+For straightforward dispatch-and-select, components go directly to the store. For complex orchestration, create a service:
+
+```typescript
+// core/auth/auth.service.ts -- only created when complexity warrants it
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private store = inject(Store);
+
+  /**
+   * Complex orchestration example: register a new user, then
+   * automatically log them in. This involves coordinating two
+   * dispatches and waiting for the first to complete.
+   */
+  registerAndLogin(username: string, email: string, password: string): void {
+    // This kind of multi-step logic belongs in a service, not a component
+    this.store.dispatch(AuthActions.register({ username, email, password }));
+    // The effect handles the chain: register -> registerSuccess -> auto-login
+  }
+}
+```
+
+#### Store Organization Per Feature
+
+```
+frontend/src/app/
+  core/
+    auth/
+      auth.actions.ts          # Action definitions
+      auth.reducer.ts          # Pure state transitions
+      auth.effects.ts          # Side effects (API calls, navigation)
+      auth.selectors.ts        # Derived state queries
+      auth-api.service.ts      # Raw HTTP calls (used by effects)
+      auth.service.ts          # OPTIONAL: only for complex shared orchestration
+      auth.guard.ts            # Route guard (uses Store directly)
+      auth.interceptor.ts      # HTTP interceptor
+```
+
+Each feature follows the same pattern: actions, reducer, effects, selectors, API service. A facade service is added only when there is complex logic worth extracting from components.
 
 ### proxy.conf.json (Development Proxy)
 
@@ -487,8 +860,7 @@ Migration files live in `src/main/resources/db/migration/` and follow the naming
 
 ```
 V1__create_users_table.sql
-V2__create_bets_table.sql
-V3__add_avatar_url_to_users.sql
+V2__add_avatar_url_to_users.sql
 ```
 
 The naming rules are:
@@ -594,26 +966,59 @@ Spring Data JPA generates the SQL for these methods automatically based on the m
 
 This is the most critical section. Getting auth right requires understanding how browsers, cookies, sessions, CORS, and CSRF all interact.
 
-### Authentication Strategy: Session-Based Auth (Not JWT)
+### Authentication Strategy: Session-Based Auth
 
-There are two common approaches for SPA authentication:
-1. **Session-based** (server stores session, browser stores session cookie)
-2. **JWT-based** (server is stateless, browser stores token)
+We use **session-based authentication**: the server stores session data (in Valkey), and the browser stores a session cookie. The session cookie is an opaque, random ID -- it contains no user data. All session state lives server-side.
 
-**We choose session-based authentication.** Here is why:
+### Session Storage: Valkey in All Environments
 
-| Aspect | Session-Based | JWT-Based |
-|--------|--------------|-----------|
-| Storage | Server-side (memory/Redis/DB) | Client-side (localStorage/cookie) |
-| Revocation | Instant (delete session on server) | Hard (must maintain a blocklist, defeating the purpose) |
-| Token size | Small cookie (~32 bytes) | Large token (~800+ bytes per request) |
-| Security | Cookie can be httpOnly (no JS access) | If in localStorage, vulnerable to XSS. If in cookie, same as sessions but more complex |
-| Complexity | Simple, well-understood | More moving parts (refresh tokens, rotation, expiry) |
-| Scaling | Needs shared session store (Redis) | Stateless (no shared store needed) |
+Sessions are stored in **Valkey** in both development and production. Valkey is the open-source fork of Redis, created by the Linux Foundation after Redis switched to a proprietary license (SSPL) in March 2024. Valkey is fully wire-compatible with Redis -- it speaks the exact same protocol, uses the same port (6379), and works with the same client libraries. Spring's `spring-session-data-redis` and `spring-boot-starter-data-redis` connect to Valkey without any code changes because they use the Redis protocol, not the Redis brand.
 
-For a friend-group betting app, the simplicity and security advantages of sessions far outweigh the scaling benefit of JWTs. If you ever need to scale, adding Redis as a session store is straightforward.
+Valkey is the most stable open-source choice right now:
+- **Backed by the Linux Foundation** with contributors from AWS, Google, Oracle, Ericsson, and others.
+- **Direct continuation of Redis 7.2** codebase -- battle-tested, not a rewrite.
+- **Same API, same commands, same data structures** -- every Redis tutorial, StackOverflow answer, and library works unchanged.
+- **Active development** -- Valkey 8.0 added major performance improvements and is the default key-value store in AWS ElastiCache.
 
-### How Session-Based Auth Works (Step by Step) Comment: I would go for key-value store both in prod and dev. In dev I can setup everything using docker-compose.
+(KeyDB is another fork worth knowing about, but it has a smaller community and less corporate backing. Valkey is the safer long-term bet.)
+
+```yaml
+# Add to docker-compose.yml (alongside the existing db service)
+services:
+  db:
+    # ... (existing PostgreSQL config)
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: fantabet-valkey
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+```
+
+Spring Boot configuration in `application.yml`:
+
+```yaml
+spring:
+  session:
+    store-type: redis                  # Spring calls it "redis" but it's just the protocol
+  data:
+    redis:
+      host: localhost                  # 'valkey' in docker-compose prod, 'localhost' in dev
+      port: 6379
+```
+
+The config still says `redis` because Spring's libraries target the Redis protocol, and Valkey implements that same protocol. There is no `store-type: valkey` -- you just point the Redis client at a Valkey server and everything works.
+
+With `spring-session-data-redis` on the classpath (added in section 3) and this config, Spring Session automatically serializes the `SecurityContext` into Valkey when a session is created. On every subsequent request, it reads the session from Valkey using the session ID from the cookie.
+
+Benefits of using Valkey everywhere:
+- **Dev/prod parity**: No "it works on my machine" issues with session behavior.
+- **Sessions survive backend restarts**: When you restart Spring Boot during development (e.g., after code changes with DevTools), your sessions stay alive in Valkey. You don't get logged out.
+- **Ready for scaling**: If you ever add a second backend instance, sessions are already shared via Valkey. No code changes needed.
+- **Fully open source**: No licensing concerns, no dual-license gotchas.
+
+### How Session-Based Auth Works (Step by Step)
 
 #### Step 1: User Submits Login Form
 
@@ -637,7 +1042,7 @@ The `AuthController` receives the request, delegates to `AuthenticationManager`,
 #### Step 3: Spring Creates a Session
 
 Upon successful authentication, Spring Security:
-1. Creates a new `HttpSession` on the server (stored in memory, or Redis in production)
+1. Creates a new `HttpSession` on the server (stored in Valkey)
 2. Stores the `SecurityContext` (which contains the authenticated user's details) inside that session
 3. Generates a unique session ID (a random, unguessable string)
 
@@ -668,7 +1073,7 @@ The browser's cookie jar stores the session cookie. **No JavaScript code is need
 Every subsequent HTTP request to the same origin automatically includes the cookie:
 
 ```
-GET /api/bets
+GET /api/users/me
 Cookie: FANTABET_SESSION=abc123def456
 ```
 
@@ -834,62 +1239,107 @@ class CustomUserDetailsService(
 }
 ```
 
-### Angular Auth Service
+### Angular Auth in Components (Using NgRx Store Directly)
+
+Components dispatch actions and select state directly from the store. On app startup, dispatch `checkSession` to restore an existing session.
+
+The best place to do this is via an **`APP_INITIALIZER`** rather than `AppComponent.ngOnInit`. `APP_INITIALIZER` runs before the application renders anything, which means Angular waits for the session check to complete before showing any UI. This avoids the flash where a protected page briefly appears before the guard redirects to login (because the store hasn't loaded the user yet).
+
+In Angular 19+, the old `APP_INITIALIZER` token is deprecated. Use `provideAppInitializer` instead -- it's simpler (no `multi: true`, no `useFactory` wrapper) and supports `inject()` directly in the callback:
 
 ```typescript
-// core/auth/auth.service.ts
-@Injectable({ providedIn: 'root' })
-export class AuthService {
-  private currentUser = signal<User | null>(null);
+// app.config.ts (add to providers array)
+provideAppInitializer(() => {
+  const store = inject(Store);
+  const actions$ = inject(Actions);
 
-  // Expose as readonly signal for components to consume
-  user = this.currentUser.asReadonly();
-  isLoggedIn = computed(() => this.currentUser() !== null);
+  store.dispatch(AuthActions.checkSession());
+  // Wait until checkSession completes (success or failure) before rendering
+  return firstValueFrom(
+    actions$.pipe(
+      ofType(AuthActions.checkSessionSuccess, AuthActions.checkSessionFailure),
+      take(1)
+    )
+  );
+})
+```
 
-  constructor(private http: HttpClient) {}
+How this works:
+1. Before Angular renders the root component, the initializer dispatches `checkSession`.
+2. The effect calls `GET /api/auth/me`.
+3. The initializer waits (via `firstValueFrom`) until either `checkSessionSuccess` or `checkSessionFailure` is dispatched.
+4. Only then does Angular proceed with rendering. The store now knows whether the user is authenticated, so route guards work correctly from the first navigation.
 
-  /**
-   * Called when the app starts (in APP_INITIALIZER).
-   * Checks if the user already has a valid session.
-   */
-  checkSession(): Observable<User | null> {
-    return this.http.get<User>('/api/auth/me').pipe(
-      tap(user => this.currentUser.set(user)),
-      catchError(() => {
-        this.currentUser.set(null);
-        return of(null);
-      })
-    );
+`provideAppInitializer` accepts a function that can return a `Promise` or `Observable`. Angular waits for it to resolve before bootstrapping. The `inject()` calls work because the function runs in an injection context.
+
+If you prefer a simpler approach that doesn't block rendering (and you're okay with a brief loading flash), dispatching from `AppComponent.ngOnInit` also works:
+
+```typescript
+@Component({ selector: 'app-root', ... })
+export class AppComponent implements OnInit {
+  private store = inject(Store);
+
+  ngOnInit(): void {
+    this.store.dispatch(AuthActions.checkSession());
   }
+}
+```
 
-  login(username: string, password: string): Observable<User> {
-    return this.http.post<User>('/api/auth/login', { username, password }).pipe(
-      tap(user => this.currentUser.set(user))
-    );
-  }
+This second approach is simpler but the guard might redirect to `/login` before the session check finishes, causing a flicker. The `APP_INITIALIZER` approach avoids this entirely.
 
-  logout(): Observable<void> {
-    return this.http.post<void>('/api/auth/logout', {}).pipe(
-      tap(() => this.currentUser.set(null))
-    );
+The login component dispatches actions and reads state signals directly:
+
+```typescript
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  template: `
+    <form [formGroup]="form" (ngSubmit)="onLogin()">
+      <input formControlName="username" placeholder="Username" />
+      <input formControlName="password" type="password" placeholder="Password" />
+      <button type="submit" [disabled]="loading()">Login</button>
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+    </form>
+  `,
+})
+export class LoginComponent {
+  private store = inject(Store);
+
+  loading = this.store.selectSignal(selectAuthLoading);
+  error = this.store.selectSignal(selectAuthError);
+
+  form = new FormGroup({
+    username: new FormControl('', Validators.required),
+    password: new FormControl('', Validators.required),
+  });
+
+  onLogin(): void {
+    const { username, password } = this.form.value;
+    if (username && password) {
+      this.store.dispatch(AuthActions.login({ username, password }));
+    }
   }
 }
 ```
 
 ### Angular HTTP Interceptor (Credentials)
 
-By default, the browser does not send cookies with cross-origin requests made via `fetch` or `XMLHttpRequest`. Even though we use a proxy in development (making requests same-origin), we still need `withCredentials: true` for production where the API might be on a different subdomain.
+Since both frontend and backend are same-origin, the browser sends cookies automatically. However, `withCredentials: true` is still set as a safety net. The interceptor dispatches a logout action directly to the store on unexpected 401 responses:
 
 ```typescript
 // core/auth/auth.interceptor.ts
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Clone the request and add withCredentials so the browser sends the session cookie
+  const store = inject(Store);
+
   const authReq = req.clone({ withCredentials: true });
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        // Redirect to login page
-        inject(Router).navigate(['/login']);
+      if (error.status === 401 && !req.url.includes('/api/auth/login')) {
+        // Session expired or invalid -- log out locally
+        store.dispatch(AuthActions.logout());
       }
       return throwError(() => error);
     })
@@ -905,19 +1355,24 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
+    provideStore({ auth: authReducer }),
+    provideEffects(AuthEffects),
+    provideStoreDevtools({ maxAge: 25 }),
   ]
 };
 ```
 
-### Angular Route Guard
+### Angular Route Guard (Using Store Directly)
+
+The guard selects `isLoggedIn` from the store:
 
 ```typescript
 // core/auth/auth.guard.ts
 export const authGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
+  const store = inject(Store);
   const router = inject(Router);
 
-  if (authService.isLoggedIn()) {
+  if (store.selectSignal(selectIsLoggedIn)()) {
     return true;
   }
 
@@ -932,7 +1387,6 @@ Use it in routes:
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: 'bets', component: BetListComponent, canActivate: [authGuard] },
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
 ];
 ```
@@ -985,12 +1439,6 @@ All backend endpoints live under the `/api` prefix. This creates a clear boundar
 /api/auth/logout         POST    Log out (authenticated)
 /api/auth/me             GET     Get current user (authenticated)
 
-/api/bets                GET     List all bets
-/api/bets                POST    Create a new bet
-/api/bets/{id}           GET     Get a specific bet
-/api/bets/{id}           PUT     Update a bet
-/api/bets/{id}           DELETE  Delete a bet
-
 /api/users/{id}          GET     Get user profile
 /api/users/{id}          PUT     Update user profile
 ```
@@ -1002,10 +1450,8 @@ Spring Boot controllers should return consistent JSON structures:
 **Success:**
 ```json
 {
-  "id": 1,
-  "description": "Roma wins Serie A",
-  "odds": 2.5,
-  "createdBy": "cicciofrizzo"
+  "username": "cicciofrizzo",
+  "roles": ["USER"]
 }
 ```
 
@@ -1056,35 +1502,7 @@ data class ErrorResponse(
 
 ### Angular HttpClient Usage
 
-Angular's `HttpClient` is the tool for making HTTP requests. It returns RxJS `Observable`s.
-
-```typescript
-// core/api/api.service.ts
-@Injectable({ providedIn: 'root' })
-export class ApiService {
-  constructor(private http: HttpClient) {}
-
-  getBets(): Observable<Bet[]> {
-    return this.http.get<Bet[]>('/api/bets');
-  }
-
-  getBet(id: number): Observable<Bet> {
-    return this.http.get<Bet>(`/api/bets/${id}`);
-  }
-
-  createBet(bet: CreateBetRequest): Observable<Bet> {
-    return this.http.post<Bet>('/api/bets', bet);
-  }
-
-  updateBet(id: number, bet: UpdateBetRequest): Observable<Bet> {
-    return this.http.put<Bet>(`/api/bets/${id}`, bet);
-  }
-
-  deleteBet(id: number): Observable<void> {
-    return this.http.delete<void>(`/api/bets/${id}`);
-  }
-}
-```
+Angular's `HttpClient` is the tool for making HTTP requests. It returns RxJS `Observable`s. The `AuthApiService` shown in section 6 is the primary example of how to use `HttpClient` in this project. All API services follow the same pattern: inject `HttpClient`, return `Observable`s, use relative URLs.
 
 Note that the URLs are relative (no `http://localhost:8080`). In development, the Angular proxy forwards them to Spring Boot. In production, they resolve to the same server since Angular's built files are served by Spring Boot.
 
@@ -1095,20 +1513,6 @@ Note that the URLs are relative (no `http://localhost:8080`). In development, th
 export interface User {
   username: string;
   roles: string[];
-}
-
-// shared/models/bet.model.ts
-export interface Bet {
-  id: number;
-  description: string;
-  odds: number;
-  createdBy: string;
-  createdAt: string;    // ISO 8601 date string
-}
-
-export interface CreateBetRequest {
-  description: string;
-  odds: number;
 }
 ```
 
@@ -1158,7 +1562,7 @@ Production:
 | Angular CLI | Scaffold and manage Angular | `npm install -g @angular/cli` |
 | angular-eslint | Lint TypeScript and templates | `ng add @angular-eslint/schematics` |
 | Jest | Frontend unit testing | `npm install --save-dev jest jest-preset-angular @types/jest` |
-| Docker & Docker Compose | Run PostgreSQL + Redis locally | `brew install --cask docker` |
+| Docker & Docker Compose | Run PostgreSQL + Valkey locally | `brew install --cask docker` |
 | IntelliJ IDEA | IDE for Kotlin + Angular | Already in use |
 
 ### TypeScript Linting with angular-eslint
@@ -1170,7 +1574,6 @@ The Angular CLI has first-party ESLint support via the `angular-eslint` package.
 ```bash
 ng add @angular-eslint/schematics
 ```
-
 This single command does everything automatically:
 - Installs `@angular-eslint/builder`, `@angular-eslint/eslint-plugin`, `@angular-eslint/eslint-plugin-template`, and `@angular-eslint/template-parser` as dev dependencies
 - Installs `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser`
@@ -1189,7 +1592,68 @@ ng lint --fix
 
 No additional configuration files to create or maintain. The generated config includes rules for both TypeScript files and Angular HTML templates (catching things like invalid banana-in-a-box syntax `([ngModel])` instead of `[(ngModel)]`).
 
-If you use IntelliJ IDEA, enable the ESLint integration in Settings > Languages & Frameworks > JavaScript > Code Quality Tools > ESLint, and point it to the `frontend/` directory. This gives you inline linting feedback as you type.
+### Code Formatting with Prettier
+
+Prettier handles code formatting (indentation, line length, quotes, trailing commas) while ESLint handles code quality (unused variables, wrong imports, Angular-specific rules). The two complement each other without overlap when configured correctly.
+
+**Setup** (from `frontend/` directory):
+
+```bash
+# Install Prettier and the ESLint integration
+npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier
+```
+
+What each package does:
+- **`prettier`**: The formatter itself
+- **`eslint-config-prettier`**: Turns off all ESLint rules that conflict with Prettier (spacing, quotes, semicolons, etc.)
+- **`eslint-plugin-prettier`**: Runs Prettier as an ESLint rule so formatting issues show up as lint errors
+
+Create `frontend/.prettierrc`:
+
+```json
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 4,
+  "semi": true
+}
+```
+
+Update `eslint.config.js` to integrate Prettier (add at the end of the config array):
+
+```javascript
+// Add to the existing eslint.config.js generated by angular-eslint
+const eslintPluginPrettier = require('eslint-plugin-prettier/recommended');
+
+module.exports = [
+  // ... existing angular-eslint config entries ...
+  eslintPluginPrettier,   // Must be last so it overrides conflicting rules
+];
+```
+
+Now `ng lint --fix` both fixes code quality issues AND formats code. You can also run Prettier directly:
+
+```bash
+# Format all files
+npx prettier --write "src/**/*.{ts,html,scss,json}"
+
+# Check formatting without modifying (useful in CI)
+npx prettier --check "src/**/*.{ts,html,scss,json}"
+```
+
+Add a format script to `frontend/package.json`:
+
+```json
+{
+  "scripts": {
+    "format": "prettier --write \"src/**/*.{ts,html,scss,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\""
+  }
+}
+```
+
+If you use IntelliJ IDEA, enable both the ESLint and Prettier integrations in Settings > Languages & Frameworks. IntelliJ can run Prettier on save (Settings > Languages & Frameworks > JavaScript > Prettier > Run on save).
 
 ### Daily Development Workflow
 
@@ -1211,7 +1675,11 @@ If you use IntelliJ IDEA, enable the ESLint integration in Settings > Languages 
    ```
    The frontend starts on http://localhost:4200 with live reload.
 
-4. **Develop:** Edit Kotlin files and the backend auto-restarts (Spring DevTools). Edit Angular files and the browser auto-refreshes (Webpack HMR).
+   **Why is this needed if the Maven build includes the frontend?** The Maven frontend plugin is for _production builds_ -- it compiles Angular once and bundles the output into the JAR. But during development you want **live reload**: every time you save a TypeScript or HTML file, the browser refreshes instantly (in ~200ms). The Maven build takes 30+ seconds for a full recompile, which would destroy the feedback loop. So the workflow is:
+   - **Daily development**: `ng serve` (fast, live reload, proxied to Spring Boot)
+   - **Production / CI / Docker**: `./mvnw package` (one command builds everything into a JAR)
+
+4. **Develop:** Edit Kotlin files and the backend auto-restarts (Spring DevTools). Edit Angular files and the browser auto-refreshes (via `ng serve` HMR).
 
 5. **Test:**
    ```bash
@@ -1250,7 +1718,20 @@ This watches for class file changes and restarts the application context automat
 
 ### Backend Testing
 
-**Unit tests** (for services): Use JUnit 5 + Mockito (or MockK for idiomatic Kotlin mocking Comment: I will use Mockk indeed). Test business logic in isolation by mocking repository interfaces.
+**Unit tests** (for services): Use JUnit 5 + MockK (the idiomatic Kotlin mocking library). Test business logic in isolation by mocking repository interfaces.
+
+Add MockK to `pom.xml` (this is a third-party library not managed by Spring Boot, so it **needs an explicit version**):
+
+```xml
+<dependency>
+    <groupId>io.mockk</groupId>
+    <artifactId>mockk-jvm</artifactId>
+    <version>1.13.16</version>
+    <scope>test</scope>
+</dependency>
+```
+
+MockK is preferred over Mockito for Kotlin because it natively supports Kotlin features like extension functions, coroutines, companion objects, and `val` properties. The syntax (`every { ... } returns ...`, `verify { ... }`) reads naturally in Kotlin.
 
 ```kotlin
 @ExtendWith(MockKExtension::class)
@@ -1295,7 +1776,7 @@ class AuthControllerTest {
 
     @Test
     fun `accessing protected endpoint without session returns 401`() {
-        mockMvc.get("/api/bets").andExpect {
+        mockMvc.get("/api/auth/me").andExpect {
             status { isUnauthorized() }
         }
     }
@@ -1519,10 +2000,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_PASSWORD: ${DB_PASSWORD}
-      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_HOST: valkey
     depends_on:
       - db
-      - redis
+      - valkey
     restart: unless-stopped
 
   db:
@@ -1535,8 +2016,8 @@ services:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
+  valkey:
+    image: valkey/valkey:8-alpine
     restart: unless-stopped
 
   caddy:
@@ -1587,44 +2068,196 @@ Internet -> Caddy (ports 80/443, TLS termination)
                 | /**     -> Angular static files (index.html fallback)
 ```
 
-#### Deploying and Updating Comment: I will deploy on a DigitalOcean droplet but I want to try and setup a github action that deploys to the droplet and run the command to update the docker image. Also I would like to setup a logging reading service. How can I do that?
+#### Initial Droplet Setup (One Time)
 
-On your VPS, the deployment workflow is:
+On a fresh DigitalOcean droplet (Ubuntu 24.04 recommended):
 
 ```bash
-# First time: clone the repo, create a .env file with DB_PASSWORD
-git clone <repo-url> fantabet
-cd fantabet
-echo "DB_PASSWORD=your-secure-password" > .env
+# Install Docker
+curl -fsSL https://get.docker.com | sh
 
-# Build and start everything
-docker compose -f docker-compose.prod.yml up -d --build
+# Install Docker Compose plugin
+apt install docker-compose-plugin
 
-# To update after pushing new code:
-git pull
-docker compose -f docker-compose.prod.yml up -d --build
+# Create the app directory
+mkdir -p /opt/fantabet
+cd /opt/fantabet
 
-# View logs
-docker compose -f docker-compose.prod.yml logs -f app
+# Create the .env file with secrets
+cat > .env << 'EOF'
+DB_PASSWORD=your-secure-password-here
+EOF
+chmod 600 .env
 ```
 
-#### Option 2: AWS ECS / Cloud Run (If You Want Managed Infrastructure)
+You also need to create the `docker-compose.prod.yml` and `Caddyfile` on the droplet (or they can be part of the repo and pulled via git).
 
-If you prefer not to manage a server, you can push the Docker image to a container registry (ECR, Docker Hub) and deploy to:
-- **AWS ECS Fargate**: Serverless containers on AWS. Pairs with RDS for PostgreSQL and ElastiCache for Redis.
-- **Google Cloud Run**: Serverless containers that scale to zero. Pairs with Cloud SQL and Memorystore.
+#### Automated Deployment with GitHub Actions
 
-These require more initial setup but eliminate server maintenance. For a friends-group app, the VPS approach is simpler and cheaper.
+Instead of manually SSH-ing into the droplet to pull and rebuild, set up a GitHub Action that deploys automatically when you push to `main`.
 
-### Automating the Build with Maven Frontend Plugin (Optional) Comment: I want to use this to manage the build with mvn
+The approach: the GitHub Action SSHs into the droplet, pulls the latest code, and rebuilds the Docker containers.
 
-Instead of manually running `npm` and copying files, the `frontend-maven-plugin` can integrate the Angular build into Maven:
+**Step 1: Add a deploy SSH key**
+
+Generate a dedicated SSH key pair for deployment:
+
+```bash
+# On your local machine
+ssh-keygen -t ed25519 -C "fantabet-deploy" -f fantabet-deploy-key
+# Don't set a passphrase (the CI needs to use it non-interactively)
+```
+
+Add the **public** key to the droplet's `~/.ssh/authorized_keys`. Add the **private** key as a GitHub Actions secret named `DEPLOY_SSH_KEY`. Also add secrets for `DEPLOY_HOST` (the droplet's IP) and `DEPLOY_USER` (e.g., `root` or a dedicated deploy user).
+
+**Step 2: Create the workflow file**
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/fantabet
+            # Pull latest code
+            git pull origin main
+            # Rebuild and restart containers (only rebuilds what changed)
+            docker compose -f docker-compose.prod.yml up -d --build
+            # Clean up old images to save disk space
+            docker image prune -f
+```
+
+This uses the `appleboy/ssh-action` which is the most popular GitHub Action for SSH commands. It connects to the droplet, pulls the latest code, and rebuilds the containers.
+
+The full flow:
+```
+Push to main -> GitHub Action triggers -> SSH into droplet -> git pull -> docker compose up --build
+```
+
+**Step 3 (optional): Add a build-and-test job first**
+
+You can add a preceding job that runs tests before deploying:
+
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
+      - name: Run backend tests
+        run: ./mvnw test
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run frontend tests
+        run: cd frontend && npm ci && npm test
+
+  deploy:
+    needs: test                    # Only deploy if tests pass
+    runs-on: ubuntu-latest
+    # ... (same as above)
+```
+
+#### Centralized Logging with Dozzle
+
+For reading container logs from a web browser, **Dozzle** is a lightweight, real-time log viewer for Docker. It is a single container with no database, no agents, and no configuration -- it reads directly from Docker's log stream.
+
+Add it to `docker-compose.prod.yml`:
+
+```yaml
+services:
+  # ... (existing app, db, valkey, caddy services)
+
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro    # Read-only access to Docker
+    ports:
+      - "127.0.0.1:8888:8080"                           # Only accessible locally, not from internet
+    environment:
+      DOZZLE_USERNAME: admin                             # Basic auth
+      DOZZLE_PASSWORD: ${DOZZLE_PASSWORD}                # Add to .env file
+    restart: unless-stopped
+```
+
+Key details:
+- **`127.0.0.1:8888:8080`**: Dozzle is bound to localhost only, so it's not exposed to the internet. You access it via SSH tunnel.
+- The Docker socket is mounted read-only so Dozzle can read logs but cannot start/stop/modify containers.
+
+**Accessing Dozzle from your machine:**
+
+```bash
+# Open an SSH tunnel from your machine to the droplet
+ssh -L 8888:localhost:8888 root@your-droplet-ip
+
+# Then open http://localhost:8888 in your browser
+```
+
+This gives you a real-time web UI showing logs from all containers (app, db, valkey, caddy) with filtering, search, and color-coded output. No log files to manage, no external services, no costs.
+
+#### Structured Application Logging
+
+To make the logs more useful, configure Spring Boot to output structured JSON logs (easier to search and filter):
+
+In `application-prod.yml`:
+
+```yaml
+logging:
+  structured:
+    format:
+      console: logfmt                  # Structured log format (key=value pairs)
+  level:
+    root: INFO
+    com.fantabet: DEBUG                # More verbose logging for our code
+    org.springframework.security: INFO
+```
+
+This outputs logs like:
+```
+timestamp=2026-03-12T10:00:00Z level=INFO logger=com.fantabet.fantabet.controller.AuthController message="User logged in" username=cicciofrizzo
+```
+
+Which is much easier to search in Dozzle than unstructured text.
+
+### Unified Build with Maven Frontend Plugin
+
+The `frontend-maven-plugin` integrates the Angular build into Maven so that a single `./mvnw package` command builds both the frontend and backend into one deployable JAR. This is the standard approach for the project -- all builds go through Maven.
+
+The plugin works by:
+1. Downloading and installing a local copy of Node.js and npm into the project (in `frontend/node/`). This means **the CI server and the Dockerfile don't need Node.js pre-installed** -- Maven handles it.
+2. Running `npm ci` to install frontend dependencies.
+3. Running the Angular production build.
+4. The `maven-resources-plugin` then copies the Angular output into `target/classes/static/`, where Spring Boot picks it up as static resources.
+
+Add both plugins to the `<build><plugins>` section of `pom.xml`:
 
 ```xml
+<!-- 1. Build Angular via Maven -->
 <plugin>
     <groupId>com.github.eirslett</groupId>
     <artifactId>frontend-maven-plugin</artifactId>
-    <version>1.15.0</version>
+    <version>1.15.1</version>
     <configuration>
         <workingDirectory>frontend</workingDirectory>
         <nodeVersion>v20.11.0</nodeVersion>
@@ -1650,9 +2283,61 @@ Instead of manually running `npm` and copying files, the `frontend-maven-plugin`
         </execution>
     </executions>
 </plugin>
+
+<!-- 2. Copy Angular build output into Spring Boot's static resources -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <executions>
+        <execution>
+            <id>copy-frontend</id>
+            <phase>generate-resources</phase>
+            <goals><goal>copy-resources</goal></goals>
+            <configuration>
+                <outputDirectory>${project.build.directory}/classes/static</outputDirectory>
+                <resources>
+                    <resource>
+                        <directory>frontend/dist/frontend/browser</directory>
+                    </resource>
+                </resources>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ```
 
-Combined with a `maven-resources-plugin` execution to copy the built files to `target/classes/static/`, this makes `./mvnw package` build everything -- frontend and backend -- in one command.
+Now the complete build is a single command:
+
+```bash
+# Build everything: install Node, install npm deps, build Angular, compile Kotlin, package JAR
+./mvnw clean package
+
+# The resulting JAR includes Angular's files in /static and is fully self-contained
+java -jar target/fantabet-0.0.1-SNAPSHOT.jar
+```
+
+This also simplifies the Dockerfile since you don't need a separate Node.js build stage:
+
+```dockerfile
+# Stage 1: Build everything with Maven (it handles Node.js internally)
+FROM maven:3.9-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src/ src/
+COPY frontend/ frontend/
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime
+FROM amazoncorretto:21-alpine
+WORKDIR /app
+COPY --from=build /app/target/fantabet-*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+For daily development you still run `ng serve` separately (with the proxy) for live reload. The Maven-integrated build is for CI, Docker, and production packaging.
+
+Add `frontend/node/` and `frontend/node_modules/` to `.gitignore` to keep the downloaded Node.js and dependencies out of version control.
 
 ---
 
@@ -1661,18 +2346,21 @@ Combined with a `maven-resources-plugin` execution to copy the built files to `t
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Architecture | Decoupled SPA (Angular) + REST API (Spring Boot) | Clear separation, better UX, independent development |
+| State management | NgRx Store + Effects + Signals | Actions/reducers/effects separation, predictable, DevTools support |
 | Auth mechanism | Server-side sessions with HttpOnly cookies | Simple, secure, easily revocable |
 | CSRF protection | SameSite=Lax cookie attribute (no CSRF tokens) | Sufficient for SPA + JSON API; simpler than synchronizer tokens |
 | CORS | Not needed (same origin) | FE and BE both served from same domain |
 | Password hashing | Argon2 (already in place) | Best current algorithm for password hashing |
 | Database | PostgreSQL | Robust, free, excellent JPA support |
-| Session store | Redis (via spring-session-data-redis) | Sessions survive restarts, scalable |
+| Session store | Valkey in all environments (dev + prod) | Open source, dev/prod parity, survives restarts |
 | Schema management | Flyway versioned migrations | Reproducible, auditable schema history |
-| Build system | Maven (backend) + npm/Angular CLI (frontend) | Standard tools for each ecosystem |
+| Build system | Maven with frontend-maven-plugin | Single `mvnw package` builds FE + BE into one JAR |
 | Dev proxy | Angular `proxy.conf.json` forwarding `/api` to `:8080` | Avoids CORS in development, zero config |
-| Production deployment | Single JAR with Angular in `/static`, behind Caddy | One artifact, automatic HTTPS via Let's Encrypt |
+| Production deployment | DigitalOcean droplet, Caddy reverse proxy | Simple, cheap, automatic HTTPS via Let's Encrypt |
+| CI/CD | GitHub Actions SSH deploy on push to main | Automated, tests before deploy |
+| Logging | Dozzle (web UI) + structured logfmt output | Zero-config log viewer, easy to search |
 | Container runtime | Amazon Corretto 21 Alpine | AWS-backed, long-term support, small image |
-| Frontend linting | angular-eslint via `ng lint` | Zero-config, first-party Angular integration |
+| Frontend linting | angular-eslint + Prettier | ESLint for quality, Prettier for formatting |
 | Frontend testing | Jest + jest-preset-angular | Fast, no browser needed, large ecosystem |
 | Backend testing | JUnit 5 + MockK + MockMvc | Unit tests for services, integration tests for API |
 | ORM | JPA/Hibernate via Spring Data | Standard, well-documented, Kotlin-compatible with plugins |
