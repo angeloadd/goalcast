@@ -133,7 +133,7 @@ fantabet/                              # Git repository root
 |               +-- pipes/
 |
 +-- docs/                               # Project documentation
-|   +-- research.md                     # This file
+|   +-- setup.md                        # This file
 |
 +-- docker-compose.yml                  # Local dev: PostgreSQL + optionally pgAdmin
 +-- Dockerfile                          # Multi-stage build for production
@@ -1553,17 +1553,17 @@ Production:
 
 ### Required Tools
 
-| Tool | Purpose | Install |
-|------|---------|---------|
-| JDK 21 | Run Spring Boot | `brew install openjdk@21` |
-| Maven (via wrapper) | Build backend | Already in project (`mvnw`) |
-| Node.js 20+ | Run Angular tooling | `brew install node` |
-| npm | Manage JS dependencies | Comes with Node.js |
-| Angular CLI | Scaffold and manage Angular | `npm install -g @angular/cli` |
-| angular-eslint | Lint TypeScript and templates | `ng add @angular-eslint/schematics` |
-| Jest | Frontend unit testing | `npm install --save-dev jest jest-preset-angular @types/jest` |
-| Docker & Docker Compose | Run PostgreSQL + Valkey locally | `brew install --cask docker` |
-| IntelliJ IDEA | IDE for Kotlin + Angular | Already in use |
+| Tool                    | Purpose                         | Install                                            |
+|-------------------------|---------------------------------|----------------------------------------------------|
+| JDK 21                  | Run Spring Boot                 | `brew install openjdk@21`                          |
+| Maven (via wrapper)     | Build backend                   | Already in project (`mvnw`)                        |
+| Node.js 20+             | Run Angular tooling             | `brew install node`                                |
+| npm                     | Manage JS dependencies          | Comes with Node.js                                 |
+| Angular CLI             | Scaffold and manage Angular     | `npm install -g @angular/cli`                      |
+| angular-eslint          | Lint TypeScript and templates   | `ng add @angular-eslint/schematics`                |
+| Vitest                  | Frontend unit testing           | Ships with Angular 21 (`@angular/build:unit-test`) |
+| Docker & Docker Compose | Run PostgreSQL + Valkey locally | `brew install --cask docker`                       |
+| IntelliJ IDEA           | IDE for Kotlin + Angular        | Already in use                                     |
 
 ### TypeScript Linting with angular-eslint
 
@@ -1794,89 +1794,53 @@ Add H2 for test scope:
 </dependency>
 ```
 
-### Frontend Testing with Jest
+### Frontend Testing with Vitest
 
-Instead of Angular's default Karma + Jasmine setup, we use **Jest** with **jest-preset-angular**. Jest is faster (runs tests in parallel, no browser needed), has better developer experience (watch mode, snapshot testing), and has a much larger ecosystem.
+Angular 21 ships with **Vitest** as the built-in test runner via `@angular/build:unit-test`. No additional setup is
+needed -- `ng new` scaffolds everything automatically, including `vitest/globals` types in `tsconfig.spec.json`.
 
-**Setup** (from `frontend/` directory):
+Vitest runs tests in a jsdom environment without a browser, supports watch mode, and is significantly faster than the
+old Karma + Jasmine setup. It uses the same `describe`, `it`, `expect` API. Angular's `TestBed` and
+`HttpTestingController` work unchanged.
+
+**Running tests:**
 
 ```bash
-# Install Jest and the Angular preset
-npm install --save-dev jest jest-preset-angular @types/jest
-
-# Remove Karma/Jasmine (installed by Angular CLI by default)
-npm uninstall karma karma-chrome-launcher karma-coverage karma-jasmine karma-jasmine-html-reporter
+npm test                # Single run
+npm run test:watch      # Watch mode (re-runs on file changes)
+npm run test:coverage   # With coverage report
 ```
 
-Create `frontend/jest.config.ts`:
-
-```typescript
-import type { Config } from 'jest';
-
-const config: Config = {
-  preset: 'jest-preset-angular',
-  setupFilesAfterSetup: ['<rootDir>/setup-jest.ts'],
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-};
-
-export default config;
-```
-
-Create `frontend/setup-jest.ts`:
-
-```typescript
-import 'jest-preset-angular/setup-jest';
-```
-
-Update `frontend/tsconfig.spec.json` to use Jest types instead of Jasmine:
+The `angular.json` test target is already configured:
 
 ```json
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./out-tsc/spec",
-    "types": ["jest"]
-  },
-  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
+"test": {
+"builder": "@angular/build:unit-test"
 }
 ```
 
-Update `frontend/package.json` scripts:
-
-```json
-{
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
-  }
-}
-```
-
-Now tests run with `npm test` (or `jest --watch` for continuous feedback during development).
-
-The test syntax is nearly identical to Jasmine -- `describe`, `it`, `expect` all work the same way. Angular's `TestBed` and `HttpTestingController` work unchanged with Jest:
+**Example test** (using `TestBed` and `HttpTestingController`):
 
 ```typescript
-describe('AuthService', () => {
-  let service: AuthService;
+describe('AuthApiService', () => {
+  let http: HttpClient;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()]
     });
-    service = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
-  it('should set current user on successful login', () => {
+  it('should call login endpoint', () => {
     const mockUser = { username: 'cicciofrizzo', roles: ['USER'] };
 
-    service.login('cicciofrizzo', 'Adamo123').subscribe(user => {
-      expect(user).toEqual(mockUser);
-      expect(service.isLoggedIn()).toBe(true);
-    });
+    http.post('/api/auth/login', { username: 'cicciofrizzo', password: 'Adamo123' })
+      .subscribe(user => {
+        expect(user).toEqual(mockUser);
+      });
 
     const req = httpMock.expectOne('/api/auth/login');
     expect(req.request.method).toBe('POST');
@@ -1885,13 +1849,15 @@ describe('AuthService', () => {
 });
 ```
 
-Note: the only syntax difference from Jasmine is matchers like `toBeTrue()` become `toBe(true)` in Jest.
+Vitest provides `vi.fn()` and `vi.spyOn()` for mocking (instead of Jest's `jest.fn()`). The `vi` global is available
+automatically via the `vitest/globals` types.
 
 ### Testing Strategy: No E2E for Now
 
 The testing approach focuses on two layers:
 
-- **Frontend unit tests (Jest)**: Test core logic in Angular services, guards, and interceptors. Mock HTTP calls with `HttpTestingController`. Fast, reliable, easy to maintain.
+- **Frontend unit tests (Vitest)**: Test core logic in Angular services, guards, and interceptors. Mock HTTP calls with
+  `HttpTestingController`. Fast, reliable, easy to maintain.
 - **Backend integration tests (MockMvc / @SpringBootTest)**: Test the full request lifecycle from HTTP to database and back. These cover the API contract, security rules, and data flow. Since Spring Boot integration tests spin up the actual application context and hit a real (in-memory H2) database, they provide high confidence without the complexity of browser-based E2E tests.
 
 This combination covers the most critical paths. E2E tests (Cypress, Playwright) can be added later if needed, but the setup and maintenance cost is high relative to the value they add at this stage.
@@ -2343,24 +2309,24 @@ Add `frontend/node/` and `frontend/node_modules/` to `.gitignore` to keep the do
 
 ## Summary of Key Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Architecture | Decoupled SPA (Angular) + REST API (Spring Boot) | Clear separation, better UX, independent development |
-| State management | NgRx Store + Effects + Signals | Actions/reducers/effects separation, predictable, DevTools support |
-| Auth mechanism | Server-side sessions with HttpOnly cookies | Simple, secure, easily revocable |
-| CSRF protection | SameSite=Lax cookie attribute (no CSRF tokens) | Sufficient for SPA + JSON API; simpler than synchronizer tokens |
-| CORS | Not needed (same origin) | FE and BE both served from same domain |
-| Password hashing | Argon2 (already in place) | Best current algorithm for password hashing |
-| Database | PostgreSQL | Robust, free, excellent JPA support |
-| Session store | Valkey in all environments (dev + prod) | Open source, dev/prod parity, survives restarts |
-| Schema management | Flyway versioned migrations | Reproducible, auditable schema history |
-| Build system | Maven with frontend-maven-plugin | Single `mvnw package` builds FE + BE into one JAR |
-| Dev proxy | Angular `proxy.conf.json` forwarding `/api` to `:8080` | Avoids CORS in development, zero config |
-| Production deployment | DigitalOcean droplet, Caddy reverse proxy | Simple, cheap, automatic HTTPS via Let's Encrypt |
-| CI/CD | GitHub Actions SSH deploy on push to main | Automated, tests before deploy |
-| Logging | Dozzle (web UI) + structured logfmt output | Zero-config log viewer, easy to search |
-| Container runtime | Amazon Corretto 21 Alpine | AWS-backed, long-term support, small image |
-| Frontend linting | angular-eslint + Prettier | ESLint for quality, Prettier for formatting |
-| Frontend testing | Jest + jest-preset-angular | Fast, no browser needed, large ecosystem |
-| Backend testing | JUnit 5 + MockK + MockMvc | Unit tests for services, integration tests for API |
-| ORM | JPA/Hibernate via Spring Data | Standard, well-documented, Kotlin-compatible with plugins |
+| Decision              | Choice                                                 | Rationale                                                          |
+|-----------------------|--------------------------------------------------------|--------------------------------------------------------------------|
+| Architecture          | Decoupled SPA (Angular) + REST API (Spring Boot)       | Clear separation, better UX, independent development               |
+| State management      | NgRx Store + Effects + Signals                         | Actions/reducers/effects separation, predictable, DevTools support |
+| Auth mechanism        | Server-side sessions with HttpOnly cookies             | Simple, secure, easily revocable                                   |
+| CSRF protection       | SameSite=Lax cookie attribute (no CSRF tokens)         | Sufficient for SPA + JSON API; simpler than synchronizer tokens    |
+| CORS                  | Not needed (same origin)                               | FE and BE both served from same domain                             |
+| Password hashing      | Argon2 (already in place)                              | Best current algorithm for password hashing                        |
+| Database              | PostgreSQL                                             | Robust, free, excellent JPA support                                |
+| Session store         | Valkey in all environments (dev + prod)                | Open source, dev/prod parity, survives restarts                    |
+| Schema management     | Flyway versioned migrations                            | Reproducible, auditable schema history                             |
+| Build system          | Maven with frontend-maven-plugin                       | Single `mvnw package` builds FE + BE into one JAR                  |
+| Dev proxy             | Angular `proxy.conf.json` forwarding `/api` to `:8080` | Avoids CORS in development, zero config                            |
+| Production deployment | DigitalOcean droplet, Caddy reverse proxy              | Simple, cheap, automatic HTTPS via Let's Encrypt                   |
+| CI/CD                 | GitHub Actions SSH deploy on push to main              | Automated, tests before deploy                                     |
+| Logging               | Dozzle (web UI) + structured logfmt output             | Zero-config log viewer, easy to search                             |
+| Container runtime     | Amazon Corretto 21 Alpine                              | AWS-backed, long-term support, small image                         |
+| Frontend linting      | angular-eslint + Prettier                              | ESLint for quality, Prettier for formatting                        |
+| Frontend testing      | Vitest (Angular 21 built-in)                           | Fast, no browser needed, ships with Angular                        |
+| Backend testing       | JUnit 5 + MockK + MockMvc                              | Unit tests for services, integration tests for API                 |
+| ORM                   | JPA/Hibernate via Spring Data                          | Standard, well-documented, Kotlin-compatible with plugins          |

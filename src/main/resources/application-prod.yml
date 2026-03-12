@@ -1,0 +1,14 @@
+server:
+    servlet:
+        session:
+            cookie:
+                secure: true
+
+logging:
+    structured:
+        format:
+            console: logfmt
+    level:
+        root: INFO
+        com.fantabet: DEBUG
+        org.springframework.security: INFO

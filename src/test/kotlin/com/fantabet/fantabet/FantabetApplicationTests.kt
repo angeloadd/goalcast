@@ -1,18 +1,14 @@
 package com.fantabet.fantabet
 
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.context.ActiveProfiles
 
-@SpringBootTest(classes = [FantabetApplication::class], webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-class FantabetApplicationTests() {
-	@Autowired protected lateinit var mvc: MockMvc
+@SpringBootTest
+@ActiveProfiles("test")
+class FantabetApplicationTests {
 
-	@Test
-	fun contextLoads() {
-	}
-
+    @Test
+    fun contextLoads() {
+    }
 }
