@@ -16,7 +16,11 @@
 
 - [x] Add `spring-boot-starter-data-jpa` (no version)
 - [x] Add `postgresql` runtime dependency (no version)
-- [x] Add `flyway-core` and `flyway-database-postgresql` (no version)
+- [x] Add `spring-boot-starter-flyway` and `flyway-database-postgresql` (no version)
+  - **Note:** Originally used `flyway-core` directly, but in Spring Boot 4.x the autoconfiguration was modularized into
+    separate modules. Having just `flyway-core` on the classpath no longer triggers `FlywayAutoConfiguration` — the
+    starter (`spring-boot-starter-flyway`) is required because it pulls in `spring-boot-flyway-autoconfigure` which
+    registers the Flyway bean and runs migrations before Hibernate validates the schema.
 - [x] Add `spring-boot-starter-validation` (no version)
 - [x] Add `spring-session-data-redis` (no version)
 - [x] Add `spring-boot-starter-data-redis` (no version)
@@ -117,6 +121,10 @@ protected endpoints return 401 JSON.
 - [x] Install `@ngrx/store`, `@ngrx/effects`, `@ngrx/store-devtools`
 - [x] Create `auth.actions.ts` (Login, Login Success, Login Failure, Logout, Logout Success, Check Session, Check
   Session Success, Check Session Failure, Clear Error)
+  - **Note:** Prefer using `createAction` with individual exports over `createActionGroup`. While `createActionGroup` is
+    more concise, individual `createAction` calls improve readability and are easier to find via IntelliJ's symbol
+    search (Cmd+Shift+F / Find Usages). Each action becomes a distinct named export rather than a property on a group
+    object, making refactoring and navigation more straightforward. This should be refactored in a future pass.
 - [x] Create `auth.reducer.ts` (AuthState: user, loading, error; handle all actions)
 - [x] Create `auth.selectors.ts` (selectCurrentUser, selectIsLoggedIn, selectAuthLoading, selectAuthError)
 - [x] Create `auth-api.service.ts` (login, logout, getCurrentUser via HttpClient)

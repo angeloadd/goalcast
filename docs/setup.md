@@ -172,7 +172,11 @@ The project's `pom.xml` inherits from `spring-boot-starter-parent` (version 4.0.
 - **Third-party libraries NOT managed by Spring Boot** (like BouncyCastle `bcprov-jdk18on`): These **do need an explicit version** because Spring Boot doesn't know about them.
 
 Rule of thumb: try without a `<version>` tag first. If Maven complains about a missing version, then add one. You can check which versions Spring Boot manages by looking at the [Spring Boot dependency versions page](https://docs.spring.io/spring-boot/appendix/dependency-versions/) for your version (4.0.3).
-
+**Important:** In Spring Boot 4.x, the autoconfiguration was modularized into separate packages. Using `flyway-core`
+alone no longer triggers `FlywayAutoConfiguration` — you must use `spring-boot-starter-flyway` instead, which pulls in
+the `spring-boot-flyway-autoconfigure` module that registers the Flyway bean and runs migrations before Hibernate
+validates the schema. Without the starter, Flyway sits on the classpath but never executes, causing Hibernate's
+`ddl-auto: validate` to fail with "missing table" errors.
 ```xml
 <!-- Database - no version needed, managed by spring-boot-starter-parent -->
 <dependency>
@@ -185,10 +189,10 @@ Rule of thumb: try without a `<version>` tag first. If Maven complains about a m
     <scope>runtime</scope>
 </dependency>
 
-<!-- Database migrations - no version needed, managed by parent -->
+        <!-- Database migrations - starter required for autoconfiguration in Spring Boot 4.x -->
 <dependency>
-    <groupId>org.flywaydb</groupId>
-    <artifactId>flyway-core</artifactId>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-flyway</artifactId>
 </dependency>
 <dependency>
     <groupId>org.flywaydb</groupId>
@@ -480,34 +484,35 @@ This second approach is slightly better because the `@ngrx/store-devtools` code 
 #### Actions (What Happened)
 
 Actions are simple objects that describe events. They carry no logic. Think of them as a log of "things that happened in the application":
-
+**Preference:** Use individual `createAction` calls instead of `createActionGroup`. While `createActionGroup` is more
+concise, individual `createAction` exports are easier to read and work better with IntelliJ's symbol search (
+Cmd+Shift+F / Find Usages) — each action is a distinct named export rather than a property on a group object, making
+navigation and refactoring more straightforward.
 ```typescript
 // core/auth/auth.actions.ts
-import { createActionGroup, emptyProps, props } from '@ngrx/store';
+import {createAction, props} from '@ngrx/store';
+import {User} from '../../shared/models/user.model';
 
-export const AuthActions = createActionGroup({
-  source: 'Auth',
-  events: {
-    // Triggered by the service when the user submits the login form
-    'Login': props<{ username: string; password: string }>(),
-    // Triggered by the effect when the API call succeeds
-    'Login Success': props<{ user: User }>(),
-    // Triggered by the effect when the API call fails
-    'Login Failure': props<{ error: string }>(),
+// Triggered by the service when the user submits the login form
+export const login = createAction('[Auth] Login', props<{ username: string; password: string }>());
+// Triggered by the effect when the API call succeeds
+export const loginSuccess = createAction('[Auth] Login Success', props<{ user: User }>());
+// Triggered by the effect when the API call fails
+export const loginFailure = createAction('[Auth] Login Failure', props<{ error: string }>());
 
-    'Logout': emptyProps(),
-    'Logout Success': emptyProps(),
+export const logout = createAction('[Auth] Logout');
+export const logoutSuccess = createAction('[Auth] Logout Success');
 
-    'Check Session': emptyProps(),
-    'Check Session Success': props<{ user: User }>(),
-    'Check Session Failure': emptyProps(),
+export const checkSession = createAction('[Auth] Check Session');
+export const checkSessionSuccess = createAction('[Auth] Check Session Success', props<{ user: User }>());
+export const checkSessionFailure = createAction('[Auth] Check Session Failure');
 
-    'Clear Error': emptyProps(),
-  },
-});
+export const clearError = createAction('[Auth] Clear Error');
 ```
 
-`createActionGroup` generates typed action creators. `AuthActions.login({ username, password })` creates the action object. `AuthActions.loginSuccess({ user })` creates the success action. These are just data -- no logic, no side effects.
+Each `createAction` call produces a typed action creator. `login({ username, password })` creates the action object.
+`loginSuccess({ user })` creates the success action. These are just data -- no logic, no side effects. Each action is a
+standalone named export, making it easy to find usages and navigate via IDE search.
 
 #### Reducer (Pure State Transitions)
 
