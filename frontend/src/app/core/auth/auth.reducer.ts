@@ -7,6 +7,7 @@ import {
   userLoginSucceeded,
   userLogoutFailed,
   userLogoutSucceeded,
+  userRegistrationStarted,
   userSessionCheckFailed,
   userSessionCheckStarted,
   userSessionCheckSucceeded
@@ -28,7 +29,7 @@ export const initialAuthState: AuthState = {
 export const authReducer = createReducer(
   initialAuthState,
 
-  on(userLoginStarted, (state) => ({
+  on(userLoginStarted, userRegistrationStarted, (state) => ({
     ...state,
     loading: true,
     error: null,

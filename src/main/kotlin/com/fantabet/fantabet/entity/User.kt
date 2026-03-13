@@ -1,4 +1,4 @@
-package com.fantabet.fantabet.model
+package com.fantabet.fantabet.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

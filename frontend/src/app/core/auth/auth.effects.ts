@@ -9,6 +9,9 @@ import {
   userLoginSucceeded,
   userLogoutStarted,
   userLogoutSucceeded,
+  userRegistrationFailed,
+  userRegistrationStarted,
+  userRegistrationSucceeded,
   userSessionCheckFailed,
   userSessionCheckStarted,
   userSessionCheckSucceeded
@@ -75,4 +78,24 @@ export class AuthEffects {
       ),
     ),
   );
+
+  register$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(userRegistrationStarted),
+      switchMap(({username, email, password}) =>
+        this.authApi.registerUser(username, email, password).pipe(
+          map((user) => userRegistrationSucceeded({user})),
+          catchError((error) =>
+            of(userRegistrationFailed({error})),
+          ),
+        ),
+      )
+    )
+  )
+
+  registerSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(userRegistrationSucceeded),
+      tap(() => this.router.navigate(['/login']))
+    ), {dispatch: false})
 }

@@ -40,7 +40,7 @@ class AuthController(
         )
 
         val user = authentication.principal as UserDetails
-        return ResponseEntity.ok(UserDto(user.username, user.authorities.mapNotNull { it.authority }))
+        return ResponseEntity.ok(UserDto(user.username, user.username, user.authorities.mapNotNull { it.authority }))
     }
 
     @PostMapping("/register")
@@ -52,7 +52,7 @@ class AuthController(
     @GetMapping("/me")
     fun getCurrentUser(@AuthenticationPrincipal user: UserDetails?): ResponseEntity<UserDto> {
         return if (user != null) {
-            ResponseEntity.ok(UserDto(user.username, user.authorities.mapNotNull { it.authority }))
+            ResponseEntity.ok(UserDto(user.username, user.username, user.authorities.mapNotNull { it.authority }))
         } else {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }

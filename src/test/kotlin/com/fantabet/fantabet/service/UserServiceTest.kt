@@ -1,7 +1,6 @@
 package com.fantabet.fantabet.service
 
 import com.fantabet.fantabet.dto.RegisterRequest
-import com.fantabet.fantabet.model.User
 import com.fantabet.fantabet.repository.UserRepository
 import io.mockk.every
 import io.mockk.mockk

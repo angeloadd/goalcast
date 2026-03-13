@@ -1,6 +1,6 @@
 package com.fantabet.fantabet.repository
 
-import com.fantabet.fantabet.model.User
+import com.fantabet.fantabet.entity.User
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface UserRepository : JpaRepository<User, Long> {

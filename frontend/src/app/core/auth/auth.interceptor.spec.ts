@@ -1,9 +1,9 @@
-import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
-import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { authInterceptor } from './auth.interceptor';
-import { AuthActions } from './auth.actions';
+import {HttpClient, provideHttpClient, withInterceptors} from '@angular/common/http';
+import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
+import {MockStore, provideMockStore} from '@ngrx/store/testing';
+import {authInterceptor} from './auth.interceptor';
+import {userLogoutStarted} from './auth.actions';
 
 describe('authInterceptor', () => {
     let http: HttpClient;
@@ -39,7 +39,7 @@ describe('authInterceptor', () => {
         http.get('/api/auth/me').subscribe({ error: () => undefined });
         const req = httpMock.expectOne('/api/auth/me');
         req.flush({}, { status: 401, statusText: 'Unauthorized' });
-        expect(dispatchSpy).toHaveBeenCalledWith(AuthActions.logout());
+      expect(dispatchSpy).toHaveBeenCalledWith(userLogoutStarted());
     });
 
     it('should not dispatch logout on 401 for login requests', () => {

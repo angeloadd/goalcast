@@ -2,7 +2,7 @@ package com.fantabet.fantabet.service
 
 import com.fantabet.fantabet.dto.RegisterRequest
 import com.fantabet.fantabet.dto.UserDto
-import com.fantabet.fantabet.model.User
+import com.fantabet.fantabet.entity.User
 import com.fantabet.fantabet.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -30,6 +30,6 @@ class UserService(
         )
         userRepository.save(user)
 
-        return UserDto(user.username, listOf("ROLE_USER"))
+        return UserDto(user.username, user.email, listOf("ROLE_USER"))
     }
 }

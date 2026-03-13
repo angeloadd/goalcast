@@ -1,6 +1,7 @@
 package com.fantabet.fantabet.dto
 
 data class UserDto(
-    val username: String,
+    val username: String = "ciao",
+    val email: String,
     val roles: List<String>,
 )
