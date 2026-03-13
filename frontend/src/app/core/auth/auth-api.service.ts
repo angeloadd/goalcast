@@ -1,7 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
-import {User} from '../../shared/models/user.model';
+import {User} from '@fb/shared/models/user.model';
 
 @Injectable({providedIn: 'root'})
 export class AuthApiService {
@@ -9,6 +9,10 @@ export class AuthApiService {
 
   login(username: string, password: string): Observable<User> {
     return this.http.post<User>('/api/auth/login', {username, password});
+  }
+
+  registerUser(username: string, email: string, password: string): Observable<User> {
+    return this.http.post<User>('/api/auth/register', {username, email, password});
   }
 
   logout(): Observable<void> {

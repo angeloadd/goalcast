@@ -2,8 +2,17 @@ import {inject, Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {catchError, map, of, switchMap, tap} from 'rxjs';
-import {AuthActions} from './auth.actions';
-import {AuthApiService} from './auth-api.service';
+import {AuthApiService} from '@fb/core/auth/auth-api.service';
+import {
+  userLoginFailed,
+  userLoginStarted,
+  userLoginSucceeded,
+  userLogoutStarted,
+  userLogoutSucceeded,
+  userSessionCheckFailed,
+  userSessionCheckStarted,
+  userSessionCheckSucceeded
+} from '@fb/core/auth/auth.actions';
 
 @Injectable()
 export class AuthEffects {
@@ -13,12 +22,12 @@ export class AuthEffects {
 
   login$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.login),
-      switchMap(({username, password}) =>
-        this.authApi.login(username, password).pipe(
-          map((user) => AuthActions.loginSuccess({user})),
-          catchError(() =>
-            of(AuthActions.loginFailure({error: 'Invalid credentials'})),
+      ofType(userLoginStarted),
+      switchMap(({email, password}) =>
+        this.authApi.login(email, password).pipe(
+          map((user) => userLoginSucceeded({user})),
+          catchError((error) =>
+            of(userLoginFailed({error})),
           ),
         ),
       ),
@@ -28,7 +37,7 @@ export class AuthEffects {
   loginSuccess$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.loginSuccess),
+        ofType(userLoginSucceeded),
         tap(() => this.router.navigate(['/dashboard'])),
       ),
     {dispatch: false},
@@ -36,11 +45,11 @@ export class AuthEffects {
 
   logout$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.logout),
+      ofType(userLogoutStarted),
       switchMap(() =>
         this.authApi.logout().pipe(
-          map(() => AuthActions.logoutSuccess()),
-          catchError(() => of(AuthActions.logoutSuccess())),
+          map(() => userLogoutSucceeded()),
+          catchError(() => of(userLoginFailed)),
         ),
       ),
     ),
@@ -49,7 +58,7 @@ export class AuthEffects {
   logoutSuccess$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.logoutSuccess),
+        ofType(userLogoutSucceeded),
         tap(() => this.router.navigate(['/login'])),
       ),
     {dispatch: false},
@@ -57,11 +66,11 @@ export class AuthEffects {
 
   checkSession$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.checkSession),
+      ofType(userSessionCheckStarted),
       switchMap(() =>
         this.authApi.getCurrentUser().pipe(
-          map((user) => AuthActions.checkSessionSuccess({user})),
-          catchError(() => of(AuthActions.checkSessionFailure())),
+          map((user) => userSessionCheckSucceeded({user})),
+          catchError(() => of(userSessionCheckFailed())),
         ),
       ),
     ),

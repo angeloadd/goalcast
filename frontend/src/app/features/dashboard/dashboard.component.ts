@@ -1,17 +1,19 @@
 import {Component, inject} from '@angular/core';
 import {Store} from '@ngrx/store';
-import {AuthActions} from '../../core/auth/auth.actions';
-import {selectCurrentUser, selectIsLoggedIn} from '../../core/auth/auth.selectors';
+import {selectCurrentUser, selectIsLoggedIn} from '@fb/core/auth/auth.selectors';
+import {LoginComponent} from '@fb/features/login/login.component';
+import {RegisterComponent} from '@fb/features/register/register.component';
+import {userLogoutStarted} from '@fb/core/auth/auth.actions';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  template: `
-        @if (isLoggedIn()) {
-            <h1>Welcome, {{ user()?.username }}</h1>
-            <button (click)="onLogout()">Logout</button>
-        }
-    `,
+  templateUrl: 'dashboard.component.html',
+  styleUrl: 'dashboard.component.scss',
+  imports: [
+    LoginComponent,
+    RegisterComponent
+  ]
 })
 export class DashboardComponent {
   private store = inject(Store);
@@ -20,6 +22,6 @@ export class DashboardComponent {
   isLoggedIn = this.store.selectSignal(selectIsLoggedIn);
 
   onLogout(): void {
-    this.store.dispatch(AuthActions.logout());
+    this.store.dispatch(userLogoutStarted());
   }
 }

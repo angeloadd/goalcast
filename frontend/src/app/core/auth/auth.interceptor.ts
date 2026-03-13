@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {catchError, throwError} from 'rxjs';
-import {AuthActions} from './auth.actions';
+import {userLogoutStarted} from '@fb/core/auth/auth.actions';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const store = inject(Store);
@@ -11,7 +11,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !req.url.includes('/api/auth/login')) {
-        store.dispatch(AuthActions.logout());
+        store.dispatch(userLogoutStarted());
       }
       return throwError(() => error);
     }),

@@ -1,0 +1,8 @@
+@if (isLoggedIn()) {
+  <h1>Welcome, {{ user()?.username }}</h1>
+  <button (click)="onLogout()">Logout</button>
+} @else {
+  <p>Please login to view the dashboard.</p>
+  <fb-login></fb-login>
+  <fb-register></fb-register>
+}

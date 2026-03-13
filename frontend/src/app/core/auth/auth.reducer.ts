@@ -1,11 +1,22 @@
 import {createReducer, on} from '@ngrx/store';
-import {User} from '../../shared/models/user.model';
-import {AuthActions} from './auth.actions';
+import {User} from '@fb/shared/models/user.model';
+import {
+  userAuthErrorCleared,
+  userLoginFailed,
+  userLoginStarted,
+  userLoginSucceeded,
+  userLogoutFailed,
+  userLogoutSucceeded,
+  userSessionCheckFailed,
+  userSessionCheckStarted,
+  userSessionCheckSucceeded
+} from '@fb/core/auth/auth.actions';
+import {HttpErrorResponse} from '@angular/common/http';
 
 export interface AuthState {
   user: User | null;
   loading: boolean;
-  error: string | null;
+  error: HttpErrorResponse | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -17,51 +28,51 @@ export const initialAuthState: AuthState = {
 export const authReducer = createReducer(
   initialAuthState,
 
-  on(AuthActions.login, (state) => ({
+  on(userLoginStarted, (state) => ({
     ...state,
     loading: true,
     error: null,
   })),
 
-  on(AuthActions.loginSuccess, (state, {user}) => ({
+  on(userLoginSucceeded, (state, {user}) => ({
     ...state,
     user,
     loading: false,
   })),
 
-  on(AuthActions.loginFailure, (state, {error}) => ({
+  on(userLoginFailed, (state, {error}) => ({
     ...state,
     loading: false,
     error,
   })),
 
-  on(AuthActions.logout, (state) => ({
+  on(userLoginStarted, (state) => ({
     ...state,
     loading: true,
   })),
 
-  on(AuthActions.logoutSuccess, () => ({
+  on(userLogoutSucceeded, userLogoutFailed, () => ({
     ...initialAuthState,
   })),
 
-  on(AuthActions.checkSession, (state) => ({
+  on(userSessionCheckStarted, (state) => ({
     ...state,
     loading: true,
   })),
 
-  on(AuthActions.checkSessionSuccess, (state, {user}) => ({
+  on(userSessionCheckSucceeded, (state, {user}) => ({
     ...state,
     user,
     loading: false,
   })),
 
-  on(AuthActions.checkSessionFailure, (state) => ({
+  on(userSessionCheckFailed, (state) => ({
     ...state,
     user: null,
     loading: false,
   })),
 
-  on(AuthActions.clearError, (state) => ({
+  on(userAuthErrorCleared, (state) => ({
     ...state,
     error: null,
   })),
