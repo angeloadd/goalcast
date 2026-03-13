@@ -2,7 +2,7 @@ spring:
     application:
         name: fantabet
     datasource:
-        url: jdbc:postgresql://localhost:5432/fantabet
+        url: jdbc:postgresql://localhost:${DB_PORT:5433}/fantabet
         username: fantabet
         password: ${DB_PASSWORD:fantabet_dev}
     jpa:
