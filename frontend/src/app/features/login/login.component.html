@@ -1,11 +1,25 @@
-<form [formGroup]="form" (ngSubmit)="onLogin()">
-  <input formControlName="email" type="email" placeholder="Email" required/>
-  <br/>
-  <input formControlName="password" type="password" placeholder="Password" required/>
-  <button type="submit" [disabled]="loading()">Login</button>
-  @if (error()) {
-    <p class="error">{{ error() }}</p>
-  }
-</form>
-<br>
-<a href="/register">If you don't have an account, register!</a>
+<div class="max-w-lg mx-auto">
+  <div class="stat-card w-full">
+    <form [formGroup]="form" (ngSubmit)="onLogin()">
+      <fb-input-field
+        inputId="email"
+        [control]="controls.email"
+        placeholder="Email"
+        type="email"
+        [required]="true"
+      />
+      <fb-input-field
+        inputId="password"
+        [control]="controls.password"
+        placeholder="Password"
+        type="password"
+        [required]="true"
+      />
+      <button class="btn btn-default w-full" type="submit" [disabled]="loading()">Login</button>
+      <a class="btn btn-link" href="/register">If you don't have an account, register!</a>
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+    </form>
+  </div>
+</div>

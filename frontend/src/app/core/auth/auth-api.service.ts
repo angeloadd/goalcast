@@ -8,7 +8,7 @@ export class AuthApiService {
   private http = inject(HttpClient);
 
   login(username: string, password: string): Observable<User> {
-    return this.http.post<User>('/api/auth/login', {username, password});
+    return this.http.post<User>('/api/auth/login', {email: username, password});
   }
 
   registerUser(username: string, email: string, password: string): Observable<User> {

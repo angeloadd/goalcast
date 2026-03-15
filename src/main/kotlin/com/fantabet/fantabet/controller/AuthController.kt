@@ -1,8 +1,8 @@
 package com.fantabet.fantabet.controller
 
-import com.fantabet.fantabet.dto.LoginRequest
-import com.fantabet.fantabet.dto.RegisterRequest
 import com.fantabet.fantabet.dto.UserDto
+import com.fantabet.fantabet.dto.request.LoginRequest
+import com.fantabet.fantabet.dto.request.RegisterRequest
 import com.fantabet.fantabet.service.UserService
 import jakarta.servlet.http.HttpSession
 import jakarta.validation.Valid
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -27,8 +28,9 @@ class AuthController(
     private val userService: UserService,
 ) {
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest, session: HttpSession): ResponseEntity<UserDto> {
-        val authToken = UsernamePasswordAuthenticationToken(request.username, request.password)
+    @ResponseStatus(HttpStatus.OK)
+    fun login(@Valid @RequestBody request: LoginRequest, session: HttpSession): UserDto {
+        val authToken = UsernamePasswordAuthenticationToken(request.email, request.password)
         val authentication = authenticationManager.authenticate(authToken)
 
         val context = SecurityContextHolder.createEmptyContext()
@@ -40,14 +42,12 @@ class AuthController(
         )
 
         val user = authentication.principal as UserDetails
-        return ResponseEntity.ok(UserDto(user.username, user.username, user.authorities.mapNotNull { it.authority }))
+        return UserDto(user.username, user.username, user.authorities.mapNotNull { it.authority })
     }
 
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<UserDto> {
-        val user = userService.register(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(user)
-    }
+    @ResponseStatus(HttpStatus.CREATED)
+    fun register(@Valid @RequestBody request: RegisterRequest) = userService.register(request)
 
     @GetMapping("/me")
     fun getCurrentUser(@AuthenticationPrincipal user: UserDetails?): ResponseEntity<UserDto> {

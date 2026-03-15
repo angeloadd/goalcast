@@ -1,7 +1,7 @@
 package com.fantabet.fantabet.service
 
-import com.fantabet.fantabet.dto.RegisterRequest
 import com.fantabet.fantabet.dto.UserDto
+import com.fantabet.fantabet.dto.request.RegisterRequest
 import com.fantabet.fantabet.entity.User
 import com.fantabet.fantabet.repository.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder

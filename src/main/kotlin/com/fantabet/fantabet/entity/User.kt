@@ -18,10 +18,10 @@ class User(
     @Column(nullable = false, unique = true, length = 50)
     val username: String,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     val email: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     var password: String,
 
     @Column(name = "created_at", nullable = false, updatable = false)
