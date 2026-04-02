@@ -20,9 +20,9 @@ const ERROR_MESSAGES: Record<string, (params?: any) => string> = {
 export class InputFieldComponent {
   control = input.required<FormControl>()
   inputId = input.required<string>()
-  label = input<string>()
-  placeholder = input<string>()
+  label = input.required<string>()
   type = input.required<'text' | 'password' | 'email' | 'number'>()
+  placeholder = input<string | undefined>(undefined)
   required = input<boolean>(false)
   autocomplete = computed<string>(() => this.type() === 'password' ? 'off' : 'on')
 

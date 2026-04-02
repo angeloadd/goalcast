@@ -10,21 +10,22 @@
 
   <div class="relative">
     <input
-      class="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-md placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      class="flex h-12 w-full rounded-md border bg-background px-3 py-2 text-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
       [class.border-destructive]="hasError()"
-      [class.pr-10]="!!error"
+      [class.placeholder:text-muted-foreground]="!hasError()"
+      [class.text-destructive]="hasError()"
+      [class.pr-10]="!!error  "
       [id]="inputId()"
       [formControl]="control()"
       [type]="type()"
-      [placeholder]="placeholder()"
+      [placeholder]="placeholder() ?? label()"
       [required]="required()"
       [autocomplete]="autocomplete()"
     />
-    @if (hasError()) {
-      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-xl pointer-events-none text-destructive">
+    @if (!!error) {
+      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-xl pointer-events-none">
         <ng-icon name="heroExclamationCircle"/>
       </span>
-
     }
   </div>
 

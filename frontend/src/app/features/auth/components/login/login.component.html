@@ -1,9 +1,10 @@
-<div class="max-w-lg mx-auto">
+<div class="min-h-screen bg-primary flex items-center justify-center p-4">
   <div class="stat-card w-full">
     <form [formGroup]="form" (ngSubmit)="onLogin()">
       <fb-input-field
         inputId="email"
         [control]="controls.email"
+        label="Email"
         placeholder="Email"
         type="email"
         [required]="true"
@@ -11,7 +12,8 @@
       <fb-input-field
         inputId="password"
         [control]="controls.password"
-        placeholder="Password"
+        label="Password"
+        placeholder=""
         type="password"
         [required]="true"
       />
