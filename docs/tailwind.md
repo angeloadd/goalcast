@@ -164,6 +164,136 @@ These are applied contextually using existing tokens:
 | Match in progress | Pulsing green dot | `success` |
 | Locked / expired | Greyed out | `muted` + `opacity-50` |
 
+### 3.6 CSS Layers, `@apply`, and Style Organization
+
+Tailwind uses CSS cascade layers to control which styles win when there's a conflict. The layer order from lowest to
+highest priority is:
+
+```
+base  <  theme  <  components  <  utilities
+```
+
+Every style in the project should live in one of these layers. Styles placed outside any layer end up in a
+higher-priority implicit layer that overrides everything — including utilities — which breaks the system. The three
+layers we use in `styles.scss`:
+
+#### `@layer base` — Variables, resets, element defaults
+
+The `:root` / `.dark` color variables, the `*` border reset, `body` defaults, and heading styles all belong here. These
+are the lowest-priority styles — any component class or utility overrides them automatically.
+
+The `*` border reset is important for the design system: it makes every bare `border` or `border-b` use the `--border`
+token instead of the browser's `currentColor` default. Because it's in `@layer base`, utilities like
+`border-destructive` or `border-accent` override it cleanly.
+
+```css
+@layer base {
+  :root {
+    --background: 220 25% 97%;
+    --foreground: 220 60% 10%;
+    /* ... all color variables ... */
+  }
+
+  .dark {
+    --background: 220 60% 8%;
+    /* ... dark overrides ... */
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+}
+```
+
+#### `@layer components` — Reusable UI classes
+
+Component classes like `.btn`, `.match-card`, `.stat-card`, `.rank-badge`, and `.page-title` live here. The `components`
+layer sits between base and utilities in the cascade, which means:
+
+- Component classes override base resets (e.g. `.match-card` sets its own border color)
+- Utility classes override component classes (e.g. adding `p-8` to a `.stat-card` overrides its default padding)
+
+This is the key benefit: you can define sensible defaults in a component class and still override any property with a
+utility in the template when a specific instance needs it.
+
+**`@apply` for composing utilities inside component classes:** Use `@apply` to reference Tailwind utilities when
+defining component classes. This keeps the styles expressed in the same vocabulary as the rest of the project and
+ensures they stay in sync with theme tokens. Use raw CSS only for properties that don't have a Tailwind utility
+equivalent (gradients, custom shadows, transforms).
+
+```css
+@layer components {
+  .match-card {
+    @apply bg-card rounded-xl p-4 border border-border transition-all duration-300;
+  }
+
+  .match-card:hover {
+    @apply border-accent shadow-lg;
+    transform: translateY(-2px);
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap
+    rounded-md text-sm font-medium h-12 px-5;
+    transition: color 0.15s, background-color 0.15s;
+  }
+
+  .btn-gold {
+    @apply text-primary font-semibold transition-all duration-300;
+    background: var(--gradient-gold);
+    box-shadow: var(--shadow-gold);
+  }
+}
+```
+
+#### `@utility` — Single-purpose atomic classes
+
+For custom classes that behave exactly like built-in Tailwind utilities — single-purpose, no pseudo-selectors, no
+nesting. These sit in the highest layer and override everything else. They also integrate with Tailwind tooling (IDE
+autocomplete, variant support like `dark:`, `md:`).
+
+```css
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  max-width: 1400px;
+}
+
+@utility text-gradient-gold {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+```
+
+#### Summary
+
+| Layer               | What goes here                                                    | Can be overridden by       |
+|---------------------|-------------------------------------------------------------------|----------------------------|
+| `@layer base`       | `:root` / `.dark` variables, `*` reset, `body`, headings          | Components, utilities      |
+| `@layer components` | `.btn`, `.match-card`, `.stat-card`, `.rank-badge`, `.page-title` | Utilities                  |
+| `@utility`          | `.container`, `.text-gradient-gold`                               | Nothing (highest priority) |
+
+### 3.7 Additional Implementation Tokens
+
+The following tokens are defined in `styles.scss` but not listed in the semantic palette table above because they mirror
+other tokens or serve as internal implementation details:
+
+| Token                            | Value                              | Notes                                                                                                                                |
+|----------------------------------|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `input`                          | Same as `border` in both modes     | Separate token for input borders, allowing independent theming later                                                                 |
+| `popover` / `popover-foreground` | Same as `card` / `card-foreground` | For dropdown menus, tooltips, popovers                                                                                               |
+| `*-foreground` variants          | Per-token                          | Every surface token (`secondary`, `card`, `accent`, `destructive`, `success`) has a `-foreground` companion for text on that surface |
+
 ---
 
 ## 4. Typography
@@ -224,7 +354,11 @@ Max width `1400px`, centered, `2rem` horizontal padding. Defined as `@utility co
 
 ## 6. Component Classes
 
-All defined in `styles.scss` as plain CSS classes (not `@utility` — they need pseudo-selectors).
+All defined in `styles.scss` inside `@layer components`. This places them between base and utilities in the cascade —
+they override resets but can be overridden by utility classes in templates. Classes use `@apply` to compose Tailwind
+utilities where possible, with raw CSS for properties without utility equivalents (gradients, custom shadows,
+transforms). Pseudo-selectors (`:hover`, `:focus-visible`, `:disabled`) and nesting (`.btn svg`) are supported in
+`@layer components` but not in `@utility`.
 
 ### 6.1 Buttons
 
@@ -270,12 +404,19 @@ Compose: `<button class="btn btn-default btn-lg">Login</button>`
 | `.page-subtitle` | Muted secondary text |
 | `.sidebar-gradient` | Navy gradient for sidebar background |
 
-### 6.5 Utilities
+### 6.5 Custom Utilities (`@utility`)
+
+Single-purpose classes defined with `@utility` — highest cascade priority, support Tailwind variants (`dark:`, `md:`).
 
 | Class | Purpose |
 |-------|---------|
 | `.container` | Centered max-width wrapper |
 | `.text-gradient-gold` | Gold gradient text (background-clip) — scores, highlights |
+
+### 6.6 Base-Level Classes (`@layer base`)
+
+| Class           | Purpose                                    |
+|-----------------|--------------------------------------------|
 | `.font-display` | Bebas Neue display font with wide tracking |
 
 ---

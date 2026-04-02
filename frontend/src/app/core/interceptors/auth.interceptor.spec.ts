@@ -3,7 +3,7 @@ import {HttpTestingController, provideHttpClientTesting} from '@angular/common/h
 import {TestBed} from '@angular/core/testing';
 import {MockStore, provideMockStore} from '@ngrx/store/testing';
 import {authInterceptor} from './auth.interceptor';
-import {userLogoutStarted} from './auth.actions';
+import {userLogoutStarted} from '../state/auth/auth.actions';
 
 describe('authInterceptor', () => {
     let http: HttpClient;

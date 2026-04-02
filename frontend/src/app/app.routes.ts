@@ -1,8 +1,8 @@
 import {Routes} from '@angular/router';
-import {authGuard} from '@fb/core/auth/auth.guard';
-import {DashboardComponent} from '@fb/features/dashboard/dashboard.component';
-import {LoginComponent} from '@fb/features/login/login.component';
-import {RegisterComponent} from '@fb/features/register/register.component';
+import {authGuard} from '@fb/core/guards/auth.guard';
+import {LoginComponent} from '@fb/features/auth/components/login/login.component';
+import {RegisterComponent} from '@fb/features/auth/components/register/register.component';
+import {DashboardComponent} from '@fb/features/dashboard/components/dashboard/dashboard.component';
 
 export const routes: Routes = [
   {path: 'login', component: LoginComponent},

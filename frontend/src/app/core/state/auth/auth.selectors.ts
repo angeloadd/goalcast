@@ -1,5 +1,5 @@
 import {createFeatureSelector, createSelector} from '@ngrx/store';
-import {AuthState} from '@fb/core/auth/auth.reducer';
+import {AuthState} from '@fb/core/state/auth/auth.reducer';
 
 const selectAuthState = createFeatureSelector<AuthState>('auth');
 

@@ -2,7 +2,7 @@ import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {catchError, throwError} from 'rxjs';
-import {userLogoutStarted} from '@fb/core/auth/auth.actions';
+import {userLogoutStarted} from '@fb/core/state/auth/auth.actions';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const store = inject(Store);

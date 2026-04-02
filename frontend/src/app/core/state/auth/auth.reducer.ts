@@ -11,7 +11,7 @@ import {
   userSessionCheckFailed,
   userSessionCheckStarted,
   userSessionCheckSucceeded
-} from '@fb/core/auth/auth.actions';
+} from '@fb/core/state/auth/auth.actions';
 import {HttpErrorResponse} from '@angular/common/http';
 
 export interface AuthState {

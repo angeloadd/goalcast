@@ -1,8 +1,8 @@
 import {Component, inject} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
-import {userRegistrationStarted} from '@fb/core/auth/auth.actions';
-import {selectAuthError, selectAuthLoading} from '@fb/core/auth/auth.selectors';
+import {userRegistrationStarted} from '@fb/core/state/auth/auth.actions';
+import {selectAuthError, selectAuthLoading} from '@fb/core/state/auth/auth.selectors';
 
 @Component({
   selector: 'fb-register',

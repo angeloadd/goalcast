@@ -1,9 +1,9 @@
 import {Component, inject} from '@angular/core';
 import {Store} from '@ngrx/store';
-import {selectCurrentUser, selectIsLoggedIn} from '@fb/core/auth/auth.selectors';
-import {LoginComponent} from '@fb/features/login/login.component';
-import {RegisterComponent} from '@fb/features/register/register.component';
-import {userLogoutStarted} from '@fb/core/auth/auth.actions';
+import {selectCurrentUser, selectIsLoggedIn} from '@fb/core/state/auth/auth.selectors';
+import {userLogoutStarted} from '@fb/core/state/auth/auth.actions';
+import {LoginComponent} from '@fb/features/auth/components/login/login.component';
+import {RegisterComponent} from '@fb/features/auth/components/register/register.component';
 
 @Component({
   selector: 'app-dashboard',

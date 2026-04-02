@@ -1,8 +1,8 @@
 import {Component, inject} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Store} from '@ngrx/store';
-import {userLoginStarted} from '@fb/core/auth/auth.actions';
-import {selectAuthError, selectAuthLoading} from '@fb/core/auth/auth.selectors';
+import {userLoginStarted} from '@fb/core/state/auth/auth.actions';
+import {selectAuthError, selectAuthLoading} from '@fb/core/state/auth/auth.selectors';
 import {InputFieldComponent} from '@fb/shared/components/input/input-field.component';
 
 @Component({

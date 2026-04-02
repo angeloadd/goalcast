@@ -2,7 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {catchError, map, of, switchMap, tap} from 'rxjs';
-import {AuthApiService} from '@fb/core/auth/auth-api.service';
+import {AuthApiService} from '@fb/features/auth/services/auth-api.service';
 import {
   userLoginFailed,
   userLoginStarted,
@@ -15,7 +15,7 @@ import {
   userSessionCheckFailed,
   userSessionCheckStarted,
   userSessionCheckSucceeded
-} from '@fb/core/auth/auth.actions';
+} from '@fb/core/state/auth/auth.actions';
 
 @Injectable()
 export class AuthEffects {

@@ -1,7 +1,10 @@
-import {Component, computed, input} from '@angular/core';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {Component, computed, input, Signal} from '@angular/core';
+import {FormControl, FormControlStatus, ReactiveFormsModule} from '@angular/forms';
 import {heroExclamationCircle} from '@ng-icons/heroicons/outline';
 import {NgIcon, provideIcons} from '@ng-icons/core';
+import {NgClass} from '@angular/common';
+import {toObservable, toSignal} from '@angular/core/rxjs-interop';
+import {switchMap} from 'rxjs';
 
 const ERROR_MESSAGES: Record<string, (params?: any) => string> = {
   required: () => 'This field is required',
@@ -14,19 +17,18 @@ const ERROR_MESSAGES: Record<string, (params?: any) => string> = {
 @Component({
   selector: 'fb-input-field',
   templateUrl: './input-field.component.html',
-  imports: [ReactiveFormsModule, NgIcon],
+  imports: [ReactiveFormsModule, NgIcon, NgClass],
   viewProviders: [provideIcons({heroExclamationCircle})]
 })
 export class InputFieldComponent {
   control = input.required<FormControl>()
-  inputId = input.required<string>()
-  label = input.required<string>()
-  type = input.required<'text' | 'password' | 'email' | 'number'>()
-  placeholder = input<string | undefined>(undefined)
-  required = input<boolean>(false)
-  autocomplete = computed<string>(() => this.type() === 'password' ? 'off' : 'on')
-
-  get error(): string | null {
+  status: Signal<FormControlStatus> = toSignal(
+    toObservable(this.control).pipe(switchMap(c => c.statusChanges)),
+    {initialValue: 'VALID'}
+  );
+  error = computed(() => {
+    const ciao: FormControlStatus = this.status();
+    console.log(ciao);
     const ctrl = this.control();
     if (!ctrl.errors || !ctrl.touched) {
       return null;
@@ -34,9 +36,22 @@ export class InputFieldComponent {
     const firstKey = Object.keys(ctrl.errors)[0];
     const messageFn = ERROR_MESSAGES[firstKey];
     return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
-  }
+  })
+  inputId = input.required<string>()
+  label = input.required<string>()
+  type = input.required<'text' | 'password' | 'email' | 'number'>()
+  placeholder = input<string | undefined>(undefined)
+  required = input<boolean>(false)
+  autocomplete = computed<string>(() => this.type() === 'password' ? 'off' : 'on')
 
-  hasError(): boolean {
-    return !!this.error;
-  }
+  //
+  // get error(): string | null {
+  //   const ctrl = this.control();
+  //   if (!ctrl.errors || !ctrl.touched) {
+  //     return null;
+  //   }
+  //   const firstKey = Object.keys(ctrl.errors)[0];
+  //   const messageFn = ERROR_MESSAGES[firstKey];
+  //   return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
+  // }
 }

@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-primary flex items-center justify-center p-4">
+<div class="min-h-screen bg-primary flex place-center p-4">
   <div class="stat-card w-full">
     <form [formGroup]="form" (ngSubmit)="onLogin()">
       <fb-input-field
@@ -13,7 +13,7 @@
         inputId="password"
         [control]="controls.password"
         label="Password"
-        placeholder=""
+        placeholder="Password"
         type="password"
         [required]="true"
       />
