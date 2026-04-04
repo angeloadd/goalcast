@@ -1,16 +1,22 @@
 # Design System Build — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+>
+> **Recommended execution:** Subagent-driven — dispatch a fresh subagent per task with two-stage review between tasks.
 
 **Goal:** Build the complete Fantabet design system as reusable Angular components and Tailwind utilities, ready for page-level composition.
 
-**Architecture:** Standalone Angular components with Tailwind v4 `@utility` directives for visual-only styles. Behavioral components (Dialog, Tabs, Sidebar, etc.) are Angular components. Domain components (MatchCard, StatsCards, etc.) compose primitives. All components are headless-first — minimal internal state, inputs/outputs for external control.
+**Architecture:** Standalone Angular components with Tailwind v4 `@utility` directives for visual-only styles. Behavioral components (Dialog, Tabs, Sidebar, etc.) are Angular components. All components are headless-first — minimal internal state, inputs/outputs for external control.
 
 **Tech Stack:** Angular 21, Tailwind CSS v4, Angular signals (for component state), Bootstrap Icons via `@ng-icons/bootstrap-icons`, Vitest for testing.
 
 **Specs:**
 - Design system: `docs/superpowers/specs/2026-04-02-fantabet-design-system-design.md`
 - Profile & flow: `docs/superpowers/specs/2026-04-04-profile-and-application-flow-design.md`
+
+**Shell note:** `cd` is overridden by zoxide on this machine. Always use `builtin cd` for directory changes.
+
+**Component convention:** Every component MUST use a separate `<name>.component.html` template file with `templateUrl`, never inline `template:`. The only exception is trivial pass-through sub-components (e.g., `CardHeaderComponent`) that have only `'<ng-content />'` as their template — these may use inline `template`.
 
 **What's already built:**
 - `styles.scss` — design tokens (CSS vars), button classes in `@layer components`, card classes, sidebar gradient, rank badges, page headers. Missing: badge, label, separator, form-label utilities.
@@ -21,6 +27,7 @@
 - Page components (Landing, Login, Register, Profile, Dashboard pages)
 - Routing, guards, navigation logic
 - Backend API integration, NGRx state for leagues
+- Domain/app-specific components (AppSidebar, DashboardLayout, Footer, MatchCard, StatsCards, RankingCard, TournamentStatus, LeagueCard) — these will be built when composing pages
 - LeagueEditModal (requires backend wiring for members/invites)
 
 ---
@@ -104,7 +111,7 @@ Add after the badge utilities:
 
 - [ ] **Step 3: Verify build succeeds**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -5`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -5`
 Expected: Build succeeds with no errors.
 
 - [ ] **Step 4: Commit**
@@ -121,6 +128,7 @@ git commit -m "feat(design-system): add badge, form-label, separator utilities"
 **Files:**
 - Modify: `frontend/package.json` (via npm)
 - Modify: `frontend/src/app/shared/components/input/input-field.component.ts`
+- Modify: `frontend/src/app/shared/components/input/input-field.component.html`
 
 The spec requires Bootstrap Icons via `@ng-icons/bootstrap-icons`. Currently using `@ng-icons/heroicons`.
 
@@ -128,7 +136,7 @@ The spec requires Bootstrap Icons via `@ng-icons/bootstrap-icons`. Currently usi
 
 Run:
 ```bash
-cd /Volumes/CaseSensitive/src/fantabet/frontend && npm install @ng-icons/bootstrap-icons && npm uninstall @ng-icons/heroicons
+builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npm install @ng-icons/bootstrap-icons && npm uninstall @ng-icons/heroicons
 ```
 
 Expected: Both succeed. `package.json` shows `@ng-icons/bootstrap-icons` in dependencies, `@ng-icons/heroicons` removed.
@@ -196,7 +204,7 @@ With: `<ng-icon name="bootstrapExclamationCircle"/>`
 
 - [ ] **Step 4: Verify build succeeds**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -5`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -5`
 Expected: Build succeeds.
 
 - [ ] **Step 5: Commit**
@@ -216,7 +224,7 @@ git commit -m "feat(design-system): switch from heroicons to bootstrap-icons"
 - Create: `frontend/src/app/shared/models/league.model.ts`
 - Create: `frontend/src/app/shared/models/tournament.model.ts`
 
-Define all domain interfaces needed by components. These come from the design system spec section 4.
+Define all domain interfaces needed by components. These come from the design system spec section 4. Note: these are provisional view models — the domain model will be designed separately and these types will be refactored.
 
 - [ ] **Step 1: Create match model**
 
@@ -280,7 +288,6 @@ Create `frontend/src/app/shared/models/player.model.ts`:
 export interface Player {
   id: string;
   name: string;
-  avatar?: string;
   points: number;
   correctPredictions: number;
   totalPredictions: number;
@@ -289,7 +296,6 @@ export interface Player {
 export interface Winner {
   year: number;
   name: string;
-  avatar?: string;
   points: number;
   worldCupWinner: string;
 }
@@ -359,7 +365,7 @@ export * from './tournament.model';
 
 - [ ] **Step 6: Verify build succeeds**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -5`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -5`
 Expected: Build succeeds.
 
 - [ ] **Step 7: Commit**
@@ -377,7 +383,7 @@ git commit -m "feat(design-system): add domain data models"
 - Create: `frontend/src/app/shared/components/card/card.component.ts`
 - Create: `frontend/src/app/shared/components/card/card.component.spec.ts`
 
-The Card is the most-used component in the design system. It uses content projection with sub-components: CardHeader, CardTitle, CardDescription, CardContent, CardFooter.
+The Card is the most-used component in the design system. It uses content projection with sub-components: CardHeader, CardTitle, CardDescription, CardContent, CardFooter. The sub-components are trivial pass-through wrappers so inline `template: '<ng-content />'` is acceptable.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -433,7 +439,7 @@ describe('CardComponent', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement Card component**
@@ -488,7 +494,7 @@ export class CardFooterComponent {}
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -504,6 +510,7 @@ git commit -m "feat(design-system): add Card component with sub-components"
 
 **Files:**
 - Create: `frontend/src/app/shared/components/dialog/dialog.component.ts`
+- Create: `frontend/src/app/shared/components/dialog/dialog.component.html`
 - Create: `frontend/src/app/shared/components/dialog/dialog.component.spec.ts`
 
 Uses native `<dialog>` element per the spec. Provides backdrop, focus trapping, and Escape-to-close natively.
@@ -579,10 +586,24 @@ describe('DialogComponent', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement Dialog component**
+
+Create `frontend/src/app/shared/components/dialog/dialog.component.html`:
+
+```html
+<dialog
+  #dialogEl
+  class="bg-card text-card-foreground rounded-xl border border-border shadow-lg p-0 w-full max-w-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+  (close)="closed.emit()"
+>
+  <div class="p-6">
+    <ng-content />
+  </div>
+</dialog>
+```
 
 Create `frontend/src/app/shared/components/dialog/dialog.component.ts`:
 
@@ -591,17 +612,7 @@ import {Component, ElementRef, output, viewChild} from '@angular/core';
 
 @Component({
   selector: 'fb-dialog',
-  template: `
-    <dialog
-      #dialogEl
-      class="bg-card text-card-foreground rounded-xl border border-border shadow-lg p-0 w-full max-w-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm"
-      (close)="closed.emit()"
-    >
-      <div class="p-6">
-        <ng-content />
-      </div>
-    </dialog>
-  `,
+  templateUrl: './dialog.component.html',
 })
 export class DialogComponent {
   private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('dialogEl');
@@ -651,7 +662,7 @@ export class DialogFooterComponent {}
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -669,7 +680,7 @@ git commit -m "feat(design-system): add Dialog component using native dialog ele
 - Create: `frontend/src/app/shared/components/tabs/tabs.component.ts`
 - Create: `frontend/src/app/shared/components/tabs/tabs.component.spec.ts`
 
-Used in League Edit Modal (2 tabs), Predictions page (3 tabs).
+Used in League Edit Modal (2 tabs), Predictions page (3 tabs). Sub-components are trivial pass-through wrappers except TabsTrigger and TabsContent which have logic — but their templates are still just `<ng-content />` so inline template is acceptable.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -734,7 +745,7 @@ describe('TabsComponent', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL — module not found.
 
 - [ ] **Step 3: Implement Tabs component**
@@ -763,11 +774,6 @@ export class TabsContext {
 export class TabsComponent {
   private context = inject(TABS_CONTEXT);
   value = model.required<string>();
-
-  constructor() {
-    // Sync initial value into context; we need an effect-like behavior.
-    // Using a computed + ngOnInit pattern.
-  }
 
   ngOnInit(): void {
     this.context.activeValue.set(this.value());
@@ -821,7 +827,7 @@ export class TabsContentComponent {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -833,133 +839,11 @@ git commit -m "feat(design-system): add Tabs component with trigger and content"
 
 ---
 
-### Task 7: Avatar Component
-
-**Files:**
-- Create: `frontend/src/app/shared/components/avatar/avatar.component.ts`
-- Create: `frontend/src/app/shared/components/avatar/avatar.component.spec.ts`
-
-Circular avatar with fallback initials. Multiple sizes used across ranking, sidebar, profile.
-
-- [ ] **Step 1: Write the failing test**
-
-Create `frontend/src/app/shared/components/avatar/avatar.component.spec.ts`:
-
-```typescript
-import {TestBed} from '@angular/core/testing';
-import {AvatarComponent} from './avatar.component';
-
-describe('AvatarComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AvatarComponent],
-    }).compileComponents();
-  });
-
-  it('should show fallback when no src provided', () => {
-    const fixture = TestBed.createComponent(AvatarComponent);
-    fixture.componentRef.setInput('fallback', 'AB');
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('AB');
-    expect(el.querySelector('img')).toBeNull();
-  });
-
-  it('should show image when src is provided', () => {
-    const fixture = TestBed.createComponent(AvatarComponent);
-    fixture.componentRef.setInput('src', 'https://example.com/avatar.jpg');
-    fixture.componentRef.setInput('alt', 'User');
-    fixture.detectChanges();
-    const img = fixture.nativeElement.querySelector('img') as HTMLImageElement;
-    expect(img).toBeTruthy();
-    expect(img.src).toContain('avatar.jpg');
-  });
-
-  it('should apply size class', () => {
-    const fixture = TestBed.createComponent(AvatarComponent);
-    fixture.componentRef.setInput('fallback', 'X');
-    fixture.componentRef.setInput('size', 'lg');
-    fixture.detectChanges();
-    const el = fixture.nativeElement.firstElementChild as HTMLElement;
-    expect(el.classList.contains('w-16')).toBe(true);
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
-Expected: FAIL
-
-- [ ] **Step 3: Implement Avatar component**
-
-Create `frontend/src/app/shared/components/avatar/avatar.component.ts`:
-
-```typescript
-import {Component, computed, input, signal} from '@angular/core';
-
-const SIZE_CLASSES: Record<string, string> = {
-  sm: 'w-8 h-8 text-xs',
-  md: 'w-10 h-10 text-sm',
-  lg: 'w-16 h-16 text-lg',
-  xl: 'w-20 h-20 text-xl',
-  '2xl': 'w-24 h-24 text-2xl',
-};
-
-@Component({
-  selector: 'fb-avatar',
-  template: `
-    <div [class]="containerClass()">
-      @if (src() && !imgError()) {
-        <img
-          [src]="src()"
-          [alt]="alt()"
-          class="w-full h-full object-cover rounded-full"
-          (error)="onImgError()"
-        />
-      } @else {
-        <span class="font-medium select-none">{{ fallback() }}</span>
-      }
-    </div>
-  `,
-})
-export class AvatarComponent {
-  src = input<string | undefined>(undefined);
-  alt = input<string>('');
-  fallback = input<string>('');
-  size = input<'sm' | 'md' | 'lg' | 'xl' | '2xl'>('md');
-
-  imgError = signal(false);
-
-  containerClass = computed(() => {
-    const sizeClass = SIZE_CLASSES[this.size()];
-    return `inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground overflow-hidden ${sizeClass}`;
-  });
-
-  onImgError(): void {
-    this.imgError.set(true);
-  }
-}
-```
-
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
-Expected: PASS
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add frontend/src/app/shared/components/avatar/
-git commit -m "feat(design-system): add Avatar component with fallback support"
-```
-
----
-
-### Task 8: Progress Component
+### Task 7: Progress Component
 
 **Files:**
 - Create: `frontend/src/app/shared/components/progress/progress.component.ts`
+- Create: `frontend/src/app/shared/components/progress/progress.component.html`
 - Create: `frontend/src/app/shared/components/progress/progress.component.spec.ts`
 
 Visual progress bar used in tournament status and ranking accuracy.
@@ -1006,10 +890,20 @@ describe('ProgressComponent', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
 - [ ] **Step 3: Implement Progress component**
+
+Create `frontend/src/app/shared/components/progress/progress.component.html`:
+
+```html
+<div
+  data-fill
+  class="h-full bg-accent rounded-full transition-all duration-300"
+  [style.width.%]="clampedValue()"
+></div>
+```
 
 Create `frontend/src/app/shared/components/progress/progress.component.ts`:
 
@@ -1019,13 +913,7 @@ import {Component, computed, input} from '@angular/core';
 @Component({
   selector: 'fb-progress',
   host: {class: 'block w-full bg-secondary rounded-full overflow-hidden'},
-  template: `
-    <div
-      data-fill
-      class="h-full bg-accent rounded-full transition-all duration-300"
-      [style.width.%]="clampedValue()"
-    ></div>
-  `,
+  templateUrl: './progress.component.html',
   styles: `:host { height: 0.5rem; }`,
 })
 export class ProgressComponent {
@@ -1036,7 +924,7 @@ export class ProgressComponent {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1048,11 +936,12 @@ git commit -m "feat(design-system): add Progress bar component"
 
 ---
 
-### Task 9: Toast Service
+### Task 8: Toast Service
 
 **Files:**
 - Create: `frontend/src/app/shared/components/toast/toast.service.ts`
 - Create: `frontend/src/app/shared/components/toast/toast.component.ts`
+- Create: `frontend/src/app/shared/components/toast/toast.component.html`
 - Create: `frontend/src/app/shared/components/toast/toast.service.spec.ts`
 
 Service-based transient notifications used for copy/invite/save feedback.
@@ -1104,7 +993,7 @@ describe('ToastService', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
 - [ ] **Step 3: Implement Toast service**
@@ -1153,6 +1042,33 @@ export class ToastService {
 
 - [ ] **Step 4: Implement Toaster component**
 
+Create `frontend/src/app/shared/components/toast/toast.component.html`:
+
+```html
+<div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div
+      class="flex items-center gap-3 p-4 rounded-lg border shadow-lg animate-fade-in"
+      [class.bg-card]="toast.type === 'info'"
+      [class.bg-success]="toast.type === 'success'"
+      [class.text-success-foreground]="toast.type === 'success'"
+      [class.bg-destructive]="toast.type === 'error'"
+      [class.text-destructive-foreground]="toast.type === 'error'"
+    >
+      @switch (toast.type) {
+        @case ('success') { <ng-icon name="bootstrapCheckCircle" class="text-lg shrink-0" /> }
+        @case ('error') { <ng-icon name="bootstrapExclamationTriangle" class="text-lg shrink-0" /> }
+        @case ('info') { <ng-icon name="bootstrapInfoCircle" class="text-lg shrink-0" /> }
+      }
+      <span class="text-sm flex-1">{{ toast.message }}</span>
+      <button class="shrink-0 cursor-pointer" (click)="toastService.dismiss(toast.id)">
+        <ng-icon name="bootstrapX" class="text-lg" />
+      </button>
+    </div>
+  }
+</div>
+```
+
 Create `frontend/src/app/shared/components/toast/toast.component.ts`:
 
 ```typescript
@@ -1165,30 +1081,7 @@ import {bootstrapCheckCircle, bootstrapExclamationTriangle, bootstrapInfoCircle,
   selector: 'fb-toaster',
   imports: [NgIcon],
   viewProviders: [provideIcons({bootstrapCheckCircle, bootstrapExclamationTriangle, bootstrapInfoCircle, bootstrapX})],
-  template: `
-    <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-80">
-      @for (toast of toastService.toasts(); track toast.id) {
-        <div
-          class="flex items-center gap-3 p-4 rounded-lg border shadow-lg animate-fade-in"
-          [class.bg-card]="toast.type === 'info'"
-          [class.bg-success]="toast.type === 'success'"
-          [class.text-success-foreground]="toast.type === 'success'"
-          [class.bg-destructive]="toast.type === 'error'"
-          [class.text-destructive-foreground]="toast.type === 'error'"
-        >
-          @switch (toast.type) {
-            @case ('success') { <ng-icon name="bootstrapCheckCircle" class="text-lg shrink-0" /> }
-            @case ('error') { <ng-icon name="bootstrapExclamationTriangle" class="text-lg shrink-0" /> }
-            @case ('info') { <ng-icon name="bootstrapInfoCircle" class="text-lg shrink-0" /> }
-          }
-          <span class="text-sm flex-1">{{ toast.message }}</span>
-          <button class="shrink-0 cursor-pointer" (click)="toastService.dismiss(toast.id)">
-            <ng-icon name="bootstrapX" class="text-lg" />
-          </button>
-        </div>
-      }
-    </div>
-  `,
+  templateUrl: './toast.component.html',
 })
 export class ToasterComponent {
   toastService = inject(ToastService);
@@ -1197,7 +1090,7 @@ export class ToasterComponent {
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -1209,13 +1102,14 @@ git commit -m "feat(design-system): add Toast service and Toaster component"
 
 ---
 
-### Task 10: Sidebar Component
+### Task 9: Sidebar Component
 
 **Files:**
 - Create: `frontend/src/app/shared/components/sidebar/sidebar.component.ts`
+- Create: `frontend/src/app/shared/components/sidebar/sidebar.component.html`
 - Create: `frontend/src/app/shared/components/sidebar/sidebar.component.spec.ts`
 
-Navy gradient sidebar with collapsible mobile behavior. Uses a service for open/close state.
+Navy gradient sidebar with collapsible mobile behavior. Uses a service for open/close state. Sub-components (SidebarHeader, SidebarContent, SidebarFooter) are trivial pass-through wrappers.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1270,10 +1164,22 @@ describe('SidebarComponent', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
 - [ ] **Step 3: Implement Sidebar component**
+
+Create `frontend/src/app/shared/components/sidebar/sidebar.component.html`:
+
+```html
+<aside
+  class="sidebar-gradient text-sidebar-foreground h-full flex flex-col transition-transform duration-300 w-64"
+  [class.-translate-x-full]="!sidebarService.isOpen()"
+  [class.translate-x-0]="sidebarService.isOpen()"
+>
+  <ng-content />
+</aside>
+```
 
 Create `frontend/src/app/shared/components/sidebar/sidebar.component.ts`:
 
@@ -1301,15 +1207,7 @@ export class SidebarService {
 @Component({
   selector: 'fb-sidebar',
   host: {class: 'block'},
-  template: `
-    <aside
-      class="sidebar-gradient text-sidebar-foreground h-full flex flex-col transition-transform duration-300 w-64"
-      [class.-translate-x-full]="!sidebarService.isOpen()"
-      [class.translate-x-0]="sidebarService.isOpen()"
-    >
-      <ng-content />
-    </aside>
-  `,
+  templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
   sidebarService = inject(SidebarService);
@@ -1351,7 +1249,7 @@ export class SidebarTriggerComponent {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1363,1170 +1261,2442 @@ git commit -m "feat(design-system): add Sidebar component with service-based tog
 
 ---
 
-### Task 11: AppSidebar Component
+### Task 10: Textarea Component
 
 **Files:**
-- Create: `frontend/src/app/shared/components/app-sidebar/app-sidebar.component.ts`
-- Create: `frontend/src/app/shared/components/app-sidebar/app-sidebar.component.html`
-- Create: `frontend/src/app/shared/components/app-sidebar/app-sidebar.component.spec.ts`
+- Create: `frontend/src/app/shared/components/textarea/textarea.component.ts`
+- Create: `frontend/src/app/shared/components/textarea/textarea.component.html`
+- Create: `frontend/src/app/shared/components/textarea/textarea.component.spec.ts`
 
-The Fantabet-specific sidebar with logo, navigation menu items, and user profile footer. Composes the generic Sidebar component.
+Multi-line text input. Same base styling as Input but with `min-h-[80px]` and resize handle. Implements `ControlValueAccessor`.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/app-sidebar/app-sidebar.component.spec.ts`:
-
-```typescript
-import {TestBed} from '@angular/core/testing';
-import {provideRouter} from '@angular/router';
-import {AppSidebarComponent} from './app-sidebar.component';
-import {SidebarService} from '@fb/shared/components/sidebar/sidebar.component';
-
-describe('AppSidebarComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppSidebarComponent],
-      providers: [provideRouter([]), SidebarService],
-    }).compileComponents();
-  });
-
-  it('should render the logo', () => {
-    const fixture = TestBed.createComponent(AppSidebarComponent);
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('FANTABET');
-  });
-
-  it('should render navigation items', () => {
-    const fixture = TestBed.createComponent(AppSidebarComponent);
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Dashboard');
-    expect(el.textContent).toContain('My Predictions');
-    expect(el.textContent).toContain('Full Ranking');
-    expect(el.textContent).toContain('Past Winners');
-    expect(el.textContent).toContain('Rules');
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
-Expected: FAIL
-
-- [ ] **Step 3: Implement AppSidebar component**
-
-Create `frontend/src/app/shared/components/app-sidebar/app-sidebar.component.ts`:
-
-```typescript
-import {Component} from '@angular/core';
-import {RouterLink, RouterLinkActive} from '@angular/router';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapHouse, bootstrapPencilSquare, bootstrapTrophy, bootstrapAward, bootstrapBook} from '@ng-icons/bootstrap-icons';
-import {SidebarComponent, SidebarHeaderComponent, SidebarContentComponent, SidebarFooterComponent} from '@fb/shared/components/sidebar/sidebar.component';
-
-interface NavItem {
-  label: string;
-  icon: string;
-  path: string;
-}
-
-@Component({
-  selector: 'fb-app-sidebar',
-  imports: [
-    RouterLink, RouterLinkActive, NgIcon,
-    SidebarComponent, SidebarHeaderComponent, SidebarContentComponent, SidebarFooterComponent,
-  ],
-  viewProviders: [provideIcons({bootstrapHouse, bootstrapPencilSquare, bootstrapTrophy, bootstrapAward, bootstrapBook})],
-  templateUrl: './app-sidebar.component.html',
-})
-export class AppSidebarComponent {
-  navItems: NavItem[] = [
-    {label: 'Dashboard', icon: 'bootstrapHouse', path: './'},
-    {label: 'My Predictions', icon: 'bootstrapPencilSquare', path: './predictions'},
-    {label: 'Full Ranking', icon: 'bootstrapTrophy', path: './ranking'},
-    {label: 'Past Winners', icon: 'bootstrapAward', path: './winners'},
-    {label: 'Rules', icon: 'bootstrapBook', path: './rules'},
-  ];
-}
-```
-
-Create `frontend/src/app/shared/components/app-sidebar/app-sidebar.component.html`:
-
-```html
-<fb-sidebar>
-  <fb-sidebar-header>
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
-        <ng-icon name="bootstrapTrophy" class="text-primary text-lg" />
-      </div>
-      <span class="font-display text-xl tracking-wider text-sidebar-foreground">FANTABET</span>
-    </div>
-  </fb-sidebar-header>
-
-  <fb-sidebar-content>
-    <nav class="flex flex-col gap-1">
-      @for (item of navItems; track item.path; let i = $index) {
-        <a
-          [routerLink]="item.path"
-          routerLinkActive="bg-sidebar-accent text-sidebar-primary font-medium"
-          [routerLinkActiveOptions]="{exact: item.path === './'}"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors animate-slide-in"
-          [style.animation-delay.ms]="i * 50"
-        >
-          <ng-icon [name]="item.icon" class="text-lg" />
-          <span class="text-sm">{{ item.label }}</span>
-        </a>
-      }
-    </nav>
-  </fb-sidebar-content>
-
-  <fb-sidebar-footer>
-    <ng-content />
-  </fb-sidebar-footer>
-</fb-sidebar>
-```
-
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
-Expected: PASS
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add frontend/src/app/shared/components/app-sidebar/
-git commit -m "feat(design-system): add AppSidebar with logo and navigation menu"
-```
-
----
-
-### Task 12: DashboardLayout Shell
-
-**Files:**
-- Create: `frontend/src/app/shared/components/dashboard-layout/dashboard-layout.component.ts`
-- Create: `frontend/src/app/shared/components/dashboard-layout/dashboard-layout.component.html`
-- Create: `frontend/src/app/shared/components/dashboard-layout/dashboard-layout.component.spec.ts`
-
-The authenticated page shell: sidebar + header with league indicator + content area. No routing wired — just the layout structure with `<ng-content>` for page content.
-
-- [ ] **Step 1: Write the failing test**
-
-Create `frontend/src/app/shared/components/dashboard-layout/dashboard-layout.component.spec.ts`:
+Create `frontend/src/app/shared/components/textarea/textarea.component.spec.ts`:
 
 ```typescript
 import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {provideRouter} from '@angular/router';
-import {DashboardLayoutComponent} from './dashboard-layout.component';
-import {SidebarService} from '@fb/shared/components/sidebar/sidebar.component';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {TextareaComponent} from './textarea.component';
 
 @Component({
-  template: `<fb-dashboard-layout leagueName="Test League"><p>Page content</p></fb-dashboard-layout>`,
-  imports: [DashboardLayoutComponent],
-  providers: [SidebarService],
+  template: `<fb-textarea [formControl]="ctrl" placeholder="Enter text"></fb-textarea>`,
+  imports: [TextareaComponent, ReactiveFormsModule],
 })
-class TestHostComponent {}
+class TestHostComponent {
+  ctrl = new FormControl('');
+}
 
-describe('DashboardLayoutComponent', () => {
+describe('TextareaComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
-      providers: [provideRouter([])],
     }).compileComponents();
   });
 
-  it('should render the header with league name', () => {
+  it('should render a textarea element', () => {
     const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Test League');
+    const textarea = fixture.nativeElement.querySelector('textarea');
+    expect(textarea).toBeTruthy();
   });
 
-  it('should project page content', () => {
+  it('should bind value via formControl', () => {
     const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Page content');
+    fixture.componentInstance.ctrl.setValue('Hello world');
+    fixture.detectChanges();
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    expect(textarea.value).toBe('Hello world');
   });
 
-  it('should show Change link in header', () => {
+  it('should emit changes to formControl', () => {
     const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Change');
+    const textarea = fixture.nativeElement.querySelector('textarea') as HTMLTextAreaElement;
+    textarea.value = 'New value';
+    textarea.dispatchEvent(new Event('input'));
+    expect(fixture.componentInstance.ctrl.value).toBe('New value');
   });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
-- [ ] **Step 3: Implement DashboardLayout component**
+- [ ] **Step 3: Implement Textarea component**
 
-Create `frontend/src/app/shared/components/dashboard-layout/dashboard-layout.component.ts`:
-
-```typescript
-import {Component, inject, input} from '@angular/core';
-import {RouterLink} from '@angular/router';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapList, bootstrapBoxArrowRight} from '@ng-icons/bootstrap-icons';
-import {AppSidebarComponent} from '@fb/shared/components/app-sidebar/app-sidebar.component';
-import {SidebarService, SidebarTriggerComponent} from '@fb/shared/components/sidebar/sidebar.component';
-import {AvatarComponent} from '@fb/shared/components/avatar/avatar.component';
-
-@Component({
-  selector: 'fb-dashboard-layout',
-  imports: [RouterLink, NgIcon, AppSidebarComponent, SidebarTriggerComponent, AvatarComponent],
-  viewProviders: [provideIcons({bootstrapList, bootstrapBoxArrowRight})],
-  templateUrl: './dashboard-layout.component.html',
-})
-export class DashboardLayoutComponent {
-  sidebarService = inject(SidebarService);
-  leagueName = input<string>('');
-  username = input<string>('');
-}
-```
-
-Create `frontend/src/app/shared/components/dashboard-layout/dashboard-layout.component.html`:
+Create `frontend/src/app/shared/components/textarea/textarea.component.html`:
 
 ```html
-<div class="flex h-screen overflow-hidden">
-  <!-- Sidebar -->
-  <div class="hidden lg:block shrink-0">
-    <fb-app-sidebar>
-      <div class="flex items-center gap-3">
-        <fb-avatar [fallback]="(username() || '?')[0].toUpperCase()" size="sm" />
-        <span class="text-sm text-sidebar-foreground/70">{{ username() }}</span>
-      </div>
-    </fb-app-sidebar>
-  </div>
+<textarea
+  class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+  [placeholder]="placeholder()"
+  [disabled]="isDisabled()"
+  [value]="value()"
+  (input)="onInput($event)"
+  (blur)="onTouched()"
+></textarea>
+```
 
-  <!-- Main area -->
-  <div class="flex-1 flex flex-col min-w-0">
-    <!-- Header -->
-    <header class="h-14 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-6">
-      <div class="flex items-center gap-3">
-        <fb-sidebar-trigger>
-          <ng-icon name="bootstrapList" class="text-xl" />
-        </fb-sidebar-trigger>
-        @if (leagueName()) {
-          <div class="flex items-center gap-2">
-            <span class="badge badge-default text-xs">{{ leagueName() }}</span>
-            <a routerLink="/profile" class="text-xs text-muted-foreground hover:text-foreground transition-colors">Change</a>
-          </div>
-        }
-      </div>
-      <div class="flex items-center gap-3">
-        <a routerLink="/profile" class="btn btn-ghost btn-sm text-xs">
-          <ng-icon name="bootstrapBoxArrowRight" />
-          Logout
-        </a>
-      </div>
-    </header>
+Create `frontend/src/app/shared/components/textarea/textarea.component.ts`:
 
-    <!-- Content -->
-    <main class="flex-1 p-6 overflow-auto">
-      <ng-content />
-    </main>
-  </div>
-</div>
+```typescript
+import {Component, forwardRef, input, signal} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+@Component({
+  selector: 'fb-textarea',
+  templateUrl: './textarea.component.html',
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => TextareaComponent),
+    multi: true,
+  }],
+})
+export class TextareaComponent implements ControlValueAccessor {
+  placeholder = input('');
+  value = signal('');
+  isDisabled = signal(false);
+
+  private onChange: (value: string) => void = () => {};
+  onTouched: () => void = () => {};
+
+  writeValue(value: string): void {
+    this.value.set(value ?? '');
+  }
+
+  registerOnChange(fn: (value: string) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled);
+  }
+
+  onInput(event: Event): void {
+    const value = (event.target as HTMLTextAreaElement).value;
+    this.value.set(value);
+    this.onChange(value);
+  }
+}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/dashboard-layout/
-git commit -m "feat(design-system): add DashboardLayout shell with header and sidebar"
+git add frontend/src/app/shared/components/textarea/
+git commit -m "feat(design-system): add Textarea component with ControlValueAccessor"
 ```
 
 ---
 
-### Task 13: Footer Component
+### Task 11: Checkbox Component
 
 **Files:**
-- Create: `frontend/src/app/shared/components/footer/footer.component.ts`
-- Create: `frontend/src/app/shared/components/footer/footer.component.spec.ts`
+- Create: `frontend/src/app/shared/components/checkbox/checkbox.component.ts`
+- Create: `frontend/src/app/shared/components/checkbox/checkbox.component.html`
+- Create: `frontend/src/app/shared/components/checkbox/checkbox.component.spec.ts`
 
-Site-wide footer with legal links.
+Boolean toggle with custom visual. Wraps native checkbox. Implements `ControlValueAccessor`.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/footer/footer.component.spec.ts`:
-
-```typescript
-import {TestBed} from '@angular/core/testing';
-import {provideRouter} from '@angular/router';
-import {FooterComponent} from './footer.component';
-
-describe('FooterComponent', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [FooterComponent],
-      providers: [provideRouter([])],
-    }).compileComponents();
-  });
-
-  it('should render copyright text', () => {
-    const fixture = TestBed.createComponent(FooterComponent);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Fantabet');
-  });
-
-  it('should render legal links', () => {
-    const fixture = TestBed.createComponent(FooterComponent);
-    fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Terms');
-    expect(el.textContent).toContain('Privacy');
-    expect(el.textContent).toContain('Imprint');
-  });
-});
-```
-
-- [ ] **Step 2: Run test to verify it fails**
-
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
-Expected: FAIL
-
-- [ ] **Step 3: Implement Footer component**
-
-Create `frontend/src/app/shared/components/footer/footer.component.ts`:
+Create `frontend/src/app/shared/components/checkbox/checkbox.component.spec.ts`:
 
 ```typescript
 import {Component} from '@angular/core';
-import {RouterLink} from '@angular/router';
+import {TestBed} from '@angular/core/testing';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {CheckboxComponent} from './checkbox.component';
 
 @Component({
-  selector: 'fb-footer',
-  imports: [RouterLink],
+  template: `<fb-checkbox [formControl]="ctrl"></fb-checkbox>`,
+  imports: [CheckboxComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+  ctrl = new FormControl(false);
+}
+
+describe('CheckboxComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should render unchecked by default', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    expect(input.checked).toBe(false);
+  });
+
+  it('should toggle when clicked', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    input.click();
+    expect(fixture.componentInstance.ctrl.value).toBe(true);
+  });
+
+  it('should reflect formControl value', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.ctrl.setValue(true);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="checkbox"]') as HTMLInputElement;
+    expect(input.checked).toBe(true);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Checkbox component**
+
+Create `frontend/src/app/shared/components/checkbox/checkbox.component.html`:
+
+```html
+<label class="inline-flex items-center gap-2 cursor-pointer">
+  <input
+    type="checkbox"
+    class="h-4 w-4 rounded border border-input accent-accent focus:ring-2 focus:ring-ring cursor-pointer"
+    [checked]="checked()"
+    [disabled]="isDisabled()"
+    (change)="onToggle($event)"
+  />
+  <ng-content />
+</label>
+```
+
+Create `frontend/src/app/shared/components/checkbox/checkbox.component.ts`:
+
+```typescript
+import {Component, forwardRef, signal} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+@Component({
+  selector: 'fb-checkbox',
+  templateUrl: './checkbox.component.html',
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => CheckboxComponent),
+    multi: true,
+  }],
+})
+export class CheckboxComponent implements ControlValueAccessor {
+  checked = signal(false);
+  isDisabled = signal(false);
+
+  private onChange: (value: boolean) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  writeValue(value: boolean): void {
+    this.checked.set(!!value);
+  }
+
+  registerOnChange(fn: (value: boolean) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled);
+  }
+
+  onToggle(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.checked.set(checked);
+    this.onChange(checked);
+    this.onTouched();
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/checkbox/
+git commit -m "feat(design-system): add Checkbox component with ControlValueAccessor"
+```
+
+---
+
+### Task 12: Radio Group Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/radio-group/radio-group.component.ts`
+- Create: `frontend/src/app/shared/components/radio-group/radio-group.component.html`
+- Create: `frontend/src/app/shared/components/radio-group/radio-group.component.spec.ts`
+
+Single selection from options. Parent `RadioGroup` + child `RadioGroupItem`. Implements `ControlValueAccessor` on the group. Used in ScorerPredictionInput and Create League for rule selection.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/radio-group/radio-group.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {RadioGroupComponent, RadioGroupItemComponent} from './radio-group.component';
+
+@Component({
   template: `
-    <footer class="border-t border-border bg-card/50 py-8 px-6">
-      <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        <p class="text-sm text-muted-foreground">&copy; 2026 Fantabet. All rights reserved.</p>
-        <nav class="flex items-center gap-4">
-          <a routerLink="/terms" class="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms</a>
-          <a routerLink="/privacy" class="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy</a>
-          <a routerLink="/imprint" class="text-xs text-muted-foreground hover:text-foreground transition-colors">Imprint</a>
-        </nav>
-      </div>
-    </footer>
+    <fb-radio-group [formControl]="ctrl">
+      <fb-radio-group-item value="a">Option A</fb-radio-group-item>
+      <fb-radio-group-item value="b">Option B</fb-radio-group-item>
+      <fb-radio-group-item value="c">Option C</fb-radio-group-item>
+    </fb-radio-group>
+  `,
+  imports: [RadioGroupComponent, RadioGroupItemComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+  ctrl = new FormControl('a');
+}
+
+describe('RadioGroupComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should render all radio items', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const items = fixture.nativeElement.querySelectorAll('fb-radio-group-item');
+    expect(items.length).toBe(3);
+  });
+
+  it('should select initial value from formControl', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const inputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+    expect(inputs[0].checked).toBe(true);
+    expect(inputs[1].checked).toBe(false);
+  });
+
+  it('should update formControl when item is clicked', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const inputs = fixture.nativeElement.querySelectorAll('input[type="radio"]') as NodeListOf<HTMLInputElement>;
+    inputs[1].click();
+    expect(fixture.componentInstance.ctrl.value).toBe('b');
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement RadioGroup component**
+
+Create `frontend/src/app/shared/components/radio-group/radio-group.component.html`:
+
+```html
+<div class="flex flex-col gap-2" role="radiogroup">
+  <ng-content />
+</div>
+```
+
+Create `frontend/src/app/shared/components/radio-group/radio-group.component.ts`:
+
+```typescript
+import {Component, computed, forwardRef, inject, input, signal} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+const RADIO_GROUP_CONTEXT = Symbol('RadioGroupContext');
+
+export class RadioGroupContext {
+  selectedValue = signal<string>('');
+  private onChange: (value: string) => void = () => {};
+
+  registerOnChange(fn: (value: string) => void): void {
+    this.onChange = fn;
+  }
+
+  select(value: string): void {
+    this.selectedValue.set(value);
+    this.onChange(value);
+  }
+}
+
+@Component({
+  selector: 'fb-radio-group',
+  templateUrl: './radio-group.component.html',
+  providers: [
+    {provide: RADIO_GROUP_CONTEXT, useFactory: () => new RadioGroupContext()},
+    {provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => RadioGroupComponent), multi: true},
+  ],
+})
+export class RadioGroupComponent implements ControlValueAccessor {
+  private context = inject(RADIO_GROUP_CONTEXT);
+  private onTouched: () => void = () => {};
+
+  writeValue(value: string): void {
+    this.context.selectedValue.set(value ?? '');
+  }
+
+  registerOnChange(fn: (value: string) => void): void {
+    this.context.registerOnChange(fn);
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+}
+
+@Component({
+  selector: 'fb-radio-group-item',
+  host: {class: 'block'},
+  template: `
+    <label class="inline-flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        class="h-4 w-4 accent-accent focus:ring-2 focus:ring-ring cursor-pointer"
+        [value]="value()"
+        [checked]="isSelected()"
+        (change)="onSelect()"
+      />
+      <ng-content />
+    </label>
   `,
 })
-export class FooterComponent {}
+export class RadioGroupItemComponent {
+  private context = inject(RADIO_GROUP_CONTEXT);
+  value = input.required<string>();
+  isSelected = computed(() => this.context.selectedValue() === this.value());
+
+  onSelect(): void {
+    this.context.select(this.value());
+  }
+}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/footer/
-git commit -m "feat(design-system): add Footer component with legal links"
+git add frontend/src/app/shared/components/radio-group/
+git commit -m "feat(design-system): add RadioGroup component with ControlValueAccessor"
 ```
 
 ---
 
-### Task 14: MatchCard Domain Component
+### Task 13: Select Component
 
 **Files:**
-- Create: `frontend/src/app/shared/components/match-card/match-card.component.ts`
-- Create: `frontend/src/app/shared/components/match-card/match-card.component.html`
-- Create: `frontend/src/app/shared/components/match-card/match-card.component.spec.ts`
+- Create: `frontend/src/app/shared/components/select/select.component.ts`
+- Create: `frontend/src/app/shared/components/select/select.component.html`
+- Create: `frontend/src/app/shared/components/select/select.component.spec.ts`
 
-Displays a match with two teams, date/time, optional scores, and phase badge.
+Dropdown selection. Trigger shows selected value with chevron, dropdown panel with scroll. Implements `ControlValueAccessor`.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/match-card/match-card.component.spec.ts`:
+Create `frontend/src/app/shared/components/select/select.component.spec.ts`:
 
 ```typescript
+import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {MatchCardComponent} from './match-card.component';
-import {Match} from '@fb/shared/models';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {SelectComponent, SelectItemComponent} from './select.component';
 
-const mockMatch: Match = {
-  id: '1',
-  homeTeam: 'Brazil',
-  awayTeam: 'Germany',
-  homeFlag: '\uD83C\uDDE7\uD83C\uDDF7',
-  awayFlag: '\uD83C\uDDE9\uD83C\uDDEA',
-  date: '2026-06-15',
-  time: '18:00',
-  stage: 'Group A',
-  phase: 'group',
-  status: 'upcoming',
-  predictionsEnabled: true,
+@Component({
+  template: `
+    <fb-select [formControl]="ctrl" placeholder="Choose...">
+      <fb-select-item value="a">Alpha</fb-select-item>
+      <fb-select-item value="b">Beta</fb-select-item>
+      <fb-select-item value="c">Gamma</fb-select-item>
+    </fb-select>
+  `,
+  imports: [SelectComponent, SelectItemComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+  ctrl = new FormControl('');
+}
+
+describe('SelectComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should show placeholder when no value selected', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('[data-trigger]') as HTMLElement;
+    expect(trigger.textContent).toContain('Choose...');
+  });
+
+  it('should open dropdown on trigger click', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('[data-trigger]') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    const dropdown = fixture.nativeElement.querySelector('[data-content]') as HTMLElement;
+    expect(dropdown).toBeTruthy();
+    expect(dropdown.classList.contains('hidden')).toBe(false);
+  });
+
+  it('should select item and close dropdown', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('[data-trigger]') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    const items = fixture.nativeElement.querySelectorAll('fb-select-item') as NodeListOf<HTMLElement>;
+    items[1].click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.ctrl.value).toBe('b');
+    expect(trigger.textContent).toContain('Beta');
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Select component**
+
+Create `frontend/src/app/shared/components/select/select.component.html`:
+
+```html
+<div class="relative">
+  <button
+    type="button"
+    data-trigger
+    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+    (click)="toggleOpen()"
+  >
+    <span [class.text-muted-foreground]="!selectedLabel()">
+      {{ selectedLabel() || placeholder() }}
+    </span>
+    <svg class="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+  </button>
+  <div
+    data-content
+    class="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover text-popover-foreground shadow-md max-h-60 overflow-auto"
+    [class.hidden]="!isOpen()"
+  >
+    <ng-content />
+  </div>
+</div>
+```
+
+Create `frontend/src/app/shared/components/select/select.component.ts`:
+
+```typescript
+import {Component, computed, forwardRef, inject, input, signal} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+const SELECT_CONTEXT = Symbol('SelectContext');
+
+export class SelectContext {
+  selectedValue = signal('');
+  selectedLabel = signal('');
+  isOpen = signal(false);
+  private onChange: (value: string) => void = () => {};
+
+  registerOnChange(fn: (value: string) => void): void {
+    this.onChange = fn;
+  }
+
+  select(value: string, label: string): void {
+    this.selectedValue.set(value);
+    this.selectedLabel.set(label);
+    this.isOpen.set(false);
+    this.onChange(value);
+  }
+
+  toggleOpen(): void {
+    this.isOpen.update(v => !v);
+  }
+}
+
+@Component({
+  selector: 'fb-select',
+  templateUrl: './select.component.html',
+  providers: [
+    {provide: SELECT_CONTEXT, useFactory: () => new SelectContext()},
+    {provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => SelectComponent), multi: true},
+  ],
+})
+export class SelectComponent implements ControlValueAccessor {
+  private context = inject(SELECT_CONTEXT);
+  placeholder = input('');
+
+  selectedLabel = this.context.selectedLabel;
+  isOpen = this.context.isOpen;
+
+  toggleOpen(): void {
+    this.context.toggleOpen();
+  }
+
+  writeValue(value: string): void {
+    this.context.selectedValue.set(value ?? '');
+  }
+
+  registerOnChange(fn: (value: string) => void): void {
+    this.context.registerOnChange(fn);
+  }
+
+  registerOnTouched(fn: () => void): void {}
+}
+
+@Component({
+  selector: 'fb-select-item',
+  host: {
+    class: 'block px-3 py-2 text-sm cursor-pointer hover:bg-accent/10 transition-colors',
+    '(click)': 'onSelect()',
+  },
+  template: '<ng-content />',
+})
+export class SelectItemComponent {
+  private context = inject(SELECT_CONTEXT);
+  value = input.required<string>();
+  label = signal('');
+
+  ngAfterViewInit(): void {
+    // Capture the projected text content as the label
+    const el = document.querySelector(`fb-select-item[ng-reflect-value="${this.value()}"]`);
+    if (el) {
+      this.label.set(el.textContent?.trim() ?? this.value());
+    }
+  }
+
+  onSelect(): void {
+    this.context.select(this.value(), this.label() || this.value());
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/select/
+git commit -m "feat(design-system): add Select dropdown component with ControlValueAccessor"
+```
+
+---
+
+### Task 14: Switch Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/switch/switch.component.ts`
+- Create: `frontend/src/app/shared/components/switch/switch.component.html`
+- Create: `frontend/src/app/shared/components/switch/switch.component.spec.ts`
+
+On/off toggle. Pill-shaped track with circular thumb. Used in cookie settings dialog. Implements `ControlValueAccessor`.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/switch/switch.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {SwitchComponent} from './switch.component';
+
+@Component({
+  template: `<fb-switch [formControl]="ctrl"></fb-switch>`,
+  imports: [SwitchComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+  ctrl = new FormControl(false);
+}
+
+describe('SwitchComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should render off by default', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const toggle = fixture.nativeElement.querySelector('[data-switch]') as HTMLElement;
+    expect(toggle.getAttribute('data-state')).toBe('unchecked');
+  });
+
+  it('should toggle on click', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const toggle = fixture.nativeElement.querySelector('[data-switch]') as HTMLElement;
+    toggle.click();
+    expect(fixture.componentInstance.ctrl.value).toBe(true);
+  });
+
+  it('should reflect formControl value', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.ctrl.setValue(true);
+    fixture.detectChanges();
+    const toggle = fixture.nativeElement.querySelector('[data-switch]') as HTMLElement;
+    expect(toggle.getAttribute('data-state')).toBe('checked');
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Switch component**
+
+Create `frontend/src/app/shared/components/switch/switch.component.html`:
+
+```html
+<button
+  type="button"
+  role="switch"
+  data-switch
+  class="inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+  [class.bg-accent]="checked()"
+  [class.bg-input]="!checked()"
+  [attr.data-state]="checked() ? 'checked' : 'unchecked'"
+  [attr.aria-checked]="checked()"
+  [disabled]="isDisabled()"
+  (click)="toggle()"
+>
+  <span
+    class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"
+    [class.translate-x-5]="checked()"
+    [class.translate-x-0]="!checked()"
+  ></span>
+</button>
+```
+
+Create `frontend/src/app/shared/components/switch/switch.component.ts`:
+
+```typescript
+import {Component, forwardRef, signal} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+@Component({
+  selector: 'fb-switch',
+  templateUrl: './switch.component.html',
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => SwitchComponent),
+    multi: true,
+  }],
+})
+export class SwitchComponent implements ControlValueAccessor {
+  checked = signal(false);
+  isDisabled = signal(false);
+
+  private onChange: (value: boolean) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  writeValue(value: boolean): void {
+    this.checked.set(!!value);
+  }
+
+  registerOnChange(fn: (value: boolean) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled);
+  }
+
+  toggle(): void {
+    if (this.isDisabled()) return;
+    const newValue = !this.checked();
+    this.checked.set(newValue);
+    this.onChange(newValue);
+    this.onTouched();
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/switch/
+git commit -m "feat(design-system): add Switch toggle component"
+```
+
+---
+
+### Task 15: Slider Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/slider/slider.component.ts`
+- Create: `frontend/src/app/shared/components/slider/slider.component.html`
+- Create: `frontend/src/app/shared/components/slider/slider.component.spec.ts`
+
+Range value selection. Track with accent-colored fill and draggable thumb. Implements `ControlValueAccessor`.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/slider/slider.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {SliderComponent} from './slider.component';
+
+@Component({
+  template: `<fb-slider [formControl]="ctrl" [min]="0" [max]="100"></fb-slider>`,
+  imports: [SliderComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+  ctrl = new FormControl(50);
+}
+
+describe('SliderComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should render a range input', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="range"]') as HTMLInputElement;
+    expect(input).toBeTruthy();
+  });
+
+  it('should reflect formControl value', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="range"]') as HTMLInputElement;
+    expect(input.value).toBe('50');
+  });
+
+  it('should update formControl on input', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const input = fixture.nativeElement.querySelector('input[type="range"]') as HTMLInputElement;
+    input.value = '75';
+    input.dispatchEvent(new Event('input'));
+    expect(fixture.componentInstance.ctrl.value).toBe(75);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Slider component**
+
+Create `frontend/src/app/shared/components/slider/slider.component.html`:
+
+```html
+<input
+  type="range"
+  class="w-full h-2 rounded-full appearance-none cursor-pointer bg-secondary accent-accent focus:outline-none"
+  [min]="min()"
+  [max]="max()"
+  [step]="step()"
+  [value]="value()"
+  [disabled]="isDisabled()"
+  (input)="onInput($event)"
+  (blur)="onTouched()"
+/>
+```
+
+Create `frontend/src/app/shared/components/slider/slider.component.ts`:
+
+```typescript
+import {Component, forwardRef, input, signal} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+@Component({
+  selector: 'fb-slider',
+  templateUrl: './slider.component.html',
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => SliderComponent),
+    multi: true,
+  }],
+})
+export class SliderComponent implements ControlValueAccessor {
+  min = input(0);
+  max = input(100);
+  step = input(1);
+  value = signal(0);
+  isDisabled = signal(false);
+
+  private onChange: (value: number) => void = () => {};
+  onTouched: () => void = () => {};
+
+  writeValue(value: number): void {
+    this.value.set(value ?? 0);
+  }
+
+  registerOnChange(fn: (value: number) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled);
+  }
+
+  onInput(event: Event): void {
+    const val = Number((event.target as HTMLInputElement).value);
+    this.value.set(val);
+    this.onChange(val);
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/slider/
+git commit -m "feat(design-system): add Slider range component"
+```
+
+---
+
+### Task 16: Toggle & Toggle Group Components
+
+**Files:**
+- Create: `frontend/src/app/shared/components/toggle/toggle.component.ts`
+- Create: `frontend/src/app/shared/components/toggle/toggle.component.html`
+- Create: `frontend/src/app/shared/components/toggle/toggle.component.spec.ts`
+
+Pressable on/off button with `default` and `outline` variants. ToggleGroup manages single or multiple selection.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/toggle/toggle.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {ToggleComponent, ToggleGroupComponent, ToggleGroupItemComponent} from './toggle.component';
+
+@Component({
+  template: `<fb-toggle [(pressed)]="isPressed">Bold</fb-toggle>`,
+  imports: [ToggleComponent],
+})
+class SingleToggleHost {
+  isPressed = false;
+}
+
+@Component({
+  template: `
+    <fb-toggle-group type="single" [(value)]="selected">
+      <fb-toggle-group-item value="a">A</fb-toggle-group-item>
+      <fb-toggle-group-item value="b">B</fb-toggle-group-item>
+    </fb-toggle-group>
+  `,
+  imports: [ToggleGroupComponent, ToggleGroupItemComponent],
+})
+class GroupToggleHost {
+  selected = 'a';
+}
+
+describe('ToggleComponent', () => {
+  it('should toggle pressed state on click', async () => {
+    await TestBed.configureTestingModule({imports: [SingleToggleHost]}).compileComponents();
+    const fixture = TestBed.createComponent(SingleToggleHost);
+    fixture.detectChanges();
+    const btn = fixture.nativeElement.querySelector('button') as HTMLElement;
+    btn.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.isPressed).toBe(true);
+    expect(btn.getAttribute('data-state')).toBe('on');
+  });
+});
+
+describe('ToggleGroupComponent', () => {
+  it('should select item on click', async () => {
+    await TestBed.configureTestingModule({imports: [GroupToggleHost]}).compileComponents();
+    const fixture = TestBed.createComponent(GroupToggleHost);
+    fixture.detectChanges();
+    const items = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLElement>;
+    items[1].click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.selected).toBe('b');
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Toggle components**
+
+Create `frontend/src/app/shared/components/toggle/toggle.component.html`:
+
+```html
+<button
+  type="button"
+  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors px-3 py-2 cursor-pointer"
+  [class.bg-accent]="pressed()"
+  [class.text-accent-foreground]="pressed()"
+  [class.hover:bg-muted]="!pressed()"
+  [attr.data-state]="pressed() ? 'on' : 'off'"
+  (click)="onToggle()"
+>
+  <ng-content />
+</button>
+```
+
+Create `frontend/src/app/shared/components/toggle/toggle.component.ts`:
+
+```typescript
+import {Component, computed, inject, input, model, signal} from '@angular/core';
+
+const TOGGLE_GROUP_CONTEXT = Symbol('ToggleGroupContext');
+
+export class ToggleGroupContext {
+  type = signal<'single' | 'multiple'>('single');
+  selectedValues = signal<string[]>([]);
+
+  private onChange: (value: string | string[]) => void = () => {};
+
+  registerOnChange(fn: (value: string | string[]) => void): void {
+    this.onChange = fn;
+  }
+
+  toggle(value: string): void {
+    if (this.type() === 'single') {
+      this.selectedValues.set([value]);
+      this.onChange(value);
+    } else {
+      this.selectedValues.update(vals =>
+        vals.includes(value) ? vals.filter(v => v !== value) : [...vals, value]
+      );
+      this.onChange(this.selectedValues());
+    }
+  }
+
+  isSelected(value: string): boolean {
+    return this.selectedValues().includes(value);
+  }
+}
+
+@Component({
+  selector: 'fb-toggle',
+  templateUrl: './toggle.component.html',
+})
+export class ToggleComponent {
+  pressed = model(false);
+
+  onToggle(): void {
+    this.pressed.set(!this.pressed());
+  }
+}
+
+@Component({
+  selector: 'fb-toggle-group',
+  host: {class: 'inline-flex items-center gap-1'},
+  template: '<ng-content />',
+  providers: [{provide: TOGGLE_GROUP_CONTEXT, useFactory: () => new ToggleGroupContext()}],
+})
+export class ToggleGroupComponent {
+  private context = inject(TOGGLE_GROUP_CONTEXT);
+  type = input<'single' | 'multiple'>('single');
+  value = model<string | string[]>('');
+
+  ngOnInit(): void {
+    this.context.type.set(this.type());
+    const v = this.value();
+    this.context.selectedValues.set(Array.isArray(v) ? v : v ? [v] : []);
+    this.context.registerOnChange((newVal) => this.value.set(newVal));
+  }
+}
+
+@Component({
+  selector: 'fb-toggle-group-item',
+  template: `
+    <button
+      type="button"
+      class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors px-3 py-2 cursor-pointer"
+      [class.bg-accent]="isSelected()"
+      [class.text-accent-foreground]="isSelected()"
+      [class.hover:bg-muted]="!isSelected()"
+      [attr.data-state]="isSelected() ? 'on' : 'off'"
+      (click)="onToggle()"
+    >
+      <ng-content />
+    </button>
+  `,
+})
+export class ToggleGroupItemComponent {
+  private context = inject(TOGGLE_GROUP_CONTEXT);
+  value = input.required<string>();
+
+  isSelected(): boolean {
+    return this.context.isSelected(this.value());
+  }
+
+  onToggle(): void {
+    this.context.toggle(this.value());
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/toggle/
+git commit -m "feat(design-system): add Toggle and ToggleGroup components"
+```
+
+---
+
+### Task 17: FormGroup Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/form-group/form-group.component.ts`
+- Create: `frontend/src/app/shared/components/form-group/form-group.component.html`
+- Create: `frontend/src/app/shared/components/form-group/form-group.component.spec.ts`
+
+Unified wrapper for a form field — handles label, control, description, spacing, and validation error display.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/form-group/form-group.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {FormControl, Validators, ReactiveFormsModule} from '@angular/forms';
+import {FormGroupComponent} from './form-group.component';
+
+@Component({
+  template: `
+    <fb-form-group label="Email" description="We'll never share your email." [control]="ctrl">
+      <input [formControl]="ctrl" />
+    </fb-form-group>
+  `,
+  imports: [FormGroupComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+  ctrl = new FormControl('', Validators.required);
+}
+
+describe('FormGroupComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should render label', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const label = fixture.nativeElement.querySelector('label') as HTMLElement;
+    expect(label.textContent).toContain('Email');
+  });
+
+  it('should render description', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const desc = fixture.nativeElement.querySelector('[data-description]') as HTMLElement;
+    expect(desc.textContent).toContain("We'll never share your email.");
+  });
+
+  it('should show error when control is touched and invalid', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.ctrl.markAsTouched();
+    fixture.detectChanges();
+    const error = fixture.nativeElement.querySelector('[data-error]') as HTMLElement;
+    expect(error).toBeTruthy();
+  });
+
+  it('should not show error when control is valid', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.ctrl.setValue('test@example.com');
+    fixture.componentInstance.ctrl.markAsTouched();
+    fixture.detectChanges();
+    const error = fixture.nativeElement.querySelector('[data-error]') as HTMLElement;
+    expect(error).toBeNull();
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement FormGroup component**
+
+Create `frontend/src/app/shared/components/form-group/form-group.component.html`:
+
+```html
+<div class="space-y-2 mb-4">
+  @if (label()) {
+    <label class="text-sm font-medium">{{ label() }}</label>
+  }
+  <ng-content />
+  @if (description()) {
+    <p data-description class="text-muted-foreground text-sm">{{ description() }}</p>
+  }
+  @if (errorMessage()) {
+    <p data-error class="text-destructive text-sm">{{ errorMessage() }}</p>
+  }
+</div>
+```
+
+Create `frontend/src/app/shared/components/form-group/form-group.component.ts`:
+
+```typescript
+import {Component, computed, input, Signal} from '@angular/core';
+import {FormControl} from '@angular/forms';
+import {toObservable, toSignal} from '@angular/core/rxjs-interop';
+import {switchMap} from 'rxjs';
+
+const ERROR_MESSAGES: Record<string, (params?: any) => string> = {
+  required: () => 'This field is required',
+  email: () => 'Please enter a valid email',
+  minlength: (p) => `Minimum ${p.requiredLength} characters`,
+  maxlength: (p) => `Maximum ${p.requiredLength} characters`,
+  pattern: () => 'Invalid format',
 };
 
-describe('MatchCardComponent', () => {
+@Component({
+  selector: 'fb-form-group',
+  templateUrl: './form-group.component.html',
+})
+export class FormGroupComponent {
+  label = input('');
+  description = input('');
+  control = input<FormControl | null>(null);
+
+  private status: Signal<string> = toSignal(
+    toObservable(this.control).pipe(
+      switchMap(c => c ? c.statusChanges : [])
+    ),
+    {initialValue: 'VALID'}
+  );
+
+  errorMessage = computed(() => {
+    this.status();
+    const ctrl = this.control();
+    if (!ctrl || !ctrl.errors || !ctrl.touched) return null;
+    const firstKey = Object.keys(ctrl.errors)[0];
+    const messageFn = ERROR_MESSAGES[firstKey];
+    return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
+  });
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/form-group/
+git commit -m "feat(design-system): add FormGroup component with auto validation"
+```
+
+---
+
+### Task 18: Skeleton Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/skeleton/skeleton.component.ts`
+- Create: `frontend/src/app/shared/components/skeleton/skeleton.component.spec.ts`
+
+Loading placeholder with animated pulse.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/skeleton/skeleton.component.spec.ts`:
+
+```typescript
+import {TestBed} from '@angular/core/testing';
+import {SkeletonComponent} from './skeleton.component';
+
+describe('SkeletonComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MatchCardComponent],
+      imports: [SkeletonComponent],
     }).compileComponents();
   });
 
-  it('should render team names', () => {
-    const fixture = TestBed.createComponent(MatchCardComponent);
-    fixture.componentRef.setInput('match', mockMatch);
+  it('should render with animate-pulse class', () => {
+    const fixture = TestBed.createComponent(SkeletonComponent);
     fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Brazil');
-    expect(el.textContent).toContain('Germany');
+    const el = fixture.nativeElement.querySelector('[data-skeleton]') as HTMLElement;
+    expect(el.classList.contains('animate-pulse')).toBe(true);
   });
 
-  it('should show VS when no score', () => {
-    const fixture = TestBed.createComponent(MatchCardComponent);
-    fixture.componentRef.setInput('match', mockMatch);
+  it('should accept custom class for sizing', () => {
+    const fixture = TestBed.createComponent(SkeletonComponent);
+    fixture.componentRef.setInput('class', 'h-4 w-32');
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('vs');
-  });
-
-  it('should show score when available', () => {
-    const fixture = TestBed.createComponent(MatchCardComponent);
-    fixture.componentRef.setInput('match', {...mockMatch, homeScore: 2, awayScore: 1, status: 'finished' as const});
-    fixture.componentRef.setInput('showResult', true);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('2');
-    expect(fixture.nativeElement.textContent).toContain('1');
-  });
-
-  it('should show stage badge', () => {
-    const fixture = TestBed.createComponent(MatchCardComponent);
-    fixture.componentRef.setInput('match', mockMatch);
-    fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Group A');
+    const el = fixture.nativeElement.querySelector('[data-skeleton]') as HTMLElement;
+    expect(el.className).toContain('h-4');
   });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
-- [ ] **Step 3: Implement MatchCard component**
+- [ ] **Step 3: Implement Skeleton component**
 
-Create `frontend/src/app/shared/components/match-card/match-card.component.ts`:
+Create `frontend/src/app/shared/components/skeleton/skeleton.component.ts`:
 
 ```typescript
 import {Component, input} from '@angular/core';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapCalendar, bootstrapClock} from '@ng-icons/bootstrap-icons';
-import {Match} from '@fb/shared/models';
 
 @Component({
-  selector: 'fb-match-card',
-  imports: [NgIcon],
-  viewProviders: [provideIcons({bootstrapCalendar, bootstrapClock})],
-  templateUrl: './match-card.component.html',
+  selector: 'fb-skeleton',
+  template: `<div data-skeleton class="animate-pulse rounded-md bg-muted" [class]="class()"></div>`,
 })
-export class MatchCardComponent {
-  match = input.required<Match>();
-  showResult = input(false);
+export class SkeletonComponent {
+  class = input('h-4 w-full');
 }
-```
-
-Create `frontend/src/app/shared/components/match-card/match-card.component.html`:
-
-```html
-<div class="match-card">
-  <div class="flex items-center justify-between mb-3">
-    <span class="badge badge-accent">{{ match().stage }}</span>
-    <div class="flex items-center gap-2 text-xs text-muted-foreground">
-      <ng-icon name="bootstrapCalendar" class="text-sm" />
-      <span>{{ match().date }}</span>
-      <ng-icon name="bootstrapClock" class="text-sm" />
-      <span>{{ match().time }}</span>
-    </div>
-  </div>
-
-  <div class="flex items-center justify-center gap-6">
-    <!-- Home team -->
-    <div class="flex flex-col items-center gap-1 flex-1">
-      <span class="text-2xl">{{ match().homeFlag }}</span>
-      <span class="font-medium text-sm text-center">{{ match().homeTeam }}</span>
-    </div>
-
-    <!-- Score or VS -->
-    @if (showResult() && match().homeScore !== undefined && match().awayScore !== undefined) {
-      <div class="text-xl font-bold">
-        {{ match().homeScore }} - {{ match().awayScore }}
-      </div>
-    } @else {
-      <span class="text-lg text-muted-foreground font-medium">vs</span>
-    }
-
-    <!-- Away team -->
-    <div class="flex flex-col items-center gap-1 flex-1">
-      <span class="text-2xl">{{ match().awayFlag }}</span>
-      <span class="font-medium text-sm text-center">{{ match().awayTeam }}</span>
-    </div>
-  </div>
-</div>
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/match-card/
-git commit -m "feat(design-system): add MatchCard domain component"
+git add frontend/src/app/shared/components/skeleton/
+git commit -m "feat(design-system): add Skeleton loading component"
 ```
 
 ---
 
-### Task 15: StatsCards Domain Component
+### Task 19: Alert Component
 
 **Files:**
-- Create: `frontend/src/app/shared/components/stats-cards/stats-cards.component.ts`
-- Create: `frontend/src/app/shared/components/stats-cards/stats-cards.component.html`
-- Create: `frontend/src/app/shared/components/stats-cards/stats-cards.component.spec.ts`
+- Create: `frontend/src/app/shared/components/alert/alert.component.ts`
+- Create: `frontend/src/app/shared/components/alert/alert.component.spec.ts`
 
-Grid of 4 stat cards showing user performance metrics.
+Informational messages with `default` and `destructive` variants. Composed of AlertTitle and AlertDescription via content projection.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/stats-cards/stats-cards.component.spec.ts`:
+Create `frontend/src/app/shared/components/alert/alert.component.spec.ts`:
 
 ```typescript
+import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {StatsCardsComponent} from './stats-cards.component';
+import {AlertComponent, AlertTitleComponent, AlertDescriptionComponent} from './alert.component';
 
-describe('StatsCardsComponent', () => {
+@Component({
+  template: `
+    <fb-alert variant="destructive">
+      <fb-alert-title>Error</fb-alert-title>
+      <fb-alert-description>Something went wrong.</fb-alert-description>
+    </fb-alert>
+  `,
+  imports: [AlertComponent, AlertTitleComponent, AlertDescriptionComponent],
+})
+class TestHostComponent {}
+
+describe('AlertComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StatsCardsComponent],
+      imports: [TestHostComponent],
     }).compileComponents();
   });
 
-  it('should render all four stat cards', () => {
-    const fixture = TestBed.createComponent(StatsCardsComponent);
-    fixture.componentRef.setInput('points', 120);
-    fixture.componentRef.setInput('rank', 3);
-    fixture.componentRef.setInput('accuracy', 72);
-    fixture.componentRef.setInput('totalPredictions', 45);
+  it('should render title and description', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('120');
-    expect(el.textContent).toContain('3');
-    expect(el.textContent).toContain('72%');
-    expect(el.textContent).toContain('45');
+    expect(el.querySelector('fb-alert-title')?.textContent).toContain('Error');
+    expect(el.querySelector('fb-alert-description')?.textContent).toContain('Something went wrong.');
   });
 
-  it('should render stat labels', () => {
-    const fixture = TestBed.createComponent(StatsCardsComponent);
-    fixture.componentRef.setInput('points', 0);
-    fixture.componentRef.setInput('rank', 0);
-    fixture.componentRef.setInput('accuracy', 0);
-    fixture.componentRef.setInput('totalPredictions', 0);
+  it('should apply destructive variant styling', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Points');
-    expect(el.textContent).toContain('Rank');
-    expect(el.textContent).toContain('Accuracy');
-    expect(el.textContent).toContain('Predictions');
+    const alert = fixture.nativeElement.querySelector('fb-alert') as HTMLElement;
+    expect(alert.classList.contains('border-destructive')).toBe(true);
   });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
-- [ ] **Step 3: Implement StatsCards component**
+- [ ] **Step 3: Implement Alert component**
 
-Create `frontend/src/app/shared/components/stats-cards/stats-cards.component.ts`:
+Create `frontend/src/app/shared/components/alert/alert.component.ts`:
 
 ```typescript
-import {Component, input} from '@angular/core';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapTrophy, bootstrapBarChart, bootstrapBullseye, bootstrapGraphUp} from '@ng-icons/bootstrap-icons';
+import {Component, input, HostBinding} from '@angular/core';
 
-interface StatItem {
-  label: string;
-  icon: string;
-  bgColor: string;
-  iconColor: string;
+@Component({
+  selector: 'fb-alert',
+  host: {
+    class: 'relative w-full rounded-lg border p-4 block',
+    '[class.border-border]': 'variant() === "default"',
+    '[class.border-destructive]': 'variant() === "destructive"',
+    '[class.text-destructive]': 'variant() === "destructive"',
+  },
+  template: '<ng-content />',
+})
+export class AlertComponent {
+  variant = input<'default' | 'destructive'>('default');
 }
 
 @Component({
-  selector: 'fb-stats-cards',
-  imports: [NgIcon],
-  viewProviders: [provideIcons({bootstrapTrophy, bootstrapBarChart, bootstrapBullseye, bootstrapGraphUp})],
-  templateUrl: './stats-cards.component.html',
+  selector: 'fb-alert-title',
+  host: {class: 'mb-1 font-medium leading-none tracking-tight block'},
+  template: '<ng-content />',
 })
-export class StatsCardsComponent {
-  points = input.required<number>();
-  rank = input.required<number>();
-  accuracy = input.required<number>();
-  totalPredictions = input.required<number>();
+export class AlertTitleComponent {}
 
-  stats: StatItem[] = [
-    {label: 'Points', icon: 'bootstrapTrophy', bgColor: 'bg-accent/10', iconColor: 'text-accent'},
-    {label: 'Rank', icon: 'bootstrapBarChart', bgColor: 'bg-primary/10', iconColor: 'text-primary'},
-    {label: 'Accuracy', icon: 'bootstrapBullseye', bgColor: 'bg-success/10', iconColor: 'text-success'},
-    {label: 'Predictions', icon: 'bootstrapGraphUp', bgColor: 'bg-muted', iconColor: 'text-muted-foreground'},
-  ];
-
-  getValue(index: number): string {
-    switch (index) {
-      case 0: return String(this.points());
-      case 1: return String(this.rank());
-      case 2: return `${this.accuracy()}%`;
-      case 3: return String(this.totalPredictions());
-      default: return '';
-    }
-  }
-}
-```
-
-Create `frontend/src/app/shared/components/stats-cards/stats-cards.component.html`:
-
-```html
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-  @for (stat of stats; track stat.label; let i = $index) {
-    <div class="stat-card animate-fade-in" [style.animation-delay.ms]="i * 100">
-      <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-lg flex items-center justify-center" [class]="stat.bgColor">
-          <ng-icon [name]="stat.icon" [class]="stat.iconColor" class="text-lg" />
-        </div>
-      </div>
-      <p class="text-2xl font-bold">{{ getValue(i) }}</p>
-      <p class="text-sm text-muted-foreground">{{ stat.label }}</p>
-    </div>
-  }
-</div>
+@Component({
+  selector: 'fb-alert-description',
+  host: {class: 'text-sm [&_p]:leading-relaxed block'},
+  template: '<ng-content />',
+})
+export class AlertDescriptionComponent {}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/stats-cards/
-git commit -m "feat(design-system): add StatsCards domain component"
+git add frontend/src/app/shared/components/alert/
+git commit -m "feat(design-system): add Alert component with variants"
 ```
 
 ---
 
-### Task 16: RankingCard Domain Component
+### Task 20: Accordion Component
 
 **Files:**
-- Create: `frontend/src/app/shared/components/ranking-card/ranking-card.component.ts`
-- Create: `frontend/src/app/shared/components/ranking-card/ranking-card.component.html`
-- Create: `frontend/src/app/shared/components/ranking-card/ranking-card.component.spec.ts`
+- Create: `frontend/src/app/shared/components/accordion/accordion.component.ts`
+- Create: `frontend/src/app/shared/components/accordion/accordion.component.html`
+- Create: `frontend/src/app/shared/components/accordion/accordion.component.spec.ts`
 
-Compact top-5 leaderboard for dashboard sidebar.
+Collapsible content sections. Used in Rules page for FAQs. Trigger text left-aligned, chevron rotates.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/ranking-card/ranking-card.component.spec.ts`:
+Create `frontend/src/app/shared/components/accordion/accordion.component.spec.ts`:
 
 ```typescript
+import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {provideRouter} from '@angular/router';
-import {RankingCardComponent} from './ranking-card.component';
-import {Player} from '@fb/shared/models';
+import {AccordionComponent, AccordionItemComponent, AccordionTriggerComponent, AccordionContentComponent} from './accordion.component';
 
-const mockPlayers: Player[] = [
-  {id: '1', name: 'Alice', points: 120, correctPredictions: 30, totalPredictions: 40},
-  {id: '2', name: 'Bob', points: 110, correctPredictions: 28, totalPredictions: 40},
-  {id: '3', name: 'Charlie', points: 100, correctPredictions: 25, totalPredictions: 40},
-];
+@Component({
+  template: `
+    <fb-accordion type="single">
+      <fb-accordion-item value="item1">
+        <fb-accordion-trigger>Section 1</fb-accordion-trigger>
+        <fb-accordion-content>Content 1</fb-accordion-content>
+      </fb-accordion-item>
+      <fb-accordion-item value="item2">
+        <fb-accordion-trigger>Section 2</fb-accordion-trigger>
+        <fb-accordion-content>Content 2</fb-accordion-content>
+      </fb-accordion-item>
+    </fb-accordion>
+  `,
+  imports: [AccordionComponent, AccordionItemComponent, AccordionTriggerComponent, AccordionContentComponent],
+})
+class TestHostComponent {}
 
-describe('RankingCardComponent', () => {
+describe('AccordionComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RankingCardComponent],
-      providers: [provideRouter([])],
+      imports: [TestHostComponent],
     }).compileComponents();
   });
 
-  it('should render player names', () => {
-    const fixture = TestBed.createComponent(RankingCardComponent);
-    fixture.componentRef.setInput('players', mockPlayers);
-    fixture.componentRef.setInput('currentUserId', '2');
+  it('should render all items collapsed by default', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const contents = fixture.nativeElement.querySelectorAll('fb-accordion-content') as NodeListOf<HTMLElement>;
+    expect(contents[0].classList.contains('hidden')).toBe(true);
+    expect(contents[1].classList.contains('hidden')).toBe(true);
+  });
+
+  it('should expand item on trigger click', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const triggers = fixture.nativeElement.querySelectorAll('fb-accordion-trigger') as NodeListOf<HTMLElement>;
+    triggers[0].click();
+    fixture.detectChanges();
+    const contents = fixture.nativeElement.querySelectorAll('fb-accordion-content') as NodeListOf<HTMLElement>;
+    expect(contents[0].classList.contains('hidden')).toBe(false);
+    expect(contents[1].classList.contains('hidden')).toBe(true);
+  });
+
+  it('should collapse previous item in single mode', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const triggers = fixture.nativeElement.querySelectorAll('fb-accordion-trigger') as NodeListOf<HTMLElement>;
+    triggers[0].click();
+    fixture.detectChanges();
+    triggers[1].click();
+    fixture.detectChanges();
+    const contents = fixture.nativeElement.querySelectorAll('fb-accordion-content') as NodeListOf<HTMLElement>;
+    expect(contents[0].classList.contains('hidden')).toBe(true);
+    expect(contents[1].classList.contains('hidden')).toBe(false);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Accordion component**
+
+Create `frontend/src/app/shared/components/accordion/accordion.component.html`:
+
+```html
+<div class="divide-y divide-border">
+  <ng-content />
+</div>
+```
+
+Create `frontend/src/app/shared/components/accordion/accordion.component.ts`:
+
+```typescript
+import {Component, computed, inject, input, signal} from '@angular/core';
+
+const ACCORDION_CONTEXT = Symbol('AccordionContext');
+
+export class AccordionContext {
+  type = signal<'single' | 'multiple'>('single');
+  openItems = signal<Set<string>>(new Set());
+
+  toggle(value: string): void {
+    this.openItems.update(items => {
+      const next = new Set(items);
+      if (next.has(value)) {
+        next.delete(value);
+      } else {
+        if (this.type() === 'single') {
+          next.clear();
+        }
+        next.add(value);
+      }
+      return next;
+    });
+  }
+
+  isOpen(value: string): boolean {
+    return this.openItems().has(value);
+  }
+}
+
+@Component({
+  selector: 'fb-accordion',
+  host: {class: 'block'},
+  templateUrl: './accordion.component.html',
+  providers: [{provide: ACCORDION_CONTEXT, useFactory: () => new AccordionContext()}],
+})
+export class AccordionComponent {
+  private context = inject(ACCORDION_CONTEXT);
+  type = input<'single' | 'multiple'>('single');
+
+  ngOnInit(): void {
+    this.context.type.set(this.type());
+  }
+}
+
+@Component({
+  selector: 'fb-accordion-item',
+  host: {class: 'block py-4'},
+  template: '<ng-content />',
+})
+export class AccordionItemComponent {
+  value = input.required<string>();
+}
+
+@Component({
+  selector: 'fb-accordion-trigger',
+  host: {
+    class: 'flex w-full items-center justify-between text-sm font-medium cursor-pointer transition-all hover:underline',
+    '(click)': 'onClick()',
+  },
+  template: `
+    <ng-content />
+    <svg
+      class="h-4 w-4 shrink-0 transition-transform duration-200"
+      [class.rotate-180]="isOpen()"
+      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+    ><path d="m6 9 6 6 6-6"/></svg>
+  `,
+})
+export class AccordionTriggerComponent {
+  private context = inject(ACCORDION_CONTEXT);
+  private item = inject(AccordionItemComponent);
+
+  isOpen(): boolean {
+    return this.context.isOpen(this.item.value());
+  }
+
+  onClick(): void {
+    this.context.toggle(this.item.value());
+  }
+}
+
+@Component({
+  selector: 'fb-accordion-content',
+  host: {
+    class: 'text-sm pt-2 block',
+    '[class.hidden]': '!isOpen()',
+  },
+  template: '<ng-content />',
+})
+export class AccordionContentComponent {
+  private context = inject(ACCORDION_CONTEXT);
+  private item = inject(AccordionItemComponent);
+
+  isOpen(): boolean {
+    return this.context.isOpen(this.item.value());
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/accordion/
+git commit -m "feat(design-system): add Accordion component with single/multiple mode"
+```
+
+---
+
+### Task 21: Table Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/table/table.component.ts`
+- Create: `frontend/src/app/shared/components/table/table.component.spec.ts`
+
+Styled data table. Used in Rules page for points system. Sub-components compose native table elements.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/table/table.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {TableComponent, TableHeaderComponent, TableBodyComponent, TableRowComponent, TableHeadComponent, TableCellComponent} from './table.component';
+
+@Component({
+  template: `
+    <fb-table>
+      <fb-table-header>
+        <fb-table-row>
+          <fb-table-head>Name</fb-table-head>
+          <fb-table-head>Points</fb-table-head>
+        </fb-table-row>
+      </fb-table-header>
+      <fb-table-body>
+        <fb-table-row>
+          <fb-table-cell>Alice</fb-table-cell>
+          <fb-table-cell>120</fb-table-cell>
+        </fb-table-row>
+      </fb-table-body>
+    </fb-table>
+  `,
+  imports: [TableComponent, TableHeaderComponent, TableBodyComponent, TableRowComponent, TableHeadComponent, TableCellComponent],
+})
+class TestHostComponent {}
+
+describe('TableComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should render table with header and body', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('table')).toBeTruthy();
+    expect(el.querySelector('thead')).toBeTruthy();
+    expect(el.querySelector('tbody')).toBeTruthy();
+  });
+
+  it('should render cell content', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Alice');
-    expect(el.textContent).toContain('Bob');
-    expect(el.textContent).toContain('Charlie');
-  });
-
-  it('should highlight current user', () => {
-    const fixture = TestBed.createComponent(RankingCardComponent);
-    fixture.componentRef.setInput('players', mockPlayers);
-    fixture.componentRef.setInput('currentUserId', '2');
-    fixture.detectChanges();
-    const rows = fixture.nativeElement.querySelectorAll('[data-player-row]') as NodeListOf<HTMLElement>;
-    expect(rows[1].classList.contains('bg-accent/10')).toBe(true);
-  });
-
-  it('should show rank badges for top 3', () => {
-    const fixture = TestBed.createComponent(RankingCardComponent);
-    fixture.componentRef.setInput('players', mockPlayers);
-    fixture.componentRef.setInput('currentUserId', '1');
-    fixture.detectChanges();
-    const badges = fixture.nativeElement.querySelectorAll('.rank-badge');
-    expect(badges.length).toBe(3);
+    expect(el.textContent).toContain('120');
   });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
-- [ ] **Step 3: Implement RankingCard component**
+- [ ] **Step 3: Implement Table component**
 
-Create `frontend/src/app/shared/components/ranking-card/ranking-card.component.ts`:
+Create `frontend/src/app/shared/components/table/table.component.ts`:
 
 ```typescript
-import {Component, input} from '@angular/core';
-import {RouterLink} from '@angular/router';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapChevronRight} from '@ng-icons/bootstrap-icons';
-import {Player} from '@fb/shared/models';
-import {AvatarComponent} from '@fb/shared/components/avatar/avatar.component';
+import {Component} from '@angular/core';
 
 @Component({
-  selector: 'fb-ranking-card',
-  imports: [RouterLink, NgIcon, AvatarComponent],
-  viewProviders: [provideIcons({bootstrapChevronRight})],
-  templateUrl: './ranking-card.component.html',
+  selector: 'fb-table',
+  template: '<table class="w-full caption-bottom text-sm"><ng-content /></table>',
 })
-export class RankingCardComponent {
-  players = input.required<Player[]>();
-  currentUserId = input.required<string>();
+export class TableComponent {}
 
-  rankBadgeClass(rank: number): string {
-    if (rank === 1) return 'rank-badge rank-badge-gold';
-    if (rank === 2) return 'rank-badge rank-badge-silver';
-    if (rank === 3) return 'rank-badge rank-badge-bronze';
-    return 'rank-badge bg-muted text-muted-foreground';
-  }
-}
-```
+@Component({
+  selector: 'fb-table-header',
+  template: '<thead class="[&_tr]:border-b"><ng-content /></thead>',
+})
+export class TableHeaderComponent {}
 
-Create `frontend/src/app/shared/components/ranking-card/ranking-card.component.html`:
+@Component({
+  selector: 'fb-table-body',
+  template: '<tbody class="[&_tr:last-child]:border-0"><ng-content /></tbody>',
+})
+export class TableBodyComponent {}
 
-```html
-<div class="card-gradient rounded-xl border border-border p-6">
-  <h3 class="text-lg font-semibold mb-4">Ranking</h3>
+@Component({
+  selector: 'fb-table-row',
+  template: '<tr class="border-b border-border transition-colors hover:bg-muted/50"><ng-content /></tr>',
+})
+export class TableRowComponent {}
 
-  <div class="flex flex-col gap-2">
-    @for (player of players(); track player.id; let i = $index) {
-      <div
-        data-player-row
-        class="flex items-center gap-3 p-2 rounded-lg transition-colors"
-        [class.bg-accent/10]="player.id === currentUserId()"
-        [class.border]="player.id === currentUserId()"
-        [class.border-accent/20]="player.id === currentUserId()"
-      >
-        <span [class]="rankBadgeClass(i + 1)">{{ i + 1 }}</span>
-        <fb-avatar [fallback]="player.name[0]" size="sm" [src]="player.avatar" />
-        <span class="text-sm font-medium flex-1">{{ player.name }}</span>
-        <span class="text-sm font-bold">{{ player.points }}</span>
-      </div>
-    }
-  </div>
+@Component({
+  selector: 'fb-table-head',
+  template: '<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"><ng-content /></th>',
+})
+export class TableHeadComponent {}
 
-  <a routerLink="./ranking" class="flex items-center justify-center gap-1 mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors">
-    View Full Ranking
-    <ng-icon name="bootstrapChevronRight" class="text-sm" />
-  </a>
-</div>
+@Component({
+  selector: 'fb-table-cell',
+  template: '<td class="p-4 align-middle"><ng-content /></td>',
+})
+export class TableCellComponent {}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/ranking-card/
-git commit -m "feat(design-system): add RankingCard domain component"
+git add frontend/src/app/shared/components/table/
+git commit -m "feat(design-system): add Table component with sub-components"
 ```
 
 ---
 
-### Task 17: TournamentStatus Domain Component
+### Task 22: Tooltip Directive
 
 **Files:**
-- Create: `frontend/src/app/shared/components/tournament-status/tournament-status.component.ts`
-- Create: `frontend/src/app/shared/components/tournament-status/tournament-status.component.html`
-- Create: `frontend/src/app/shared/components/tournament-status/tournament-status.component.spec.ts`
+- Create: `frontend/src/app/shared/directives/tooltip.directive.ts`
+- Create: `frontend/src/app/shared/directives/tooltip.directive.spec.ts`
 
-Tournament progress overview for dashboard sidebar.
+Simple text tooltip on hover. Applied as a directive to any element.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/tournament-status/tournament-status.component.spec.ts`:
+Create `frontend/src/app/shared/directives/tooltip.directive.spec.ts`:
 
 ```typescript
+import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {TournamentStatusComponent} from './tournament-status.component';
-import {TournamentStatus} from '@fb/shared/models';
+import {TooltipDirective} from './tooltip.directive';
 
-const mockStatus: TournamentStatus = {
-  currentStage: 'Group Stage',
-  matchesPlayed: 24,
-  totalMatches: 64,
-  teamsRemaining: 32,
-  nextPhase: 'Round of 16',
-  daysUntilNextPhase: 5,
-};
+@Component({
+  template: `<button fbTooltip="Help text">Hover me</button>`,
+  imports: [TooltipDirective],
+})
+class TestHostComponent {}
 
-describe('TournamentStatusComponent', () => {
+describe('TooltipDirective', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TournamentStatusComponent],
+      imports: [TestHostComponent],
     }).compileComponents();
   });
 
-  it('should render current stage', () => {
-    const fixture = TestBed.createComponent(TournamentStatusComponent);
-    fixture.componentRef.setInput('status', mockStatus);
+  it('should not show tooltip initially', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Group Stage');
+    const tooltip = fixture.nativeElement.querySelector('[data-tooltip]');
+    expect(tooltip).toBeNull();
   });
 
-  it('should render matches played', () => {
-    const fixture = TestBed.createComponent(TournamentStatusComponent);
-    fixture.componentRef.setInput('status', mockStatus);
+  it('should show tooltip on mouseenter', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('24');
-    expect(fixture.nativeElement.textContent).toContain('64');
+    const button = fixture.nativeElement.querySelector('button') as HTMLElement;
+    button.dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.detectChanges();
+    const tooltip = fixture.nativeElement.querySelector('[data-tooltip]') as HTMLElement;
+    expect(tooltip).toBeTruthy();
+    expect(tooltip.textContent).toContain('Help text');
   });
 
-  it('should render next phase info', () => {
-    const fixture = TestBed.createComponent(TournamentStatusComponent);
-    fixture.componentRef.setInput('status', mockStatus);
+  it('should hide tooltip on mouseleave', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Round of 16');
-    expect(fixture.nativeElement.textContent).toContain('5');
+    const button = fixture.nativeElement.querySelector('button') as HTMLElement;
+    button.dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.detectChanges();
+    button.dispatchEvent(new MouseEvent('mouseleave'));
+    fixture.detectChanges();
+    const tooltip = fixture.nativeElement.querySelector('[data-tooltip]');
+    expect(tooltip).toBeNull();
   });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
-- [ ] **Step 3: Implement TournamentStatus component**
+- [ ] **Step 3: Implement Tooltip directive**
 
-Create `frontend/src/app/shared/components/tournament-status/tournament-status.component.ts`:
+Create `frontend/src/app/shared/directives/tooltip.directive.ts`:
 
 ```typescript
-import {Component, computed, input} from '@angular/core';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapCalendarEvent} from '@ng-icons/bootstrap-icons';
-import {TournamentStatus} from '@fb/shared/models';
-import {ProgressComponent} from '@fb/shared/components/progress/progress.component';
+import {Directive, ElementRef, HostListener, inject, input, Renderer2} from '@angular/core';
 
-@Component({
-  selector: 'fb-tournament-status',
-  imports: [NgIcon, ProgressComponent],
-  viewProviders: [provideIcons({bootstrapCalendarEvent})],
-  templateUrl: './tournament-status.component.html',
+@Directive({
+  selector: '[fbTooltip]',
 })
-export class TournamentStatusComponent {
-  status = input.required<TournamentStatus>();
-  progressPercent = computed(() => {
-    const s = this.status();
-    return s.totalMatches > 0 ? Math.round((s.matchesPlayed / s.totalMatches) * 100) : 0;
-  });
+export class TooltipDirective {
+  fbTooltip = input.required<string>();
+  private el = inject(ElementRef);
+  private renderer = inject(Renderer2);
+  private tooltipEl: HTMLElement | null = null;
+
+  @HostListener('mouseenter')
+  onMouseEnter(): void {
+    this.show();
+  }
+
+  @HostListener('mouseleave')
+  onMouseLeave(): void {
+    this.hide();
+  }
+
+  private show(): void {
+    if (this.tooltipEl) return;
+    this.tooltipEl = this.renderer.createElement('div');
+    this.renderer.setAttribute(this.tooltipEl, 'data-tooltip', '');
+    this.renderer.addClass(this.tooltipEl, 'absolute');
+    this.renderer.addClass(this.tooltipEl, 'z-50');
+    this.renderer.addClass(this.tooltipEl, 'rounded-md');
+    this.renderer.addClass(this.tooltipEl, 'bg-primary');
+    this.renderer.addClass(this.tooltipEl, 'text-primary-foreground');
+    this.renderer.addClass(this.tooltipEl, 'px-3');
+    this.renderer.addClass(this.tooltipEl, 'py-1.5');
+    this.renderer.addClass(this.tooltipEl, 'text-xs');
+    this.renderer.addClass(this.tooltipEl, 'shadow-md');
+    const text = this.renderer.createText(this.fbTooltip());
+    this.renderer.appendChild(this.tooltipEl, text);
+
+    const hostEl = this.el.nativeElement as HTMLElement;
+    this.renderer.setStyle(hostEl, 'position', 'relative');
+    this.renderer.setStyle(this.tooltipEl, 'bottom', '100%');
+    this.renderer.setStyle(this.tooltipEl, 'left', '50%');
+    this.renderer.setStyle(this.tooltipEl, 'transform', 'translateX(-50%)');
+    this.renderer.setStyle(this.tooltipEl, 'margin-bottom', '4px');
+    this.renderer.setStyle(this.tooltipEl, 'white-space', 'nowrap');
+    this.renderer.appendChild(hostEl, this.tooltipEl);
+  }
+
+  private hide(): void {
+    if (this.tooltipEl) {
+      this.renderer.removeChild(this.el.nativeElement, this.tooltipEl);
+      this.tooltipEl = null;
+    }
+  }
 }
-```
-
-Create `frontend/src/app/shared/components/tournament-status/tournament-status.component.html`:
-
-```html
-<div class="card-gradient rounded-xl border border-border p-6">
-  <h3 class="text-lg font-semibold mb-4">Tournament Status</h3>
-
-  <div class="mb-4">
-    <div class="flex justify-between text-sm mb-2">
-      <span class="text-muted-foreground">{{ status().currentStage }}</span>
-      <span class="font-medium">{{ status().matchesPlayed }} / {{ status().totalMatches }}</span>
-    </div>
-    <fb-progress [value]="progressPercent()" />
-  </div>
-
-  <div class="grid grid-cols-2 gap-4 mb-4">
-    <div class="bg-muted/50 rounded-lg p-3 text-center">
-      <p class="text-lg font-bold">{{ status().matchesPlayed }}</p>
-      <p class="text-xs text-muted-foreground">Matches Played</p>
-    </div>
-    <div class="bg-muted/50 rounded-lg p-3 text-center">
-      <p class="text-lg font-bold">{{ status().teamsRemaining }}</p>
-      <p class="text-xs text-muted-foreground">Teams Remaining</p>
-    </div>
-  </div>
-
-  <div class="bg-accent/10 border border-accent/20 rounded-lg p-3 flex items-center gap-3">
-    <ng-icon name="bootstrapCalendarEvent" class="text-accent text-lg" />
-    <div>
-      <p class="text-sm font-medium">{{ status().nextPhase }}</p>
-      <p class="text-xs text-muted-foreground">in {{ status().daysUntilNextPhase }} days</p>
-    </div>
-  </div>
-</div>
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/tournament-status/
-git commit -m "feat(design-system): add TournamentStatus domain component"
+git add frontend/src/app/shared/directives/
+git commit -m "feat(design-system): add Tooltip directive"
 ```
 
 ---
 
-### Task 18: LeagueCard Component
+### Task 23: Popover Component
 
 **Files:**
-- Create: `frontend/src/app/shared/components/league-card/league-card.component.ts`
-- Create: `frontend/src/app/shared/components/league-card/league-card.component.html`
-- Create: `frontend/src/app/shared/components/league-card/league-card.component.spec.ts`
+- Create: `frontend/src/app/shared/components/popover/popover.component.ts`
+- Create: `frontend/src/app/shared/components/popover/popover.component.html`
+- Create: `frontend/src/app/shared/components/popover/popover.component.spec.ts`
 
-League card for the profile page hub — shows league info with Member/Pending/Admin badge and action buttons. Full-width stacked layout per the profile flow spec.
+Floating content anchored to trigger. Click to open/close. Uses `absolute`/`relative` positioning.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `frontend/src/app/shared/components/league-card/league-card.component.spec.ts`:
+Create `frontend/src/app/shared/components/popover/popover.component.spec.ts`:
 
 ```typescript
+import {Component} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {LeagueCardComponent} from './league-card.component';
-import {LeagueWithMembership} from '@fb/shared/models';
+import {PopoverComponent, PopoverTriggerComponent, PopoverContentComponent} from './popover.component';
 
-const adminLeague: LeagueWithMembership = {
-  slug: 'family-ciao-league',
-  name: 'Family Ciao League',
-  tournament: 'World Cup 2026',
-  memberCount: 8,
-  role: 'ADMIN',
-};
+@Component({
+  template: `
+    <fb-popover>
+      <fb-popover-trigger>
+        <button>Open</button>
+      </fb-popover-trigger>
+      <fb-popover-content>Popover content</fb-popover-content>
+    </fb-popover>
+  `,
+  imports: [PopoverComponent, PopoverTriggerComponent, PopoverContentComponent],
+})
+class TestHostComponent {}
 
-const memberLeague: LeagueWithMembership = {
-  slug: 'office-champions',
-  name: 'Office Champions',
-  tournament: 'World Cup 2026',
-  memberCount: 15,
-  role: 'MEMBER',
-};
-
-const pendingLeague: LeagueWithMembership = {
-  slug: 'pro-predictors',
-  name: 'Pro Predictors',
-  tournament: 'World Cup 2026',
-  memberCount: 22,
-  role: 'PENDING',
-};
-
-describe('LeagueCardComponent', () => {
+describe('PopoverComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LeagueCardComponent],
+      imports: [TestHostComponent],
     }).compileComponents();
   });
 
-  it('should render league name and tournament', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', adminLeague);
+  it('should hide content by default', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Family Ciao League');
-    expect(fixture.nativeElement.textContent).toContain('World Cup 2026');
+    const content = fixture.nativeElement.querySelector('fb-popover-content') as HTMLElement;
+    expect(content.classList.contains('hidden')).toBe(true);
   });
 
-  it('should show ADMIN badge for admin role', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', adminLeague);
+  it('should show content on trigger click', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('ADMIN');
+    const trigger = fixture.nativeElement.querySelector('fb-popover-trigger') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    const content = fixture.nativeElement.querySelector('fb-popover-content') as HTMLElement;
+    expect(content.classList.contains('hidden')).toBe(false);
   });
 
-  it('should show Enter and Edit buttons for admin', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', adminLeague);
+  it('should hide content on second trigger click', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Enter');
-    expect(fixture.nativeElement.textContent).toContain('Edit');
-  });
-
-  it('should show only Enter button for member', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', memberLeague);
+    const trigger = fixture.nativeElement.querySelector('fb-popover-trigger') as HTMLElement;
+    trigger.click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Enter');
-    expect(fixture.nativeElement.textContent).not.toContain('Edit');
-  });
-
-  it('should show pending state with no Enter button', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', pendingLeague);
+    trigger.click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('PENDING');
-    expect(fixture.nativeElement.textContent).toContain('Awaiting owner approval');
-    expect(fixture.nativeElement.textContent).not.toContain('Enter');
-  });
-
-  it('should emit enter event on Enter click', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', adminLeague);
-    fixture.detectChanges();
-    let emittedSlug = '';
-    fixture.componentInstance.enter.subscribe((slug: string) => emittedSlug = slug);
-    const enterBtn = fixture.nativeElement.querySelector('[data-action="enter"]') as HTMLButtonElement;
-    enterBtn.click();
-    expect(emittedSlug).toBe('family-ciao-league');
-  });
-
-  it('should emit edit event on Edit click', () => {
-    const fixture = TestBed.createComponent(LeagueCardComponent);
-    fixture.componentRef.setInput('league', adminLeague);
-    fixture.detectChanges();
-    let emittedSlug = '';
-    fixture.componentInstance.edit.subscribe((slug: string) => emittedSlug = slug);
-    const editBtn = fixture.nativeElement.querySelector('[data-action="edit"]') as HTMLButtonElement;
-    editBtn.click();
-    expect(emittedSlug).toBe('family-ciao-league');
+    const content = fixture.nativeElement.querySelector('fb-popover-content') as HTMLElement;
+    expect(content.classList.contains('hidden')).toBe(true);
   });
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: FAIL
 
-- [ ] **Step 3: Implement LeagueCard component**
+- [ ] **Step 3: Implement Popover component**
 
-Create `frontend/src/app/shared/components/league-card/league-card.component.ts`:
-
-```typescript
-import {Component, input, output} from '@angular/core';
-import {NgIcon, provideIcons} from '@ng-icons/core';
-import {bootstrapPeople} from '@ng-icons/bootstrap-icons';
-import {LeagueWithMembership} from '@fb/shared/models';
-
-@Component({
-  selector: 'fb-league-card',
-  imports: [NgIcon],
-  viewProviders: [provideIcons({bootstrapPeople})],
-  templateUrl: './league-card.component.html',
-})
-export class LeagueCardComponent {
-  league = input.required<LeagueWithMembership>();
-  enter = output<string>();
-  edit = output<string>();
-
-  badgeClass(): string {
-    switch (this.league().role) {
-      case 'ADMIN': return 'badge badge-default';
-      case 'MEMBER': return 'badge bg-blue-500 text-white';
-      case 'PENDING': return 'badge bg-amber-500 text-amber-950';
-    }
-  }
-
-  onEnter(): void {
-    this.enter.emit(this.league().slug);
-  }
-
-  onEdit(): void {
-    this.edit.emit(this.league().slug);
-  }
-}
-```
-
-Create `frontend/src/app/shared/components/league-card/league-card.component.html`:
+Create `frontend/src/app/shared/components/popover/popover.component.html`:
 
 ```html
-<div
-  class="bg-card rounded-xl border border-border p-6 transition-all"
-  [class.opacity-60]="league().role === 'PENDING'"
->
-  <div class="flex items-start justify-between">
-    <div>
-      <h3 class="text-lg font-semibold">{{ league().name }}</h3>
-      <div class="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-        <span>{{ league().tournament }}</span>
-        <span class="flex items-center gap-1">
-          <ng-icon name="bootstrapPeople" class="text-sm" />
-          {{ league().memberCount }} members
-        </span>
-      </div>
-    </div>
-    <span [class]="badgeClass()">{{ league().role }}</span>
-  </div>
-
-  <div class="mt-4">
-    @if (league().role === 'PENDING') {
-      <p class="text-sm text-muted-foreground italic">Awaiting owner approval</p>
-    } @else {
-      <div class="flex gap-2">
-        <button data-action="enter" class="btn btn-default btn-sm" (click)="onEnter()">Enter</button>
-        @if (league().role === 'ADMIN') {
-          <button data-action="edit" class="btn btn-outline btn-sm" (click)="onEdit()">Edit</button>
-        }
-      </div>
-    }
-  </div>
+<div class="relative inline-block">
+  <ng-content />
 </div>
+```
+
+Create `frontend/src/app/shared/components/popover/popover.component.ts`:
+
+```typescript
+import {Component, inject, signal} from '@angular/core';
+
+const POPOVER_CONTEXT = Symbol('PopoverContext');
+
+export class PopoverContext {
+  isOpen = signal(false);
+
+  toggle(): void {
+    this.isOpen.update(v => !v);
+  }
+
+  close(): void {
+    this.isOpen.set(false);
+  }
+}
+
+@Component({
+  selector: 'fb-popover',
+  templateUrl: './popover.component.html',
+  providers: [{provide: POPOVER_CONTEXT, useFactory: () => new PopoverContext()}],
+})
+export class PopoverComponent {}
+
+@Component({
+  selector: 'fb-popover-trigger',
+  host: {
+    class: 'inline-block cursor-pointer',
+    '(click)': 'onClick()',
+  },
+  template: '<ng-content />',
+})
+export class PopoverTriggerComponent {
+  private context = inject(POPOVER_CONTEXT);
+
+  onClick(): void {
+    this.context.toggle();
+  }
+}
+
+@Component({
+  selector: 'fb-popover-content',
+  host: {
+    class: 'absolute z-50 mt-2 w-72 rounded-md border border-border bg-popover text-popover-foreground p-4 shadow-md',
+    '[class.hidden]': '!context.isOpen()',
+  },
+  template: '<ng-content />',
+})
+export class PopoverContentComponent {
+  context = inject(POPOVER_CONTEXT);
+}
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/league-card/
-git commit -m "feat(design-system): add LeagueCard component with role-based UI"
+git add frontend/src/app/shared/components/popover/
+git commit -m "feat(design-system): add Popover component"
 ```
 
 ---
 
-### Task 19: Barrel Exports & Verification
+### Task 24: Dropdown Menu Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/dropdown-menu/dropdown-menu.component.ts`
+- Create: `frontend/src/app/shared/components/dropdown-menu/dropdown-menu.component.spec.ts`
+
+Click-triggered menu. Used in sidebar for user actions. Composed of trigger, content, items, and separator sub-components.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/dropdown-menu/dropdown-menu.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {DropdownMenuComponent, DropdownMenuTriggerComponent, DropdownMenuContentComponent, DropdownMenuItemComponent, DropdownMenuSeparatorComponent} from './dropdown-menu.component';
+
+@Component({
+  template: `
+    <fb-dropdown-menu>
+      <fb-dropdown-menu-trigger>
+        <button>Menu</button>
+      </fb-dropdown-menu-trigger>
+      <fb-dropdown-menu-content>
+        <fb-dropdown-menu-item>Profile</fb-dropdown-menu-item>
+        <fb-dropdown-menu-separator></fb-dropdown-menu-separator>
+        <fb-dropdown-menu-item>Logout</fb-dropdown-menu-item>
+      </fb-dropdown-menu-content>
+    </fb-dropdown-menu>
+  `,
+  imports: [DropdownMenuComponent, DropdownMenuTriggerComponent, DropdownMenuContentComponent, DropdownMenuItemComponent, DropdownMenuSeparatorComponent],
+})
+class TestHostComponent {}
+
+describe('DropdownMenuComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+    }).compileComponents();
+  });
+
+  it('should hide menu by default', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const content = fixture.nativeElement.querySelector('fb-dropdown-menu-content') as HTMLElement;
+    expect(content.classList.contains('hidden')).toBe(true);
+  });
+
+  it('should show menu on trigger click', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('fb-dropdown-menu-trigger') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    const content = fixture.nativeElement.querySelector('fb-dropdown-menu-content') as HTMLElement;
+    expect(content.classList.contains('hidden')).toBe(false);
+  });
+
+  it('should render menu items and separator', () => {
+    const fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    const trigger = fixture.nativeElement.querySelector('fb-dropdown-menu-trigger') as HTMLElement;
+    trigger.click();
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Profile');
+    expect(el.textContent).toContain('Logout');
+    expect(el.querySelector('fb-dropdown-menu-separator')).toBeTruthy();
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement DropdownMenu component**
+
+Create `frontend/src/app/shared/components/dropdown-menu/dropdown-menu.component.ts`:
+
+```typescript
+import {Component, inject, signal} from '@angular/core';
+
+const DROPDOWN_CONTEXT = Symbol('DropdownContext');
+
+export class DropdownContext {
+  isOpen = signal(false);
+
+  toggle(): void {
+    this.isOpen.update(v => !v);
+  }
+
+  close(): void {
+    this.isOpen.set(false);
+  }
+}
+
+@Component({
+  selector: 'fb-dropdown-menu',
+  host: {class: 'relative inline-block'},
+  template: '<ng-content />',
+  providers: [{provide: DROPDOWN_CONTEXT, useFactory: () => new DropdownContext()}],
+})
+export class DropdownMenuComponent {}
+
+@Component({
+  selector: 'fb-dropdown-menu-trigger',
+  host: {
+    class: 'inline-block cursor-pointer',
+    '(click)': 'context.toggle()',
+  },
+  template: '<ng-content />',
+})
+export class DropdownMenuTriggerComponent {
+  context = inject(DROPDOWN_CONTEXT);
+}
+
+@Component({
+  selector: 'fb-dropdown-menu-content',
+  host: {
+    class: 'absolute z-50 mt-2 min-w-[8rem] rounded-md border border-border bg-popover text-popover-foreground p-1 shadow-md',
+    '[class.hidden]': '!context.isOpen()',
+  },
+  template: '<ng-content />',
+})
+export class DropdownMenuContentComponent {
+  context = inject(DROPDOWN_CONTEXT);
+}
+
+@Component({
+  selector: 'fb-dropdown-menu-item',
+  host: {
+    class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10 block',
+    '(click)': 'context.close()',
+  },
+  template: '<ng-content />',
+})
+export class DropdownMenuItemComponent {
+  context = inject(DROPDOWN_CONTEXT);
+}
+
+@Component({
+  selector: 'fb-dropdown-menu-separator',
+  host: {class: 'block -mx-1 my-1 h-px bg-border'},
+  template: '',
+})
+export class DropdownMenuSeparatorComponent {}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/dropdown-menu/
+git commit -m "feat(design-system): add DropdownMenu component"
+```
+
+---
+
+### Task 25: Pagination Component
+
+**Files:**
+- Create: `frontend/src/app/shared/components/pagination/pagination.component.ts`
+- Create: `frontend/src/app/shared/components/pagination/pagination.component.html`
+- Create: `frontend/src/app/shared/components/pagination/pagination.component.spec.ts`
+
+Page navigation controls with previous/next buttons and page numbers.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/pagination/pagination.component.spec.ts`:
+
+```typescript
+import {TestBed} from '@angular/core/testing';
+import {PaginationComponent} from './pagination.component';
+
+describe('PaginationComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [PaginationComponent],
+    }).compileComponents();
+  });
+
+  it('should render page numbers', () => {
+    const fixture = TestBed.createComponent(PaginationComponent);
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 5);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('1');
+    expect(el.textContent).toContain('5');
+  });
+
+  it('should disable previous button on first page', () => {
+    const fixture = TestBed.createComponent(PaginationComponent);
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 5);
+    fixture.detectChanges();
+    const prev = fixture.nativeElement.querySelector('[data-prev]') as HTMLButtonElement;
+    expect(prev.disabled).toBe(true);
+  });
+
+  it('should emit pageChange on page click', () => {
+    const fixture = TestBed.createComponent(PaginationComponent);
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.componentRef.setInput('totalPages', 5);
+    fixture.detectChanges();
+    let emittedPage = 0;
+    fixture.componentInstance.pageChange.subscribe((p: number) => emittedPage = p);
+    const next = fixture.nativeElement.querySelector('[data-next]') as HTMLButtonElement;
+    next.click();
+    expect(emittedPage).toBe(2);
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Pagination component**
+
+Create `frontend/src/app/shared/components/pagination/pagination.component.html`:
+
+```html
+<nav class="flex items-center justify-center gap-1">
+  <button
+    data-prev
+    class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+    [disabled]="currentPage() <= 1"
+    (click)="goToPage(currentPage() - 1)"
+  >
+    Previous
+  </button>
+  @for (page of pages(); track page) {
+    <button
+      class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 w-9 cursor-pointer transition-colors"
+      [class.bg-accent]="page === currentPage()"
+      [class.text-accent-foreground]="page === currentPage()"
+      [class.hover:bg-muted]="page !== currentPage()"
+      (click)="goToPage(page)"
+    >
+      {{ page }}
+    </button>
+  }
+  <button
+    data-next
+    class="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors"
+    [disabled]="currentPage() >= totalPages()"
+    (click)="goToPage(currentPage() + 1)"
+  >
+    Next
+  </button>
+</nav>
+```
+
+Create `frontend/src/app/shared/components/pagination/pagination.component.ts`:
+
+```typescript
+import {Component, computed, input, output} from '@angular/core';
+
+@Component({
+  selector: 'fb-pagination',
+  templateUrl: './pagination.component.html',
+})
+export class PaginationComponent {
+  currentPage = input.required<number>();
+  totalPages = input.required<number>();
+  pageChange = output<number>();
+
+  pages = computed(() => {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const pages: number[] = [];
+    const start = Math.max(1, current - 2);
+    const end = Math.min(total, current + 2);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  });
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.pageChange.emit(page);
+    }
+  }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/pagination/
+git commit -m "feat(design-system): add Pagination component"
+```
+
+---
+
+### Task 26: Barrel Exports & Verification
 
 **Files:**
 - Create: `frontend/src/app/shared/components/index.ts`
+- Create: `frontend/src/app/shared/directives/index.ts`
 
-Create a barrel export for all shared components and run the full test suite.
+Create barrel exports for all shared components and directives, then run the full test suite.
 
-- [ ] **Step 1: Create barrel export**
+- [ ] **Step 1: Create component barrel export**
 
 Create `frontend/src/app/shared/components/index.ts`:
 
@@ -2535,39 +3705,53 @@ export {InputFieldComponent} from './input/input-field.component';
 export {CardComponent, CardHeaderComponent, CardTitleComponent, CardDescriptionComponent, CardContentComponent, CardFooterComponent} from './card/card.component';
 export {DialogComponent, DialogHeaderComponent, DialogTitleComponent, DialogDescriptionComponent, DialogFooterComponent} from './dialog/dialog.component';
 export {TabsComponent, TabsListComponent, TabsTriggerComponent, TabsContentComponent} from './tabs/tabs.component';
-export {AvatarComponent} from './avatar/avatar.component';
 export {ProgressComponent} from './progress/progress.component';
 export {ToastService} from './toast/toast.service';
 export {ToasterComponent} from './toast/toast.component';
 export {SidebarComponent, SidebarHeaderComponent, SidebarContentComponent, SidebarFooterComponent, SidebarTriggerComponent, SidebarService} from './sidebar/sidebar.component';
-export {AppSidebarComponent} from './app-sidebar/app-sidebar.component';
-export {DashboardLayoutComponent} from './dashboard-layout/dashboard-layout.component';
-export {FooterComponent} from './footer/footer.component';
-export {MatchCardComponent} from './match-card/match-card.component';
-export {StatsCardsComponent} from './stats-cards/stats-cards.component';
-export {RankingCardComponent} from './ranking-card/ranking-card.component';
-export {TournamentStatusComponent} from './tournament-status/tournament-status.component';
-export {LeagueCardComponent} from './league-card/league-card.component';
+export {TextareaComponent} from './textarea/textarea.component';
+export {CheckboxComponent} from './checkbox/checkbox.component';
+export {RadioGroupComponent, RadioGroupItemComponent} from './radio-group/radio-group.component';
+export {SelectComponent, SelectItemComponent} from './select/select.component';
+export {SwitchComponent} from './switch/switch.component';
+export {SliderComponent} from './slider/slider.component';
+export {ToggleComponent, ToggleGroupComponent, ToggleGroupItemComponent} from './toggle/toggle.component';
+export {FormGroupComponent} from './form-group/form-group.component';
+export {SkeletonComponent} from './skeleton/skeleton.component';
+export {AlertComponent, AlertTitleComponent, AlertDescriptionComponent} from './alert/alert.component';
+export {AccordionComponent, AccordionItemComponent, AccordionTriggerComponent, AccordionContentComponent} from './accordion/accordion.component';
+export {TableComponent, TableHeaderComponent, TableBodyComponent, TableRowComponent, TableHeadComponent, TableCellComponent} from './table/table.component';
+export {PopoverComponent, PopoverTriggerComponent, PopoverContentComponent} from './popover/popover.component';
+export {DropdownMenuComponent, DropdownMenuTriggerComponent, DropdownMenuContentComponent, DropdownMenuItemComponent, DropdownMenuSeparatorComponent} from './dropdown-menu/dropdown-menu.component';
+export {PaginationComponent} from './pagination/pagination.component';
 ```
 
-- [ ] **Step 2: Run full test suite**
+- [ ] **Step 2: Create directives barrel export**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -30`
+Create `frontend/src/app/shared/directives/index.ts`:
+
+```typescript
+export {TooltipDirective} from './tooltip.directive';
+```
+
+- [ ] **Step 3: Run full test suite**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -30`
 Expected: All tests pass.
 
-- [ ] **Step 3: Run full build**
+- [ ] **Step 4: Run full build**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -10`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng build --configuration=development 2>&1 | tail -10`
 Expected: Build succeeds with no errors.
 
-- [ ] **Step 4: Run lint**
+- [ ] **Step 5: Run lint**
 
-Run: `cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng lint 2>&1 | tail -10`
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng lint 2>&1 | tail -10`
 Expected: No lint errors (or only pre-existing ones).
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add frontend/src/app/shared/components/index.ts
-git commit -m "feat(design-system): add barrel exports for shared components"
+git add frontend/src/app/shared/components/index.ts frontend/src/app/shared/directives/index.ts
+git commit -m "feat(design-system): add barrel exports for shared components and directives"
 ```
