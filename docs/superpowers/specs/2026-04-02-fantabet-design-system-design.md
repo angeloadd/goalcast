@@ -468,10 +468,10 @@ Brief definitions of Angular concepts referenced throughout this section:
 - **Purpose:** Group of mutually exclusive or multi-select toggles
 - **Angular notes:** Parent component with `type` input (`single` | `multiple`). Child `ToggleGroupItem` components via content projection.
 
-#### Form
-- **Purpose:** Form field wrapper with validation display
-- **Design:** Groups label + control + description + error message. Error text in `text-destructive text-sm`.
-- **Angular notes:** Use Angular reactive forms. Create `FormField`, `FormItem`, `FormControl`, `FormMessage` structural components that integrate with `FormGroup`/`FormControl` to automatically show validation errors.
+#### FormGroup
+- **Purpose:** Unified wrapper for a form field — handles label, control, description, spacing, and validation error display.
+- **Design:** Vertical stack with `space-y-2` between label and control. Label styled `text-sm font-medium`. Optional description text in `text-muted-foreground text-sm`. Error text in `text-destructive text-sm`. Consistent row spacing (`mb-4`) between groups.
+- **Angular notes:** Standalone component. Inputs: `label`, `description`, `errorMessage` (or auto-derived from the reactive form control's validation state). Projects the form control via `<ng-content>`. Integrates with Angular reactive forms — pass a `FormControl` reference so it can display validation errors automatically.
 
 #### Input OTP
 - **Purpose:** One-time password / verification code input
@@ -484,11 +484,6 @@ Brief definitions of Angular concepts referenced throughout this section:
 - **Angular notes:** Standalone component. Build custom with a day grid — no external dependency needed.
 
 ### 2.2 Primitives — Display & Feedback
-
-#### Avatar
-- **Purpose:** User profile images
-- **Design:** Circular, with fallback initials. Sizes vary: `w-8 h-8` (small), `w-10 h-10` (default), `w-16 h-16` (large), `w-20 h-20` (podium), `w-24 h-24` (profile). Border variants: `border-2 border-sidebar-primary`, `border-4 border-accent/20`, `border-4 border-card`.
-- **Angular notes:** Standalone component with `AvatarImage` and `AvatarFallback` sub-components via content projection. Inputs: `size`, `src`, `alt`, `fallback`.
 
 #### Progress
 - **Purpose:** Visual completion indicator
@@ -656,7 +651,7 @@ Brief definitions of Angular concepts referenced throughout this section:
 
 #### RankingCard
 - **Purpose:** Compact top-5 leaderboard for dashboard sidebar
-- **Design:** `card-gradient` utility. Player rows with avatar (`w-8 h-8`), rank badge (gold/silver/bronze), name, points. Current user row highlighted with `bg-accent/10 border border-accent/20`. "View Full Ranking" link at bottom.
+- **Design:** `card-gradient` utility. Player rows with rank badge (gold/silver/bronze), name, points. Current user row highlighted with `bg-accent/10 border border-accent/20`. "View Full Ranking" link at bottom.
 - **Inputs:** Players array, current user ID
 - **Used on:** Dashboard
 - **Angular notes:** Standalone component with `routerLink` to full ranking page.
@@ -695,7 +690,7 @@ Brief definitions of Angular concepts referenced throughout this section:
 
 #### AppSidebar
 - **Purpose:** Navigation sidebar with logo, menu items, and user profile footer
-- **Design:** `sidebar-gradient` utility background. Logo: gold accent square (`w-10 h-10 rounded-xl bg-accent`) with trophy icon + "FANTABET" in Bebas Neue. Menu items: `flex items-center gap-3 px-3 py-2.5 rounded-lg` with slide-in animation (staggered 50ms). Active state: `bg-sidebar-accent text-sidebar-primary font-medium`. Footer: avatar + user name with link to profile.
+- **Design:** `sidebar-gradient` utility background. Logo: gold accent square (`w-10 h-10 rounded-xl bg-accent`) with trophy icon + "FANTABET" in Bebas Neue. Menu items: `flex items-center gap-3 px-3 py-2.5 rounded-lg` with slide-in animation (staggered 50ms). Active state: `bg-sidebar-accent text-sidebar-primary font-medium`. Footer: user name with link to profile.
 - **Menu items:** Dashboard (Home icon), My Predictions (Edit3), Full Ranking (Trophy), Past Winners (Award), Rules (BookOpen)
 - **Angular notes:** Standalone component using `routerLink` and `routerLinkActive` directives.
 
@@ -771,7 +766,7 @@ DashboardLayout
       Lock icon + "Predictions are locked"
   Card.card-gradient "Community Predictions" (visible after match starts)
     For each community prediction:
-      Avatar + name + predicted score
+      name + predicted score
       If knockout: scorer prediction badges
     If before match start:
       Lock icon + "Community predictions will be visible after the match starts"
@@ -787,12 +782,12 @@ DashboardLayout
     Card [md:order-2, md:pt-0] — 1st place (trophy yellow-500)
     Card [md:order-1, md:pt-8] — 2nd place (trophy gray-400)
     Card [md:order-3, md:pt-8] — 3rd place (trophy amber-700)
-    Each: Avatar[w-20 h-20 border-4], rank-badge (large: w-10 h-10 text-lg),
+    Each: rank-badge (large: w-10 h-10 text-lg),
           name, .text-gradient-gold points, accuracy %
     Current user: ring-2 ring-accent
   Full Table: Card.card-gradient
     For each player (4th onward):
-      Row: rank-badge, Avatar[w-10 h-10], name, Progress[h-1.5], points, accuracy
+      Row: rank-badge, name, Progress[h-1.5], points, accuracy
       Current user row: bg-accent/10 border border-accent/20
 ```
 
@@ -806,8 +801,7 @@ DashboardLayout
     Card.card-gradient.overflow-hidden [animate-fade-in, staggered]
       .flex.items-stretch
         Left: .sidebar-gradient.px-6.py-8 — Trophy icon + year (font-display text-3xl)
-        Right: .flex-1.p-6 — Avatar[w-16 h-16 border-4 border-accent/20],
-               name (text-xl font-bold), points (Medal icon), world cup winner (Flag icon),
+        Right: .flex-1.p-6 — name (text-xl font-bold), points (Medal icon), world cup winner (Flag icon),
                rank-badge-gold (w-12 h-12 text-lg)
   Historical Stats: .grid.grid-cols-2.md:grid-cols-4.gap-4
     Each: .text-center.p-4.bg-muted/50.rounded-lg
@@ -845,21 +839,18 @@ DashboardLayout
     .page-title "My Profile"
     .page-subtitle "Manage your account settings."
   .space-y-6.max-w-2xl
-    Profile Picture Card [delay: 0ms]
-      Avatar[w-24 h-24 border-4 border-accent/20]
-      Button[btn btn-outline btn-sm] "Change Avatar"
-    Personal Info Card [delay: 100ms]
+    Personal Info Card [delay: 0ms]
       Input[name], Input[email with Mail icon]
       Button[btn btn-gold] "Save Changes"
-    Change Password Card [delay: 200ms]
+    Change Password Card [delay: 100ms]
       Input[current password with Lock icon]
       Separator
       Input[new password], Input[confirm password]
       Button[btn btn-outline] "Update Password"
-    Account Stats Card [delay: 300ms]
+    Account Stats Card [delay: 200ms]
       .grid.grid-cols-3.gap-4.text-center
         Points (text-gradient-gold), Predictions, Accuracy
-    LeagueManagement component [delay: 400ms]
+    LeagueManagement component [delay: 300ms]
 ```
 
 #### Create League (`/create-league`)
@@ -1033,11 +1024,12 @@ DashboardLayout
 
 These interfaces define the domain data flowing through components. They should be defined as TypeScript interfaces in the Angular project's shared models.
 
+> **Note:** These interfaces are provisional view models for initial component development. The domain model (User as a base for Player/Winner/LeagueMember, Scorer as a tournament team player, Tournament as a richer entity than TournamentStatus) will be designed separately and these types will be refactored to align with it.
+
 ```typescript
 interface Player {
   id: string;
   name: string;
-  avatar?: string;
   points: number;
   correctPredictions: number;
   totalPredictions: number;
@@ -1076,7 +1068,6 @@ interface ScorerValue {
 interface Winner {
   year: number;
   name: string;
-  avatar?: string;
   points: number;
   worldCupWinner: string;
 }
