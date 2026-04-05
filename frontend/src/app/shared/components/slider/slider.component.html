@@ -1,0 +1,11 @@
+<input
+  type="range"
+  class="w-full h-2 rounded-full appearance-none cursor-pointer bg-secondary accent-accent focus:outline-none"
+  [min]="min()"
+  [max]="max()"
+  [step]="step()"
+  [value]="value()"
+  [disabled]="isDisabled()"
+  (input)="onInput($event)"
+  (blur)="onTouched()"
+/>
