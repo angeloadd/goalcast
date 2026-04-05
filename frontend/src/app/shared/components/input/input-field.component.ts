@@ -1,6 +1,6 @@
 import {Component, computed, input, Signal} from '@angular/core';
 import {FormControl, FormControlStatus, ReactiveFormsModule} from '@angular/forms';
-import {heroExclamationCircle} from '@ng-icons/heroicons/outline';
+import {bootstrapExclamationCircle} from '@ng-icons/bootstrap-icons';
 import {NgIcon, provideIcons} from '@ng-icons/core';
 import {NgClass} from '@angular/common';
 import {toObservable, toSignal} from '@angular/core/rxjs-interop';
@@ -18,17 +18,16 @@ const ERROR_MESSAGES: Record<string, (params?: any) => string> = {
   selector: 'fb-input-field',
   templateUrl: './input-field.component.html',
   imports: [ReactiveFormsModule, NgIcon, NgClass],
-  viewProviders: [provideIcons({heroExclamationCircle})]
+  viewProviders: [provideIcons({bootstrapExclamationCircle})]
 })
 export class InputFieldComponent {
-  control = input.required<FormControl>()
+  control = input.required<FormControl>();
   status: Signal<FormControlStatus> = toSignal(
     toObservable(this.control).pipe(switchMap(c => c.statusChanges)),
     {initialValue: 'VALID'}
   );
   error = computed(() => {
-    const ciao: FormControlStatus = this.status();
-    console.log(ciao);
+    this.status();
     const ctrl = this.control();
     if (!ctrl.errors || !ctrl.touched) {
       return null;
@@ -36,22 +35,11 @@ export class InputFieldComponent {
     const firstKey = Object.keys(ctrl.errors)[0];
     const messageFn = ERROR_MESSAGES[firstKey];
     return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
-  })
-  inputId = input.required<string>()
-  label = input.required<string>()
-  type = input.required<'text' | 'password' | 'email' | 'number'>()
-  placeholder = input<string | undefined>(undefined)
-  required = input<boolean>(false)
-  autocomplete = computed<string>(() => this.type() === 'password' ? 'off' : 'on')
-
-  //
-  // get error(): string | null {
-  //   const ctrl = this.control();
-  //   if (!ctrl.errors || !ctrl.touched) {
-  //     return null;
-  //   }
-  //   const firstKey = Object.keys(ctrl.errors)[0];
-  //   const messageFn = ERROR_MESSAGES[firstKey];
-  //   return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
-  // }
+  });
+  inputId = input.required<string>();
+  label = input.required<string>();
+  type = input.required<'text' | 'password' | 'email' | 'number'>();
+  placeholder = input<string | undefined>(undefined);
+  required = input<boolean>(false);
+  autocomplete = computed<string>(() => this.type() === 'password' ? 'off' : 'on');
 }
