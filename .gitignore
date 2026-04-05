@@ -39,3 +39,5 @@ frontend/dist/
 frontend/.angular/
 
 docs/world-cup-predictor/*
+.superpowers
+.worktrees/
