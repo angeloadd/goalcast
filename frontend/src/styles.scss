@@ -376,3 +376,61 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+}
+
+@utility badge-default {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+@utility badge-secondary {
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+@utility badge-destructive {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+}
+
+@utility badge-outline {
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+@utility badge-accent {
+  background: hsl(var(--accent) / 0.1);
+  color: hsl(var(--accent));
+}
+
+@utility badge-success {
+  background: hsl(var(--success));
+  color: hsl(var(--success-foreground));
+}
+
+@utility form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  color: hsl(var(--foreground));
+}
+
+@utility separator {
+  height: 1px;
+  width: 100%;
+  background: hsl(var(--border));
+}
+
+@utility separator-vertical {
+  width: 1px;
+  height: 100%;
+  background: hsl(var(--border));
+}
