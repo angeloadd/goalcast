@@ -1,1 +1,1 @@
-export {TooltipDirective} from './tooltip.directive';
+export { TooltipDirective } from './tooltip.directive';

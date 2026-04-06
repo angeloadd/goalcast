@@ -1,23 +1,20 @@
-import {inject} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {Actions, ofType} from '@ngrx/effects';
-import {firstValueFrom, take} from 'rxjs';
+import { inject } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Actions, ofType } from '@ngrx/effects';
+import { firstValueFrom, take } from 'rxjs';
 import {
-  userSessionCheckFailed,
-  userSessionCheckStarted,
-  userSessionCheckSucceeded
+    userSessionCheckFailed,
+    userSessionCheckStarted,
+    userSessionCheckSucceeded,
 } from '@fb/core/state/auth/auth.actions';
 
 export const initUser = () => {
-  const store = inject(Store);
-  const actions$ = inject(Actions);
+    const store = inject(Store);
+    const actions$ = inject(Actions);
 
-  store.dispatch(userSessionCheckStarted());
+    store.dispatch(userSessionCheckStarted());
 
-  return firstValueFrom(
-    actions$.pipe(
-      ofType(userSessionCheckSucceeded, userSessionCheckFailed),
-      take(1),
-    ),
-  );
-}
+    return firstValueFrom(
+        actions$.pipe(ofType(userSessionCheckSucceeded, userSessionCheckFailed), take(1)),
+    );
+};

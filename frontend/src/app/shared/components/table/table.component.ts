@@ -1,37 +1,45 @@
-import {Component} from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
-  selector: 'fb-table',
-  template: '<table class="w-full caption-bottom text-sm"><ng-content /></table>',
+    selector: 'fb-table',
+    template: '<table class="w-full caption-bottom text-sm"><ng-content /></table>',
 })
-export class TableComponent {}
+export class TableComponent {
+}
 
 @Component({
-  selector: 'fb-table-header',
-  template: '<thead class="[&_tr]:border-b"><ng-content /></thead>',
+    selector: 'fb-table-header',
+    template: '<thead class="[&_tr]:border-b"><ng-content /></thead>',
 })
-export class TableHeaderComponent {}
+export class TableHeaderComponent {
+}
 
 @Component({
-  selector: 'fb-table-body',
-  template: '<tbody class="[&_tr:last-child]:border-0"><ng-content /></tbody>',
+    selector: 'fb-table-body',
+    template: '<tbody class="[&_tr:last-child]:border-0"><ng-content /></tbody>',
 })
-export class TableBodyComponent {}
+export class TableBodyComponent {
+}
 
 @Component({
-  selector: 'fb-table-row',
-  template: '<tr class="border-b border-border transition-colors hover:bg-muted/50"><ng-content /></tr>',
+    selector: 'fb-table-row',
+    template:
+        '<tr class="border-b border-border transition-colors hover:bg-muted/50"><ng-content /></tr>',
 })
-export class TableRowComponent {}
+export class TableRowComponent {
+}
 
 @Component({
-  selector: 'fb-table-head',
-  template: '<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"><ng-content /></th>',
+    selector: 'fb-table-head',
+    template:
+        '<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground"><ng-content /></th>',
 })
-export class TableHeadComponent {}
+export class TableHeadComponent {
+}
 
 @Component({
-  selector: 'fb-table-cell',
-  template: '<td class="p-4 align-middle"><ng-content /></td>',
+    selector: 'fb-table-cell',
+    template: '<td class="p-4 align-middle"><ng-content /></td>',
 })
-export class TableCellComponent {}
+export class TableCellComponent {
+}

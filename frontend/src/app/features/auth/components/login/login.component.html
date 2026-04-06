@@ -17,7 +17,9 @@
         type="password"
         [required]="true"
       />
-      <button class="btn btn-default w-full" type="submit" [disabled]="loading()">Login</button>
+      <button class="btn btn-default w-full" type="submit" [disabled]="loading()">
+        Login
+      </button>
       <a class="btn btn-link" href="/register">If you don't have an account, register!</a>
       @if (error()) {
         <p class="error">{{ error() }}</p>

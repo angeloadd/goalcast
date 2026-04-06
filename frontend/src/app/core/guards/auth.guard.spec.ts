@@ -1,8 +1,8 @@
-import {TestBed} from '@angular/core/testing';
-import {Router} from '@angular/router';
-import {MockStore, provideMockStore} from '@ngrx/store/testing';
-import {authGuard} from './auth.guard';
-import {selectIsLoggedIn} from '../state/auth/auth.selectors';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { authGuard } from './auth.guard';
+import { selectIsLoggedIn } from '../state/auth/auth.selectors';
 
 describe('authGuard', () => {
     let store: MockStore;

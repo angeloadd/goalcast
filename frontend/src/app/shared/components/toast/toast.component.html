@@ -9,13 +9,19 @@
       [class.text-destructive-foreground]="toast.type === 'error'"
     >
       @switch (toast.type) {
-        @case ('success') { <ng-icon name="bootstrapCheckCircle" class="text-lg shrink-0" /> }
-        @case ('error') { <ng-icon name="bootstrapExclamationTriangle" class="text-lg shrink-0" /> }
-        @case ('info') { <ng-icon name="bootstrapInfoCircle" class="text-lg shrink-0" /> }
+        @case ('success') {
+          <ng-icon name="bootstrapCheckCircle" class="text-lg shrink-0"/>
+        }
+        @case ('error') {
+          <ng-icon name="bootstrapExclamationTriangle" class="text-lg shrink-0"/>
+        }
+        @case ('info') {
+          <ng-icon name="bootstrapInfoCircle" class="text-lg shrink-0"/>
+        }
       }
       <span class="text-sm flex-1">{{ toast.message }}</span>
       <button class="shrink-0 cursor-pointer" (click)="toastService.dismiss(toast.id)">
-        <ng-icon name="bootstrapX" class="text-lg" />
+        <ng-icon name="bootstrapX" class="text-lg"/>
       </button>
     </div>
   }
