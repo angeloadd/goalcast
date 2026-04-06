@@ -37,8 +37,7 @@ import {
         MenubarSeparatorComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('MenubarComponent', () => {
     beforeEach(async () => {

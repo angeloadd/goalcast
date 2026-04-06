@@ -35,8 +35,7 @@ import {
         TableCellComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('TableComponent', () => {
     beforeEach(async () => {

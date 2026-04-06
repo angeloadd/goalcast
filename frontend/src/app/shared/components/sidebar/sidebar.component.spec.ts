@@ -23,8 +23,7 @@ import {
         SidebarFooterComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('SidebarComponent', () => {
     let sidebarService: SidebarService;

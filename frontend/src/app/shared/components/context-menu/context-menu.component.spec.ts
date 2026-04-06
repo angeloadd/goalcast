@@ -29,8 +29,7 @@ import {
         ContextMenuSeparatorComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('ContextMenuComponent', () => {
     beforeEach(async () => {

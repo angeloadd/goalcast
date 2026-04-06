@@ -11,8 +11,7 @@ import { AlertComponent, AlertDescriptionComponent, AlertTitleComponent } from '
     `,
     imports: [AlertComponent, AlertTitleComponent, AlertDescriptionComponent],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('AlertComponent', () => {
     beforeEach(async () => {

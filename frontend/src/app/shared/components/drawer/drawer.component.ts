@@ -47,29 +47,25 @@ export class DrawerComponent {
     host: { class: 'flex flex-col gap-1.5 mb-4 block' },
     template: '<ng-content />',
 })
-export class DrawerHeaderComponent {
-}
+export class DrawerHeaderComponent {}
 
 @Component({
     selector: 'fb-drawer-title',
     host: { class: 'text-lg font-semibold leading-none tracking-tight block' },
     template: '<ng-content />',
 })
-export class DrawerTitleComponent {
-}
+export class DrawerTitleComponent {}
 
 @Component({
     selector: 'fb-drawer-description',
     host: { class: 'text-sm text-muted-foreground block' },
     template: '<ng-content />',
 })
-export class DrawerDescriptionComponent {
-}
+export class DrawerDescriptionComponent {}
 
 @Component({
     selector: 'fb-drawer-footer',
     host: { class: 'flex justify-end gap-2 mt-6 block' },
     template: '<ng-content />',
 })
-export class DrawerFooterComponent {
-}
+export class DrawerFooterComponent {}

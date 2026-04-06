@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FormGroupComponent } from './form-group.component';
+import { FormGroupComponent } from '@fb/shared/components';
 
 @Component({
     template: `

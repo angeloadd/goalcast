@@ -6,7 +6,7 @@ import {
     DropdownMenuItemComponent,
     DropdownMenuSeparatorComponent,
     DropdownMenuTriggerComponent,
-} from './dropdown-menu.component';
+} from '@fb/shared/components';
 
 @Component({
     template: `

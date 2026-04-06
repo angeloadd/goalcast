@@ -50,39 +50,34 @@ export class AlertDialogComponent {
     host: { class: 'flex flex-col gap-1.5 mb-4 block' },
     template: '<ng-content />',
 })
-export class AlertDialogHeaderComponent {
-}
+export class AlertDialogHeaderComponent {}
 
 @Component({
     selector: 'fb-alert-dialog-title',
     host: { class: 'text-lg font-semibold leading-none tracking-tight block' },
     template: '<ng-content />',
 })
-export class AlertDialogTitleComponent {
-}
+export class AlertDialogTitleComponent {}
 
 @Component({
     selector: 'fb-alert-dialog-description',
     host: { class: 'text-sm text-muted-foreground block' },
     template: '<ng-content />',
 })
-export class AlertDialogDescriptionComponent {
-}
+export class AlertDialogDescriptionComponent {}
 
 @Component({
     selector: 'fb-alert-dialog-footer',
     host: { class: 'flex justify-end gap-2 mt-6 block' },
     template: '<ng-content />',
 })
-export class AlertDialogFooterComponent {
-}
+export class AlertDialogFooterComponent {}
 
 @Component({
     selector: 'fb-alert-dialog-cancel',
-    template: `
-        <button class="btn btn-outline" (click)="dialog.close()">
-            <ng-content />
-        </button>`,
+    template: ` <button class="btn btn-outline" (click)="dialog.close()">
+        <ng-content />
+    </button>`,
 })
 export class AlertDialogCancelComponent {
     dialog = inject(ALERT_DIALOG_CONTEXT);

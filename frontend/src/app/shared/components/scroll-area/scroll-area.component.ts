@@ -28,5 +28,4 @@ import { Component } from '@angular/core';
         <ng-content />
     </div>`,
 })
-export class ScrollAreaComponent {
-}
+export class ScrollAreaComponent {}

@@ -19,10 +19,8 @@ export class SliderComponent implements ControlValueAccessor {
     value = signal(0);
     isDisabled = signal(false);
 
-    private onChange: (value: number) => void = () => {
-    };
-    onTouched: () => void = () => {
-    };
+    private onChange: (value: number) => void = () => {};
+    onTouched: () => void = () => {};
 
     writeValue(value: number): void {
         this.value.set(value ?? 0);

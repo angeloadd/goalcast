@@ -1,4 +1,12 @@
-import { Component, computed, ElementRef, forwardRef, input, signal, viewChildren } from '@angular/core';
+import {
+    Component,
+    computed,
+    ElementRef,
+    forwardRef,
+    input,
+    signal,
+    viewChildren,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
@@ -36,10 +44,8 @@ export class InputOtpComponent implements ControlValueAccessor {
     isDisabled = signal(false);
     private otpInputs = viewChildren<ElementRef<HTMLInputElement>>('otpInput');
 
-    private onChange: (value: string) => void = () => {
-    };
-    private onTouched: () => void = () => {
-    };
+    private onChange: (value: string) => void = () => {};
+    private onTouched: () => void = () => {};
 
     writeValue(value: string): void {
         const chars = (value ?? '').split('').slice(0, this.length());

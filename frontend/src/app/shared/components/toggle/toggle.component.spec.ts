@@ -1,10 +1,13 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ToggleComponent, ToggleGroupComponent, ToggleGroupItemComponent } from './toggle.component';
+import {
+    ToggleComponent,
+    ToggleGroupComponent,
+    ToggleGroupItemComponent,
+} from './toggle.component';
 
 @Component({
-    template: `
-        <fb-toggle [(pressed)]="isPressed">Bold</fb-toggle>`,
+    template: ` <fb-toggle [(pressed)]="isPressed">Bold</fb-toggle>`,
     imports: [ToggleComponent],
 })
 class SingleToggleHost {

@@ -19,8 +19,7 @@ const MENUBAR_MENU_CONTEXT = new InjectionToken<MenubarMenuContext>('MenubarMenu
     host: { class: 'flex items-center gap-1 rounded-md border border-border bg-background p-1' },
     template: '<ng-content />',
 })
-export class MenubarComponent {
-}
+export class MenubarComponent {}
 
 @Component({
     selector: 'fb-menubar-menu',
@@ -28,8 +27,7 @@ export class MenubarComponent {
     template: '<ng-content />',
     providers: [{ provide: MENUBAR_MENU_CONTEXT, useFactory: () => new MenubarMenuContext() }],
 })
-export class MenubarMenuComponent {
-}
+export class MenubarMenuComponent {}
 
 @Component({
     selector: 'fb-menubar-trigger',
@@ -72,5 +70,4 @@ export class MenubarItemComponent {
     host: { class: 'block -mx-1 my-1 h-px bg-border' },
     template: '',
 })
-export class MenubarSeparatorComponent {
-}
+export class MenubarSeparatorComponent {}

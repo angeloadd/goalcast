@@ -20,8 +20,7 @@ const POPOVER_CONTEXT = new InjectionToken<PopoverContext>('PopoverContext');
     template: '<ng-content />',
     providers: [{ provide: POPOVER_CONTEXT, useFactory: () => new PopoverContext() }],
 })
-export class PopoverComponent {
-}
+export class PopoverComponent {}
 
 @Component({
     selector: 'fb-popover-trigger',

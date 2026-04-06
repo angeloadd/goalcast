@@ -6,8 +6,7 @@ export class ToggleGroupContext {
     type = signal<'single' | 'multiple'>('single');
     selectedValues = signal<string[]>([]);
 
-    private onChange: (value: string | string[]) => void = () => {
-    };
+    private onChange: (value: string | string[]) => void = () => {};
 
     registerOnChange(fn: (value: string | string[]) => void): void {
         this.onChange = fn;

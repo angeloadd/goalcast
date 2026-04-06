@@ -22,7 +22,7 @@ export class SwitchComponent implements ControlValueAccessor {
     };
 
     writeValue(value: boolean): void {
-        this.checked.set(!!value);
+        this.checked.set(value);
     }
 
     registerOnChange(fn: (value: boolean) => void): void {

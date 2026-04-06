@@ -1,6 +1,11 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { TabsComponent, TabsContentComponent, TabsListComponent, TabsTriggerComponent } from './tabs.component';
+import {
+    TabsComponent,
+    TabsContentComponent,
+    TabsListComponent,
+    TabsTriggerComponent,
+} from './tabs.component';
 
 @Component({
     template: `
@@ -15,8 +20,7 @@ import { TabsComponent, TabsContentComponent, TabsListComponent, TabsTriggerComp
     `,
     imports: [TabsComponent, TabsListComponent, TabsTriggerComponent, TabsContentComponent],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('TabsComponent', () => {
     beforeEach(async () => {

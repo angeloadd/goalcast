@@ -38,8 +38,7 @@ const HOVER_CARD_CONTEXT = new InjectionToken<HoverCardContext>('HoverCardContex
     template: '<ng-content />',
     providers: [{ provide: HOVER_CARD_CONTEXT, useFactory: () => new HoverCardContext() }],
 })
-export class HoverCardComponent {
-}
+export class HoverCardComponent {}
 
 @Component({
     selector: 'fb-hover-card-trigger',

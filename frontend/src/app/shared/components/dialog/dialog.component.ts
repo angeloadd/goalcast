@@ -36,29 +36,25 @@ export class DialogComponent {
     host: { class: 'flex flex-col gap-1.5 mb-4 block' },
     template: '<ng-content />',
 })
-export class DialogHeaderComponent {
-}
+export class DialogHeaderComponent {}
 
 @Component({
     selector: 'fb-dialog-title',
     host: { class: 'text-lg font-semibold leading-none tracking-tight block' },
     template: '<ng-content />',
 })
-export class DialogTitleComponent {
-}
+export class DialogTitleComponent {}
 
 @Component({
     selector: 'fb-dialog-description',
     host: { class: 'text-sm text-muted-foreground block' },
     template: '<ng-content />',
 })
-export class DialogDescriptionComponent {
-}
+export class DialogDescriptionComponent {}
 
 @Component({
     selector: 'fb-dialog-footer',
     host: { class: 'flex justify-end gap-2 mt-6 block' },
     template: '<ng-content />',
 })
-export class DialogFooterComponent {
-}
+export class DialogFooterComponent {}

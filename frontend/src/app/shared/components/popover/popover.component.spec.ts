@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { PopoverComponent, PopoverContentComponent, PopoverTriggerComponent } from './popover.component';
+import {
+    PopoverComponent,
+    PopoverContentComponent,
+    PopoverTriggerComponent,
+} from './popover.component';
 
 @Component({
     template: `
@@ -13,8 +17,7 @@ import { PopoverComponent, PopoverContentComponent, PopoverTriggerComponent } fr
     `,
     imports: [PopoverComponent, PopoverTriggerComponent, PopoverContentComponent],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('PopoverComponent', () => {
     beforeEach(async () => {

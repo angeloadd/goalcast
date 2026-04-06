@@ -1,10 +1,10 @@
 <label class="inline-flex items-center gap-2 cursor-pointer">
-  <input
-    type="checkbox"
-    class="h-4 w-4 rounded border border-input accent-accent focus:ring-2 focus:ring-ring cursor-pointer"
-    [checked]="checked()"
-    [disabled]="isDisabled()"
-    (change)="onToggle($event)"
-  />
-  <ng-content/>
+    <input
+        type="checkbox"
+        class="h-4 w-4 rounded border border-input accent-accent focus:ring-2 focus:ring-ring cursor-pointer"
+        [checked]="checked()"
+        [disabled]="isDisabled()"
+        (change)="onToggle($event)"
+    />
+    <ng-content />
 </label>

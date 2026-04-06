@@ -27,8 +27,7 @@ import {
         AccordionContentComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('AccordionComponent', () => {
     beforeEach(async () => {

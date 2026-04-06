@@ -31,8 +31,7 @@ import {
         NavigationMenuLinkComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('NavigationMenuComponent', () => {
     beforeEach(async () => {

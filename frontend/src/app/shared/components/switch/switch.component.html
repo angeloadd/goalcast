@@ -1,18 +1,18 @@
 <button
-  type="button"
-  role="switch"
-  data-switch
-  class="inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-  [class.bg-accent]="checked()"
-  [class.bg-input]="!checked()"
-  [attr.data-state]="checked() ? 'checked' : 'unchecked'"
-  [attr.aria-checked]="checked()"
-  [disabled]="isDisabled()"
-  (click)="toggle()"
+    type="button"
+    role="switch"
+    data-switch
+    class="inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    [class.bg-accent]="checked()"
+    [class.bg-input]="!checked()"
+    [attr.data-state]="checked() ? 'checked' : 'unchecked'"
+    [attr.aria-checked]="checked()"
+    [disabled]="isDisabled()"
+    (click)="toggle()"
 >
     <span
-      class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"
-      [class.translate-x-5]="checked()"
-      [class.translate-x-0]="!checked()"
+        class="pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform"
+        [class.translate-x-5]="checked()"
+        [class.translate-x-0]="!checked()"
     ></span>
 </button>

@@ -19,8 +19,7 @@ const NAV_MENU_ITEM_CONTEXT = new InjectionToken<NavMenuItemContext>('NavMenuIte
     host: { class: 'relative flex items-center gap-1' },
     template: '<ng-content />',
 })
-export class NavigationMenuComponent {
-}
+export class NavigationMenuComponent {}
 
 @Component({
     selector: 'fb-navigation-menu-item',
@@ -28,8 +27,7 @@ export class NavigationMenuComponent {
     template: '<ng-content />',
     providers: [{ provide: NAV_MENU_ITEM_CONTEXT, useFactory: () => new NavMenuItemContext() }],
 })
-export class NavigationMenuItemComponent {
-}
+export class NavigationMenuItemComponent {}
 
 @Component({
     selector: 'fb-navigation-menu-trigger',
@@ -62,5 +60,4 @@ export class NavigationMenuContentComponent {
     },
     template: '<ng-content />',
 })
-export class NavigationMenuLinkComponent {
-}
+export class NavigationMenuLinkComponent {}

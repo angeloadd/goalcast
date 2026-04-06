@@ -1,36 +1,36 @@
 <div class="flex flex-col gap-1.5">
-  <div class="flex justify-between items-baseline">
-    @if (label()) {
-      <label [for]="inputId()" class="text-sm font-medium text-foreground">{{
-          label()
-        }}</label>
-    }
-    @if (!required()) {
-      <span class="text-xs text-muted-foreground">Optional</span>
-    }
-  </div>
+    <div class="flex justify-between items-baseline">
+        @if (label()) {
+            <label [for]="inputId()" class="text-sm font-medium text-foreground">{{
+                label()
+            }}</label>
+        }
+        @if (!required()) {
+            <span class="text-xs text-muted-foreground">Optional</span>
+        }
+    </div>
 
-  <div class="relative">
-    <input
-      class="flex h-12 w-full rounded-md border bg-background px-3 py-2 text-md placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      [ngClass]="{ 'border-destructive text-destructive pr-10': !!error() }"
-      [id]="inputId()"
-      [formControl]="control()"
-      [type]="type()"
-      [placeholder]="placeholder() ?? label()"
-      [required]="required()"
-      [autocomplete]="autocomplete()"
-    />
-    @if (!!error()) {
-      <span
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-xl pointer-events-none"
-      >
-                <ng-icon name="bootstrapExclamationCircle"/>
+    <div class="relative">
+        <input
+            class="flex h-12 w-full rounded-md border bg-background px-3 py-2 text-md placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            [ngClass]="{ 'border-destructive text-destructive pr-10': !!error() }"
+            [id]="inputId()"
+            [formControl]="control()"
+            [type]="type()"
+            [placeholder]="placeholder() ?? label()"
+            [required]="required()"
+            [autocomplete]="autocomplete()"
+        />
+        @if (!!error()) {
+            <span
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-destructive text-xl pointer-events-none"
+            >
+                <ng-icon name="bootstrapExclamationCircle" />
             </span>
-    }
-  </div>
+        }
+    </div>
 
-  @if (!!error()) {
-    <p class="text-xs text-destructive">{{ error() }}</p>
-  }
+    @if (!!error()) {
+        <p class="text-xs text-destructive">{{ error() }}</p>
+    }
 </div>

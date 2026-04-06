@@ -3,12 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import { TooltipDirective } from './tooltip.directive';
 
 @Component({
-    template: `
-        <button fbTooltip="Help text">Hover me</button>`,
+    template: ` <button fbTooltip="Help text">Hover me</button>`,
     imports: [TooltipDirective],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('TooltipDirective', () => {
     beforeEach(async () => {

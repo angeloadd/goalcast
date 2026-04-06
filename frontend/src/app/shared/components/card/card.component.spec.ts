@@ -29,8 +29,7 @@ import {
         CardFooterComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('CardComponent', () => {
     beforeEach(async () => {

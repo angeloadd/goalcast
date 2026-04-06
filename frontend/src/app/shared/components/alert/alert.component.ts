@@ -19,13 +19,11 @@ export class AlertComponent {
     host: { class: 'mb-1 font-medium leading-none tracking-tight block' },
     template: '<ng-content />',
 })
-export class AlertTitleComponent {
-}
+export class AlertTitleComponent {}
 
 @Component({
     selector: 'fb-alert-description',
     host: { class: 'text-sm [&_p]:leading-relaxed block' },
     template: '<ng-content />',
 })
-export class AlertDescriptionComponent {
-}
+export class AlertDescriptionComponent {}

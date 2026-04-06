@@ -24,8 +24,7 @@ const CONTEXT_MENU_CONTEXT = new InjectionToken<ContextMenuContext>('ContextMenu
     template: '<ng-content />',
     providers: [{ provide: CONTEXT_MENU_CONTEXT, useFactory: () => new ContextMenuContext() }],
 })
-export class ContextMenuComponent {
-}
+export class ContextMenuComponent {}
 
 @Component({
     selector: 'fb-context-menu-trigger',
@@ -72,5 +71,4 @@ export class ContextMenuItemComponent {
     host: { class: 'block -mx-1 my-1 h-px bg-border' },
     template: '',
 })
-export class ContextMenuSeparatorComponent {
-}
+export class ContextMenuSeparatorComponent {}

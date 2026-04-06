@@ -17,10 +17,8 @@ export class TextareaComponent implements ControlValueAccessor {
     value = signal('');
     isDisabled = signal(false);
 
-    private onChange: (value: string) => void = () => {
-    };
-    onTouched: () => void = () => {
-    };
+    private onChange: (value: string) => void = () => {};
+    onTouched: () => void = () => {};
 
     writeValue(value: string): void {
         this.value.set(value ?? '');

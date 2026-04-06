@@ -20,8 +20,7 @@ const DROPDOWN_CONTEXT = new InjectionToken<DropdownContext>('DropdownContext');
     template: '<ng-content />',
     providers: [{ provide: DROPDOWN_CONTEXT, useFactory: () => new DropdownContext() }],
 })
-export class DropdownMenuComponent {
-}
+export class DropdownMenuComponent {}
 
 @Component({
     selector: 'fb-dropdown-menu-trigger',
@@ -61,5 +60,4 @@ export class DropdownMenuItemComponent {
     host: { class: 'block -mx-1 my-1 h-px bg-border' },
     template: '',
 })
-export class DropdownMenuSeparatorComponent {
-}
+export class DropdownMenuSeparatorComponent {}

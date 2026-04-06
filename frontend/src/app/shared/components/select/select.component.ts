@@ -1,4 +1,12 @@
-import { Component, ElementRef, forwardRef, inject, InjectionToken, input, signal } from '@angular/core';
+import {
+    Component,
+    ElementRef,
+    forwardRef,
+    inject,
+    InjectionToken,
+    input,
+    signal,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 const SELECT_CONTEXT = new InjectionToken<SelectContext>('SelectContext');
@@ -7,8 +15,7 @@ export class SelectContext {
     selectedValue = signal('');
     selectedLabel = signal('');
     isOpen = signal(false);
-    private onChange: (value: string) => void = () => {
-    };
+    private onChange: (value: string) => void = () => {};
 
     registerOnChange(fn: (value: string) => void): void {
         this.onChange = fn;
@@ -53,8 +60,7 @@ export class SelectComponent implements ControlValueAccessor {
         this.context.registerOnChange(fn);
     }
 
-    registerOnTouched(fn: () => void): void {
-    }
+    registerOnTouched(fn: () => void): void {}
 }
 
 @Component({

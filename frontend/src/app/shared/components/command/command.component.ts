@@ -90,8 +90,7 @@ export class CommandComponent {
 @Component({
     selector: 'fb-command-group',
     host: { class: 'block' },
-    template: `
-        <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+    template: ` <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">
             {{ heading() }}
         </div>
         <ng-content />`,

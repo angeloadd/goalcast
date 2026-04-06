@@ -32,24 +32,21 @@ export class SidebarComponent {
     host: { class: 'p-4 border-b border-sidebar-border block' },
     template: '<ng-content />',
 })
-export class SidebarHeaderComponent {
-}
+export class SidebarHeaderComponent {}
 
 @Component({
     selector: 'fb-sidebar-content',
     host: { class: 'flex-1 overflow-y-auto p-4 block' },
     template: '<ng-content />',
 })
-export class SidebarContentComponent {
-}
+export class SidebarContentComponent {}
 
 @Component({
     selector: 'fb-sidebar-footer',
     host: { class: 'p-4 border-t border-sidebar-border block' },
     template: '<ng-content />',
 })
-export class SidebarFooterComponent {
-}
+export class SidebarFooterComponent {}
 
 @Component({
     selector: 'fb-sidebar-trigger',

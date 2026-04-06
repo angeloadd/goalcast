@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { HoverCardComponent, HoverCardContentComponent, HoverCardTriggerComponent } from './hover-card.component';
+import { HoverCardComponent, HoverCardContentComponent, HoverCardTriggerComponent } from '@fb/shared/components';
 
 @Component({
     template: `

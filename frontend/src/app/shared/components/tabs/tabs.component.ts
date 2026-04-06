@@ -1,4 +1,13 @@
-import { Component, computed, inject, InjectionToken, input, model, OnInit, signal } from '@angular/core';
+import {
+    Component,
+    computed,
+    inject,
+    InjectionToken,
+    input,
+    model,
+    OnInit,
+    signal,
+} from '@angular/core';
 
 export class TabsContext {
     activeValue = signal('');
@@ -30,8 +39,7 @@ export class TabsComponent implements OnInit {
     host: { class: 'inline-flex items-center gap-1 border-b border-border w-full block' },
     template: '<ng-content />',
 })
-export class TabsListComponent {
-}
+export class TabsListComponent {}
 
 @Component({
     selector: 'fb-tabs-trigger',
