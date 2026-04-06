@@ -1,3 +1,4 @@
+
 # Design System Build — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -29,6 +30,8 @@
 - Backend API integration, NGRx state for leagues
 - Domain/app-specific components (AppSidebar, DashboardLayout, Footer, MatchCard, StatsCards, RankingCard, TournamentStatus, LeagueCard) — these will be built when composing pages
 - LeagueEditModal (requires backend wiring for members/invites)
+- Primitives deferred to a future plan: Calendar/Date Picker, Sheet, Breadcrumb, Carousel, Resizable Panels, Aspect
+  Ratio
 
 ---
 
@@ -2705,7 +2708,7 @@ Expected: FAIL
 Create `frontend/src/app/shared/components/alert/alert.component.ts`:
 
 ```typescript
-import {Component, input, HostBinding} from '@angular/core';
+import {Component, input} from '@angular/core';
 
 @Component({
   selector: 'fb-alert',
@@ -3688,7 +3691,1867 @@ git commit -m "feat(design-system): add Pagination component"
 
 ---
 
-### Task 26: Barrel Exports & Verification
+### Task 26: Collapsible Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/collapsible/collapsible.component.ts`
+- Create: `frontend/src/app/shared/components/collapsible/collapsible.component.spec.ts`
+
+Simple show/hide toggle. Lighter than Accordion — no context, no grouping. Just a trigger and content with open/close
+state.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/collapsible/collapsible.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {CollapsibleComponent, CollapsibleTriggerComponent, CollapsibleContentComponent} from './collapsible.component';
+
+@Component({
+    template: `
+    <fb-collapsible [(open)]="isOpen">
+      <fb-collapsible-trigger>
+        <button>Toggle</button>
+      </fb-collapsible-trigger>
+      <fb-collapsible-content>Hidden content</fb-collapsible-content>
+    </fb-collapsible>
+  `,
+    imports: [CollapsibleComponent, CollapsibleTriggerComponent, CollapsibleContentComponent],
+})
+class TestHostComponent {
+    isOpen = false;
+}
+
+describe('CollapsibleComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should hide content when closed', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-collapsible-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    });
+
+    it('should show content when open', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.componentInstance.isOpen = true;
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-collapsible-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(false);
+    });
+
+    it('should toggle on trigger click', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-collapsible-trigger') as HTMLElement;
+        trigger.click();
+        fixture.detectChanges();
+        expect(fixture.componentInstance.isOpen).toBe(true);
+        const content = fixture.nativeElement.querySelector('fb-collapsible-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(false);
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL — module not found.
+
+- [ ] **Step 3: Implement Collapsible component**
+
+Create `frontend/src/app/shared/components/collapsible/collapsible.component.ts`:
+
+```typescript
+import {Component, inject, model} from '@angular/core';
+
+const COLLAPSIBLE_CONTEXT = Symbol('CollapsibleContext');
+
+@Component({
+    selector: 'fb-collapsible',
+    host: {class: 'block'},
+    template: '<ng-content />',
+    providers: [{provide: COLLAPSIBLE_CONTEXT, useExisting: CollapsibleComponent}],
+})
+export class CollapsibleComponent {
+    open = model(false);
+
+    toggle(): void {
+        this.open.set(!this.open());
+    }
+}
+
+@Component({
+    selector: 'fb-collapsible-trigger',
+    host: {
+        class: 'block cursor-pointer',
+        '(click)': 'collapsible.toggle()',
+    },
+    template: '<ng-content />',
+})
+export class CollapsibleTriggerComponent {
+    collapsible = inject(COLLAPSIBLE_CONTEXT) as CollapsibleComponent;
+}
+
+@Component({
+    selector: 'fb-collapsible-content',
+    host: {
+        class: 'block',
+        '[class.hidden]': '!collapsible.open()',
+    },
+    template: '<ng-content />',
+})
+export class CollapsibleContentComponent {
+    collapsible = inject(COLLAPSIBLE_CONTEXT) as CollapsibleComponent;
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/collapsible/
+git commit -m "feat(design-system): add Collapsible component"
+```
+
+---
+
+### Task 27: Scroll Area Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/scroll-area/scroll-area.component.ts`
+- Create: `frontend/src/app/shared/components/scroll-area/scroll-area.component.spec.ts`
+
+Custom scrollbar container. Thin styled scrollbar track via CSS.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/scroll-area/scroll-area.component.spec.ts`:
+
+```typescript
+import {TestBed} from '@angular/core/testing';
+import {ScrollAreaComponent} from './scroll-area.component';
+
+describe('ScrollAreaComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [ScrollAreaComponent],
+        }).compileComponents();
+    });
+
+    it('should render with overflow auto', () => {
+        const fixture = TestBed.createComponent(ScrollAreaComponent);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        const container = el.querySelector('[data-scroll-area]') as HTMLElement;
+        expect(container).toBeTruthy();
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Scroll Area component**
+
+Create `frontend/src/app/shared/components/scroll-area/scroll-area.component.ts`:
+
+```typescript
+import {Component, input} from '@angular/core';
+
+@Component({
+    selector: 'fb-scroll-area',
+    host: {class: 'relative block'},
+    styles: `
+    .scroll-container {
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--border)) transparent;
+    }
+    .scroll-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .scroll-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scroll-container::-webkit-scrollbar-thumb {
+      background-color: hsl(var(--border));
+      border-radius: 9999px;
+    }
+  `,
+    template: `<div data-scroll-area class="scroll-container h-full w-full"><ng-content /></div>`,
+})
+export class ScrollAreaComponent {
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/scroll-area/
+git commit -m "feat(design-system): add ScrollArea component with custom scrollbar"
+```
+
+---
+
+### Task 28: Input OTP Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/input-otp/input-otp.component.ts`
+- Create: `frontend/src/app/shared/components/input-otp/input-otp.component.html`
+- Create: `frontend/src/app/shared/components/input-otp/input-otp.component.spec.ts`
+
+Series of single-character input boxes for verification codes. Implements `ControlValueAccessor`. Auto-advances focus on
+input.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/input-otp/input-otp.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {InputOtpComponent} from './input-otp.component';
+
+@Component({
+    template: `<fb-input-otp [formControl]="ctrl" [length]="6"></fb-input-otp>`,
+    imports: [InputOtpComponent, ReactiveFormsModule],
+})
+class TestHostComponent {
+    ctrl = new FormControl('');
+}
+
+describe('InputOtpComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should render correct number of input boxes', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const inputs = fixture.nativeElement.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+        expect(inputs.length).toBe(6);
+    });
+
+    it('should combine values into formControl', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const inputs = fixture.nativeElement.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+        inputs[0].value = '1';
+        inputs[0].dispatchEvent(new Event('input'));
+        inputs[1].value = '2';
+        inputs[1].dispatchEvent(new Event('input'));
+        inputs[2].value = '3';
+        inputs[2].dispatchEvent(new Event('input'));
+        inputs[3].value = '4';
+        inputs[3].dispatchEvent(new Event('input'));
+        inputs[4].value = '5';
+        inputs[4].dispatchEvent(new Event('input'));
+        inputs[5].value = '6';
+        inputs[5].dispatchEvent(new Event('input'));
+        expect(fixture.componentInstance.ctrl.value).toBe('123456');
+    });
+
+    it('should emit complete when all boxes filled', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        let completed = false;
+        fixture.componentInstance.ctrl.valueChanges.subscribe(val => {
+            if (val && val.length === 6) completed = true;
+        });
+        const inputs = fixture.nativeElement.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+        for (let i = 0; i < 6; i++) {
+            inputs[i].value = String(i + 1);
+            inputs[i].dispatchEvent(new Event('input'));
+        }
+        expect(completed).toBe(true);
+    });
+
+    it('should populate boxes from formControl value', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.ctrl.setValue('ABC123');
+        fixture.detectChanges();
+        const inputs = fixture.nativeElement.querySelectorAll('input') as NodeListOf<HTMLInputElement>;
+        expect(inputs[0].value).toBe('A');
+        expect(inputs[5].value).toBe('3');
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Input OTP component**
+
+Create `frontend/src/app/shared/components/input-otp/input-otp.component.html`:
+
+```html
+
+<div class="flex items-center gap-2">
+    @for (i of slots(); track i) {
+    <input
+        #otpInput
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        class="h-10 w-10 rounded-md border border-input bg-background text-center text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+        [value]="values()[i]"
+        [disabled]="isDisabled()"
+        (input)="onInput(i, $event)"
+        (keydown)="onKeydown(i, $event)"
+        (paste)="onPaste($event)"
+    />
+    }
+</div>
+```
+
+Create `frontend/src/app/shared/components/input-otp/input-otp.component.ts`:
+
+```typescript
+import {Component, ElementRef, forwardRef, input, signal, computed, viewChildren} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+
+@Component({
+    selector: 'fb-input-otp',
+    templateUrl: './input-otp.component.html',
+    providers: [{
+        provide: NG_VALUE_ACCESSOR,
+        useExisting: forwardRef(() => InputOtpComponent),
+        multi: true,
+    }],
+})
+export class InputOtpComponent implements ControlValueAccessor {
+    length = input(6);
+    slots = computed(() => Array.from({length: this.length()}, (_, i) => i));
+    values = signal<string[]>([]);
+    isDisabled = signal(false);
+    private otpInputs = viewChildren<ElementRef<HTMLInputElement>>('otpInput');
+
+    private onChange: (value: string) => void = () => {
+    };
+    private onTouched: () => void = () => {
+    };
+
+    writeValue(value: string): void {
+        const chars = (value ?? '').split('').slice(0, this.length());
+        const padded = Array.from({length: this.length()}, (_, i) => chars[i] ?? '');
+        this.values.set(padded);
+    }
+
+    registerOnChange(fn: (value: string) => void): void {
+        this.onChange = fn;
+    }
+
+    registerOnTouched(fn: () => void): void {
+        this.onTouched = fn;
+    }
+
+    setDisabledState(isDisabled: boolean): void {
+        this.isDisabled.set(isDisabled);
+    }
+
+    onInput(index: number, event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const char = input.value.slice(-1);
+        this.values.update(v => {
+            const next = [...v];
+            next[index] = char;
+            return next;
+        });
+        this.emitValue();
+        if (char && index < this.length() - 1) {
+            this.focusAt(index + 1);
+        }
+    }
+
+    onKeydown(index: number, event: KeyboardEvent): void {
+        if (event.key === 'Backspace' && !this.values()[index] && index > 0) {
+            this.values.update(v => {
+                const next = [...v];
+                next[index - 1] = '';
+                return next;
+            });
+            this.emitValue();
+            this.focusAt(index - 1);
+        }
+    }
+
+    onPaste(event: ClipboardEvent): void {
+        event.preventDefault();
+        const pasted = event.clipboardData?.getData('text') ?? '';
+        const chars = pasted.split('').slice(0, this.length());
+        const padded = Array.from({length: this.length()}, (_, i) => chars[i] ?? this.values()[i] ?? '');
+        this.values.set(padded);
+        this.emitValue();
+        const nextEmpty = padded.findIndex(c => !c);
+        this.focusAt(nextEmpty >= 0 ? nextEmpty : this.length() - 1);
+    }
+
+    private focusAt(index: number): void {
+        const inputs = this.otpInputs();
+        if (inputs[index]) {
+            inputs[index].nativeElement.focus();
+        }
+    }
+
+    private emitValue(): void {
+        const combined = this.values().join('');
+        this.onChange(combined);
+        this.onTouched();
+    }
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/input-otp/
+git commit -m "feat(design-system): add Input OTP component"
+```
+
+---
+
+### Task 29: Alert Dialog Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/alert-dialog/alert-dialog.component.ts`
+- Create: `frontend/src/app/shared/components/alert-dialog/alert-dialog.component.html`
+- Create: `frontend/src/app/shared/components/alert-dialog/alert-dialog.component.spec.ts`
+
+Confirmation dialog for destructive actions. Uses native `<dialog>` like Dialog (Task 5) but adds explicit action/cancel
+buttons. User must confirm or cancel — no implicit close on backdrop click.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/alert-dialog/alert-dialog.component.spec.ts`:
+
+```typescript
+import {Component, viewChild} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {
+    AlertDialogComponent,
+    AlertDialogHeaderComponent,
+    AlertDialogTitleComponent,
+    AlertDialogDescriptionComponent,
+    AlertDialogFooterComponent,
+    AlertDialogActionComponent,
+    AlertDialogCancelComponent
+} from './alert-dialog.component';
+
+@Component({
+    template: `
+    <fb-alert-dialog #dialog>
+      <fb-alert-dialog-header>
+        <fb-alert-dialog-title>Are you sure?</fb-alert-dialog-title>
+        <fb-alert-dialog-description>This action cannot be undone.</fb-alert-dialog-description>
+      </fb-alert-dialog-header>
+      <fb-alert-dialog-footer>
+        <fb-alert-dialog-cancel>Cancel</fb-alert-dialog-cancel>
+        <fb-alert-dialog-action>Continue</fb-alert-dialog-action>
+      </fb-alert-dialog-footer>
+    </fb-alert-dialog>
+  `,
+    imports: [AlertDialogComponent, AlertDialogHeaderComponent, AlertDialogTitleComponent, AlertDialogDescriptionComponent, AlertDialogFooterComponent, AlertDialogActionComponent, AlertDialogCancelComponent],
+})
+class TestHostComponent {
+    dialog = viewChild.required<AlertDialogComponent>('dialog');
+}
+
+describe('AlertDialogComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should be closed by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
+        expect(dialog.open).toBe(false);
+    });
+
+    it('should open when open() is called', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.dialog().open();
+        expect(fixture.nativeElement.querySelector('dialog').open).toBe(true);
+    });
+
+    it('should close when cancel is clicked', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.dialog().open();
+        const cancel = fixture.nativeElement.querySelector('fb-alert-dialog-cancel button') as HTMLElement;
+        cancel.click();
+        expect(fixture.nativeElement.querySelector('dialog').open).toBe(false);
+    });
+
+    it('should emit confirmed and close when action is clicked', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        let confirmed = false;
+        fixture.componentInstance.dialog().confirmed.subscribe(() => confirmed = true);
+        fixture.componentInstance.dialog().open();
+        const action = fixture.nativeElement.querySelector('fb-alert-dialog-action button') as HTMLElement;
+        action.click();
+        expect(confirmed).toBe(true);
+        expect(fixture.nativeElement.querySelector('dialog').open).toBe(false);
+    });
+
+    it('should render title and description', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        expect(el.querySelector('fb-alert-dialog-title')?.textContent).toContain('Are you sure?');
+        expect(el.querySelector('fb-alert-dialog-description')?.textContent).toContain('This action cannot be undone.');
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL — module not found.
+
+- [ ] **Step 3: Implement Alert Dialog component**
+
+Create `frontend/src/app/shared/components/alert-dialog/alert-dialog.component.html`:
+
+```html
+
+<dialog
+    #dialogEl
+    class="bg-card text-card-foreground rounded-xl border border-border shadow-lg p-0 w-full max-w-md backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+    (cancel)="$event.preventDefault()"
+>
+    <div class="p-6">
+        <ng-content/>
+    </div>
+</dialog>
+```
+
+Create `frontend/src/app/shared/components/alert-dialog/alert-dialog.component.ts`:
+
+```typescript
+import {Component, ElementRef, inject, output, viewChild} from '@angular/core';
+
+const ALERT_DIALOG_CONTEXT = Symbol('AlertDialogContext');
+
+@Component({
+    selector: 'fb-alert-dialog',
+    templateUrl: './alert-dialog.component.html',
+    providers: [{provide: ALERT_DIALOG_CONTEXT, useExisting: AlertDialogComponent}],
+})
+export class AlertDialogComponent {
+    private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('dialogEl');
+    confirmed = output<void>();
+
+    open(): void {
+        this.dialogEl().nativeElement.showModal();
+    }
+
+    close(): void {
+        this.dialogEl().nativeElement.close();
+    }
+
+    confirm(): void {
+        this.confirmed.emit();
+        this.close();
+    }
+}
+
+@Component({
+    selector: 'fb-alert-dialog-header',
+    host: {class: 'flex flex-col gap-1.5 mb-4 block'},
+    template: '<ng-content />',
+})
+export class AlertDialogHeaderComponent {
+}
+
+@Component({
+    selector: 'fb-alert-dialog-title',
+    host: {class: 'text-lg font-semibold leading-none tracking-tight block'},
+    template: '<ng-content />',
+})
+export class AlertDialogTitleComponent {
+}
+
+@Component({
+    selector: 'fb-alert-dialog-description',
+    host: {class: 'text-sm text-muted-foreground block'},
+    template: '<ng-content />',
+})
+export class AlertDialogDescriptionComponent {
+}
+
+@Component({
+    selector: 'fb-alert-dialog-footer',
+    host: {class: 'flex justify-end gap-2 mt-6 block'},
+    template: '<ng-content />',
+})
+export class AlertDialogFooterComponent {
+}
+
+@Component({
+    selector: 'fb-alert-dialog-cancel',
+    template: `<button class="btn btn-outline" (click)="dialog.close()"><ng-content /></button>`,
+})
+export class AlertDialogCancelComponent {
+    dialog = inject(ALERT_DIALOG_CONTEXT) as AlertDialogComponent;
+}
+
+@Component({
+    selector: 'fb-alert-dialog-action',
+    template: `<button class="btn btn-destructive" (click)="dialog.confirm()"><ng-content /></button>`,
+})
+export class AlertDialogActionComponent {
+    dialog = inject(ALERT_DIALOG_CONTEXT) as AlertDialogComponent;
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/alert-dialog/
+git commit -m "feat(design-system): add AlertDialog component for destructive confirmations"
+```
+
+---
+
+### Task 30: Drawer Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/drawer/drawer.component.ts`
+- Create: `frontend/src/app/shared/components/drawer/drawer.component.html`
+- Create: `frontend/src/app/shared/components/drawer/drawer.component.spec.ts`
+
+Bottom sheet that slides up. Uses native `<dialog>` with CSS slide-up animation. Has a drag handle for mobile UX.
+Sub-components: DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/drawer/drawer.component.spec.ts`:
+
+```typescript
+import {Component, viewChild} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {
+    DrawerComponent,
+    DrawerHeaderComponent,
+    DrawerTitleComponent,
+    DrawerDescriptionComponent,
+    DrawerFooterComponent
+} from './drawer.component';
+
+@Component({
+    template: `
+    <fb-drawer #drawer>
+      <fb-drawer-header>
+        <fb-drawer-title>Edit Profile</fb-drawer-title>
+        <fb-drawer-description>Make changes to your profile.</fb-drawer-description>
+      </fb-drawer-header>
+      <p>Drawer body</p>
+      <fb-drawer-footer>
+        <button (click)="drawer.close()">Close</button>
+      </fb-drawer-footer>
+    </fb-drawer>
+  `,
+    imports: [DrawerComponent, DrawerHeaderComponent, DrawerTitleComponent, DrawerDescriptionComponent, DrawerFooterComponent],
+})
+class TestHostComponent {
+    drawer = viewChild.required<DrawerComponent>('drawer');
+}
+
+describe('DrawerComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should be closed by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
+        expect(dialog.open).toBe(false);
+    });
+
+    it('should open when open() is called', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.drawer().open();
+        expect(fixture.nativeElement.querySelector('dialog').open).toBe(true);
+    });
+
+    it('should close when close() is called', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const comp = fixture.componentInstance.drawer();
+        comp.open();
+        comp.close();
+        expect(fixture.nativeElement.querySelector('dialog').open).toBe(false);
+    });
+
+    it('should render drag handle', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const handle = fixture.nativeElement.querySelector('[data-drag-handle]');
+        expect(handle).toBeTruthy();
+    });
+
+    it('should render sub-components', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        expect(el.querySelector('fb-drawer-title')?.textContent).toContain('Edit Profile');
+        expect(el.querySelector('fb-drawer-description')?.textContent).toContain('Make changes');
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Drawer component**
+
+Create `frontend/src/app/shared/components/drawer/drawer.component.html`:
+
+```html
+
+<dialog
+    #dialogEl
+    class="fixed inset-x-0 bottom-0 mt-auto bg-card text-card-foreground rounded-t-xl border-t border-border shadow-lg p-0 w-full max-h-[85vh] backdrop:bg-black/50 m-0"
+    (close)="closed.emit()"
+>
+    <div class="mx-auto w-12 h-1.5 rounded-full bg-muted mt-4" data-drag-handle></div>
+    <div class="p-6 overflow-y-auto">
+        <ng-content/>
+    </div>
+</dialog>
+```
+
+Create `frontend/src/app/shared/components/drawer/drawer.component.ts`:
+
+```typescript
+import {Component, ElementRef, output, viewChild} from '@angular/core';
+
+@Component({
+    selector: 'fb-drawer',
+    templateUrl: './drawer.component.html',
+})
+export class DrawerComponent {
+    private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('dialogEl');
+    closed = output<void>();
+
+    open(): void {
+        this.dialogEl().nativeElement.showModal();
+    }
+
+    close(): void {
+        this.dialogEl().nativeElement.close();
+    }
+
+    get isOpen(): boolean {
+        return this.dialogEl().nativeElement.open;
+    }
+}
+
+@Component({
+    selector: 'fb-drawer-header',
+    host: {class: 'flex flex-col gap-1.5 mb-4 block'},
+    template: '<ng-content />',
+})
+export class DrawerHeaderComponent {
+}
+
+@Component({
+    selector: 'fb-drawer-title',
+    host: {class: 'text-lg font-semibold leading-none tracking-tight block'},
+    template: '<ng-content />',
+})
+export class DrawerTitleComponent {
+}
+
+@Component({
+    selector: 'fb-drawer-description',
+    host: {class: 'text-sm text-muted-foreground block'},
+    template: '<ng-content />',
+})
+export class DrawerDescriptionComponent {
+}
+
+@Component({
+    selector: 'fb-drawer-footer',
+    host: {class: 'flex justify-end gap-2 mt-6 block'},
+    template: '<ng-content />',
+})
+export class DrawerFooterComponent {
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/drawer/
+git commit -m "feat(design-system): add Drawer bottom sheet component"
+```
+
+---
+
+### Task 31: Hover Card Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/hover-card/hover-card.component.ts`
+- Create: `frontend/src/app/shared/components/hover-card/hover-card.component.spec.ts`
+
+Rich tooltip that appears on hover with a delay. Card-style content anchored to trigger element. Similar to Popover (
+Task 23) but hover-triggered instead of click-triggered.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/hover-card/hover-card.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed, fakeAsync, tick} from '@angular/core/testing';
+import {HoverCardComponent, HoverCardTriggerComponent, HoverCardContentComponent} from './hover-card.component';
+
+@Component({
+    template: `
+    <fb-hover-card>
+      <fb-hover-card-trigger>
+        <span>Hover me</span>
+      </fb-hover-card-trigger>
+      <fb-hover-card-content>Rich card content</fb-hover-card-content>
+    </fb-hover-card>
+  `,
+    imports: [HoverCardComponent, HoverCardTriggerComponent, HoverCardContentComponent],
+})
+class TestHostComponent {
+}
+
+describe('HoverCardComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should hide content by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-hover-card-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    });
+
+    it('should show content on mouseenter after delay', fakeAsync(() => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-hover-card-trigger') as HTMLElement;
+        trigger.dispatchEvent(new MouseEvent('mouseenter'));
+        tick(200);
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-hover-card-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(false);
+    }));
+
+    it('should hide content on mouseleave', fakeAsync(() => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-hover-card-trigger') as HTMLElement;
+        trigger.dispatchEvent(new MouseEvent('mouseenter'));
+        tick(200);
+        fixture.detectChanges();
+        trigger.dispatchEvent(new MouseEvent('mouseleave'));
+        tick(100);
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-hover-card-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    }));
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Hover Card component**
+
+Create `frontend/src/app/shared/components/hover-card/hover-card.component.ts`:
+
+```typescript
+import {Component, inject, signal} from '@angular/core';
+
+const HOVER_CARD_CONTEXT = Symbol('HoverCardContext');
+
+export class HoverCardContext {
+    isOpen = signal(false);
+    private openTimer: ReturnType<typeof setTimeout> | null = null;
+    private closeTimer: ReturnType<typeof setTimeout> | null = null;
+
+    scheduleOpen(delay = 200): void {
+        this.cancelClose();
+        this.openTimer = setTimeout(() => this.isOpen.set(true), delay);
+    }
+
+    scheduleClose(delay = 100): void {
+        this.cancelOpen();
+        this.closeTimer = setTimeout(() => this.isOpen.set(false), delay);
+    }
+
+    cancelOpen(): void {
+        if (this.openTimer) {
+            clearTimeout(this.openTimer);
+            this.openTimer = null;
+        }
+    }
+
+    cancelClose(): void {
+        if (this.closeTimer) {
+            clearTimeout(this.closeTimer);
+            this.closeTimer = null;
+        }
+    }
+}
+
+@Component({
+    selector: 'fb-hover-card',
+    host: {class: 'relative inline-block'},
+    template: '<ng-content />',
+    providers: [{provide: HOVER_CARD_CONTEXT, useFactory: () => new HoverCardContext()}],
+})
+export class HoverCardComponent {
+}
+
+@Component({
+    selector: 'fb-hover-card-trigger',
+    host: {
+        class: 'inline-block',
+        '(mouseenter)': 'context.scheduleOpen()',
+        '(mouseleave)': 'context.scheduleClose()',
+    },
+    template: '<ng-content />',
+})
+export class HoverCardTriggerComponent {
+    context = inject(HOVER_CARD_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-hover-card-content',
+    host: {
+        class: 'absolute z-50 mt-2 w-64 rounded-md border border-border bg-popover text-popover-foreground p-4 shadow-md',
+        '[class.hidden]': '!context.isOpen()',
+        '(mouseenter)': 'context.cancelClose()',
+        '(mouseleave)': 'context.scheduleClose()',
+    },
+    template: '<ng-content />',
+})
+export class HoverCardContentComponent {
+    context = inject(HOVER_CARD_CONTEXT);
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/hover-card/
+git commit -m "feat(design-system): add HoverCard component with delayed show/hide"
+```
+
+---
+
+### Task 32: Context Menu Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/context-menu/context-menu.component.ts`
+- Create: `frontend/src/app/shared/components/context-menu/context-menu.component.spec.ts`
+
+Right-click triggered menu. Positioned at cursor coordinates. Similar to DropdownMenu (Task 24) but triggered by
+`contextmenu` event.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/context-menu/context-menu.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {
+    ContextMenuComponent,
+    ContextMenuTriggerComponent,
+    ContextMenuContentComponent,
+    ContextMenuItemComponent,
+    ContextMenuSeparatorComponent
+} from './context-menu.component';
+
+@Component({
+    template: `
+    <fb-context-menu>
+      <fb-context-menu-trigger>
+        <div style="width: 200px; height: 100px;">Right-click area</div>
+      </fb-context-menu-trigger>
+      <fb-context-menu-content>
+        <fb-context-menu-item>Copy</fb-context-menu-item>
+        <fb-context-menu-separator></fb-context-menu-separator>
+        <fb-context-menu-item>Paste</fb-context-menu-item>
+      </fb-context-menu-content>
+    </fb-context-menu>
+  `,
+    imports: [ContextMenuComponent, ContextMenuTriggerComponent, ContextMenuContentComponent, ContextMenuItemComponent, ContextMenuSeparatorComponent],
+})
+class TestHostComponent {
+}
+
+describe('ContextMenuComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should hide menu by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-context-menu-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    });
+
+    it('should show menu on contextmenu event', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-context-menu-trigger') as HTMLElement;
+        trigger.dispatchEvent(new MouseEvent('contextmenu', {clientX: 100, clientY: 50, bubbles: true}));
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-context-menu-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(false);
+    });
+
+    it('should close on item click', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-context-menu-trigger') as HTMLElement;
+        trigger.dispatchEvent(new MouseEvent('contextmenu', {clientX: 100, clientY: 50, bubbles: true}));
+        fixture.detectChanges();
+        const item = fixture.nativeElement.querySelector('fb-context-menu-item') as HTMLElement;
+        item.click();
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-context-menu-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    });
+
+    it('should render menu items and separator', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const el = fixture.nativeElement as HTMLElement;
+        expect(el.textContent).toContain('Copy');
+        expect(el.textContent).toContain('Paste');
+        expect(el.querySelector('fb-context-menu-separator')).toBeTruthy();
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Context Menu component**
+
+Create `frontend/src/app/shared/components/context-menu/context-menu.component.ts`:
+
+```typescript
+import {Component, inject, signal} from '@angular/core';
+
+const CONTEXT_MENU_CONTEXT = Symbol('ContextMenuContext');
+
+export class ContextMenuContext {
+    isOpen = signal(false);
+    posX = signal(0);
+    posY = signal(0);
+
+    openAt(x: number, y: number): void {
+        this.posX.set(x);
+        this.posY.set(y);
+        this.isOpen.set(true);
+    }
+
+    close(): void {
+        this.isOpen.set(false);
+    }
+}
+
+@Component({
+    selector: 'fb-context-menu',
+    host: {class: 'block'},
+    template: '<ng-content />',
+    providers: [{provide: CONTEXT_MENU_CONTEXT, useFactory: () => new ContextMenuContext()}],
+})
+export class ContextMenuComponent {
+}
+
+@Component({
+    selector: 'fb-context-menu-trigger',
+    host: {
+        class: 'block',
+        '(contextmenu)': 'onContextMenu($event)',
+    },
+    template: '<ng-content />',
+})
+export class ContextMenuTriggerComponent {
+    private context = inject(CONTEXT_MENU_CONTEXT);
+
+    onContextMenu(event: MouseEvent): void {
+        event.preventDefault();
+        this.context.openAt(event.clientX, event.clientY);
+    }
+}
+
+@Component({
+    selector: 'fb-context-menu-content',
+    host: {
+        class: 'fixed z-50 min-w-[8rem] rounded-md border border-border bg-popover text-popover-foreground p-1 shadow-md',
+        '[class.hidden]': '!context.isOpen()',
+        '[style.left.px]': 'context.posX()',
+        '[style.top.px]': 'context.posY()',
+    },
+    template: '<ng-content />',
+})
+export class ContextMenuContentComponent {
+    context = inject(CONTEXT_MENU_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-context-menu-item',
+    host: {
+        class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10 block',
+        '(click)': 'context.close()',
+    },
+    template: '<ng-content />',
+})
+export class ContextMenuItemComponent {
+    context = inject(CONTEXT_MENU_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-context-menu-separator',
+    host: {class: 'block -mx-1 my-1 h-px bg-border'},
+    template: '',
+})
+export class ContextMenuSeparatorComponent {
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/context-menu/
+git commit -m "feat(design-system): add ContextMenu component"
+```
+
+---
+
+### Task 33: Menubar Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/menubar/menubar.component.ts`
+- Create: `frontend/src/app/shared/components/menubar/menubar.component.spec.ts`
+
+Horizontal app-style menu bar with dropdown menus. Composed of MenubarMenu (group), MenubarTrigger (click to open),
+MenubarContent (dropdown), and MenubarItem.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/menubar/menubar.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {
+    MenubarComponent,
+    MenubarMenuComponent,
+    MenubarTriggerComponent,
+    MenubarContentComponent,
+    MenubarItemComponent,
+    MenubarSeparatorComponent
+} from './menubar.component';
+
+@Component({
+    template: `
+    <fb-menubar>
+      <fb-menubar-menu>
+        <fb-menubar-trigger>File</fb-menubar-trigger>
+        <fb-menubar-content>
+          <fb-menubar-item>New</fb-menubar-item>
+          <fb-menubar-separator></fb-menubar-separator>
+          <fb-menubar-item>Open</fb-menubar-item>
+        </fb-menubar-content>
+      </fb-menubar-menu>
+      <fb-menubar-menu>
+        <fb-menubar-trigger>Edit</fb-menubar-trigger>
+        <fb-menubar-content>
+          <fb-menubar-item>Undo</fb-menubar-item>
+        </fb-menubar-content>
+      </fb-menubar-menu>
+    </fb-menubar>
+  `,
+    imports: [MenubarComponent, MenubarMenuComponent, MenubarTriggerComponent, MenubarContentComponent, MenubarItemComponent, MenubarSeparatorComponent],
+})
+class TestHostComponent {
+}
+
+describe('MenubarComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should render all menu triggers', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const triggers = fixture.nativeElement.querySelectorAll('fb-menubar-trigger') as NodeListOf<HTMLElement>;
+        expect(triggers.length).toBe(2);
+        expect(triggers[0].textContent).toContain('File');
+        expect(triggers[1].textContent).toContain('Edit');
+    });
+
+    it('should hide all menus by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const contents = fixture.nativeElement.querySelectorAll('fb-menubar-content') as NodeListOf<HTMLElement>;
+        expect(contents[0].classList.contains('hidden')).toBe(true);
+        expect(contents[1].classList.contains('hidden')).toBe(true);
+    });
+
+    it('should open menu on trigger click', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-menubar-trigger') as HTMLElement;
+        trigger.click();
+        fixture.detectChanges();
+        const contents = fixture.nativeElement.querySelectorAll('fb-menubar-content') as NodeListOf<HTMLElement>;
+        expect(contents[0].classList.contains('hidden')).toBe(false);
+    });
+
+    it('should close menu on item click', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-menubar-trigger') as HTMLElement;
+        trigger.click();
+        fixture.detectChanges();
+        const item = fixture.nativeElement.querySelector('fb-menubar-item') as HTMLElement;
+        item.click();
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-menubar-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Menubar component**
+
+Create `frontend/src/app/shared/components/menubar/menubar.component.ts`:
+
+```typescript
+import {Component, inject, signal} from '@angular/core';
+
+const MENUBAR_MENU_CONTEXT = Symbol('MenubarMenuContext');
+
+export class MenubarMenuContext {
+    isOpen = signal(false);
+
+    toggle(): void {
+        this.isOpen.update(v => !v);
+    }
+
+    close(): void {
+        this.isOpen.set(false);
+    }
+}
+
+@Component({
+    selector: 'fb-menubar',
+    host: {class: 'flex items-center gap-1 rounded-md border border-border bg-background p-1'},
+    template: '<ng-content />',
+})
+export class MenubarComponent {
+}
+
+@Component({
+    selector: 'fb-menubar-menu',
+    host: {class: 'relative inline-block'},
+    template: '<ng-content />',
+    providers: [{provide: MENUBAR_MENU_CONTEXT, useFactory: () => new MenubarMenuContext()}],
+})
+export class MenubarMenuComponent {
+}
+
+@Component({
+    selector: 'fb-menubar-trigger',
+    host: {
+        class: 'flex items-center rounded-sm px-3 py-1.5 text-sm font-medium cursor-pointer outline-none hover:bg-accent/10 transition-colors',
+        '(click)': 'context.toggle()',
+    },
+    template: '<ng-content />',
+})
+export class MenubarTriggerComponent {
+    context = inject(MENUBAR_MENU_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-menubar-content',
+    host: {
+        class: 'absolute z-50 mt-1 min-w-[8rem] rounded-md border border-border bg-popover text-popover-foreground p-1 shadow-md',
+        '[class.hidden]': '!context.isOpen()',
+    },
+    template: '<ng-content />',
+})
+export class MenubarContentComponent {
+    context = inject(MENUBAR_MENU_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-menubar-item',
+    host: {
+        class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10 block',
+        '(click)': 'context.close()',
+    },
+    template: '<ng-content />',
+})
+export class MenubarItemComponent {
+    context = inject(MENUBAR_MENU_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-menubar-separator',
+    host: {class: 'block -mx-1 my-1 h-px bg-border'},
+    template: '',
+})
+export class MenubarSeparatorComponent {
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/menubar/
+git commit -m "feat(design-system): add Menubar component with dropdown menus"
+```
+
+---
+
+### Task 34: Navigation Menu Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/navigation-menu/navigation-menu.component.ts`
+- Create: `frontend/src/app/shared/components/navigation-menu/navigation-menu.component.spec.ts`
+
+Site navigation with optional mega-menu support. Used in the Landing page sticky navbar. Composed of NavigationMenuItem,
+NavigationMenuTrigger, NavigationMenuContent.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/navigation-menu/navigation-menu.component.spec.ts`:
+
+```typescript
+import {Component} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {
+    NavigationMenuComponent,
+    NavigationMenuItemComponent,
+    NavigationMenuTriggerComponent,
+    NavigationMenuContentComponent,
+    NavigationMenuLinkComponent
+} from './navigation-menu.component';
+
+@Component({
+    template: `
+    <fb-navigation-menu>
+      <fb-navigation-menu-item>
+        <fb-navigation-menu-trigger>Features</fb-navigation-menu-trigger>
+        <fb-navigation-menu-content>
+          <fb-navigation-menu-link>Predictions</fb-navigation-menu-link>
+          <fb-navigation-menu-link>Leagues</fb-navigation-menu-link>
+        </fb-navigation-menu-content>
+      </fb-navigation-menu-item>
+      <fb-navigation-menu-item>
+        <fb-navigation-menu-link>Pricing</fb-navigation-menu-link>
+      </fb-navigation-menu-item>
+    </fb-navigation-menu>
+  `,
+    imports: [NavigationMenuComponent, NavigationMenuItemComponent, NavigationMenuTriggerComponent, NavigationMenuContentComponent, NavigationMenuLinkComponent],
+})
+class TestHostComponent {
+}
+
+describe('NavigationMenuComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should render all menu items', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const items = fixture.nativeElement.querySelectorAll('fb-navigation-menu-item') as NodeListOf<HTMLElement>;
+        expect(items.length).toBe(2);
+    });
+
+    it('should hide content by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-navigation-menu-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(true);
+    });
+
+    it('should show content on trigger click', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-navigation-menu-trigger') as HTMLElement;
+        trigger.click();
+        fixture.detectChanges();
+        const content = fixture.nativeElement.querySelector('fb-navigation-menu-content') as HTMLElement;
+        expect(content.classList.contains('hidden')).toBe(false);
+    });
+
+    it('should render links inside content', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const trigger = fixture.nativeElement.querySelector('fb-navigation-menu-trigger') as HTMLElement;
+        trigger.click();
+        fixture.detectChanges();
+        const links = fixture.nativeElement.querySelectorAll('fb-navigation-menu-link') as NodeListOf<HTMLElement>;
+        expect(links[0].textContent).toContain('Predictions');
+        expect(links[1].textContent).toContain('Leagues');
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Navigation Menu component**
+
+Create `frontend/src/app/shared/components/navigation-menu/navigation-menu.component.ts`:
+
+```typescript
+import {Component, inject, signal} from '@angular/core';
+
+const NAV_MENU_ITEM_CONTEXT = Symbol('NavMenuItemContext');
+
+export class NavMenuItemContext {
+    isOpen = signal(false);
+
+    toggle(): void {
+        this.isOpen.update(v => !v);
+    }
+
+    close(): void {
+        this.isOpen.set(false);
+    }
+}
+
+@Component({
+    selector: 'fb-navigation-menu',
+    host: {class: 'relative flex items-center gap-1'},
+    template: '<ng-content />',
+})
+export class NavigationMenuComponent {
+}
+
+@Component({
+    selector: 'fb-navigation-menu-item',
+    host: {class: 'relative'},
+    template: '<ng-content />',
+    providers: [{provide: NAV_MENU_ITEM_CONTEXT, useFactory: () => new NavMenuItemContext()}],
+})
+export class NavigationMenuItemComponent {
+}
+
+@Component({
+    selector: 'fb-navigation-menu-trigger',
+    host: {
+        class: 'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent/10 cursor-pointer',
+        '(click)': 'context.toggle()',
+    },
+    template: '<ng-content />',
+})
+export class NavigationMenuTriggerComponent {
+    context = inject(NAV_MENU_ITEM_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-navigation-menu-content',
+    host: {
+        class: 'absolute z-50 mt-2 min-w-[12rem] rounded-md border border-border bg-popover text-popover-foreground p-4 shadow-lg',
+        '[class.hidden]': '!context.isOpen()',
+    },
+    template: '<ng-content />',
+})
+export class NavigationMenuContentComponent {
+    context = inject(NAV_MENU_ITEM_CONTEXT);
+}
+
+@Component({
+    selector: 'fb-navigation-menu-link',
+    host: {
+        class: 'block select-none rounded-md px-3 py-2 text-sm leading-none no-underline outline-none transition-colors hover:bg-accent/10 cursor-pointer',
+    },
+    template: '<ng-content />',
+})
+export class NavigationMenuLinkComponent {
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/navigation-menu/
+git commit -m "feat(design-system): add NavigationMenu component"
+```
+
+---
+
+### Task 35: Command Palette Component
+
+**Files:**
+
+- Create: `frontend/src/app/shared/components/command/command.component.ts`
+- Create: `frontend/src/app/shared/components/command/command.component.html`
+- Create: `frontend/src/app/shared/components/command/command.component.spec.ts`
+
+Searchable command palette (Ctrl+K / Cmd+K pattern). Search input with a filterable list of actions rendered inside a
+Dialog. Composed of CommandGroup, CommandItem, and CommandEmpty.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `frontend/src/app/shared/components/command/command.component.spec.ts`:
+
+```typescript
+import {Component, viewChild} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {
+    CommandComponent,
+    CommandGroupComponent,
+    CommandItemComponent,
+    CommandEmptyComponent
+} from './command.component';
+
+@Component({
+    template: `
+    <fb-command #cmd>
+      <fb-command-group heading="Actions">
+        <fb-command-item value="profile">Go to Profile</fb-command-item>
+        <fb-command-item value="settings">Open Settings</fb-command-item>
+      </fb-command-group>
+      <fb-command-group heading="Pages">
+        <fb-command-item value="dashboard">Dashboard</fb-command-item>
+      </fb-command-group>
+      <fb-command-empty>No results found.</fb-command-empty>
+    </fb-command>
+  `,
+    imports: [CommandComponent, CommandGroupComponent, CommandItemComponent, CommandEmptyComponent],
+})
+class TestHostComponent {
+    cmd = viewChild.required<CommandComponent>('cmd');
+}
+
+describe('CommandComponent', () => {
+    beforeEach(async () => {
+        await TestBed.configureTestingModule({
+            imports: [TestHostComponent],
+        }).compileComponents();
+    });
+
+    it('should be closed by default', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
+        expect(dialog.open).toBe(false);
+    });
+
+    it('should open and show search input', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.cmd().open();
+        fixture.detectChanges();
+        const input = fixture.nativeElement.querySelector('input[data-command-input]') as HTMLInputElement;
+        expect(input).toBeTruthy();
+    });
+
+    it('should render all items when no search', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.cmd().open();
+        fixture.detectChanges();
+        const items = fixture.nativeElement.querySelectorAll('fb-command-item') as NodeListOf<HTMLElement>;
+        expect(items.length).toBe(3);
+    });
+
+    it('should filter items based on search', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.cmd().open();
+        fixture.detectChanges();
+        const input = fixture.nativeElement.querySelector('input[data-command-input]') as HTMLInputElement;
+        input.value = 'profile';
+        input.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+        const visibleItems = fixture.nativeElement.querySelectorAll('fb-command-item:not(.hidden)') as NodeListOf<HTMLElement>;
+        expect(visibleItems.length).toBe(1);
+        expect(visibleItems[0].textContent).toContain('Go to Profile');
+    });
+
+    it('should show empty message when no matches', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        fixture.componentInstance.cmd().open();
+        fixture.detectChanges();
+        const input = fixture.nativeElement.querySelector('input[data-command-input]') as HTMLInputElement;
+        input.value = 'zzzznothing';
+        input.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+        const empty = fixture.nativeElement.querySelector('fb-command-empty') as HTMLElement;
+        expect(empty.classList.contains('hidden')).toBe(false);
+    });
+
+    it('should emit selected and close on item click', () => {
+        const fixture = TestBed.createComponent(TestHostComponent);
+        fixture.detectChanges();
+        let selectedValue = '';
+        fixture.componentInstance.cmd().selected.subscribe((v: string) => selectedValue = v);
+        fixture.componentInstance.cmd().open();
+        fixture.detectChanges();
+        const item = fixture.nativeElement.querySelector('fb-command-item') as HTMLElement;
+        item.click();
+        expect(selectedValue).toBe('profile');
+        expect(fixture.nativeElement.querySelector('dialog').open).toBe(false);
+    });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: FAIL
+
+- [ ] **Step 3: Implement Command palette component**
+
+Create `frontend/src/app/shared/components/command/command.component.html`:
+
+```html
+
+<dialog
+    #dialogEl
+    class="bg-card text-card-foreground rounded-xl border border-border shadow-lg p-0 w-full max-w-lg backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+>
+    <div class="flex items-center border-b border-border px-3">
+        <svg class="h-4 w-4 shrink-0 opacity-50 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input
+            data-command-input
+            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+            placeholder="Type a command or search..."
+            [value]="search()"
+            (input)="onSearch($event)"
+        />
+    </div>
+    <div class="max-h-[300px] overflow-y-auto p-2">
+        <ng-content/>
+    </div>
+</dialog>
+```
+
+Create `frontend/src/app/shared/components/command/command.component.ts`:
+
+```typescript
+import {Component, ElementRef, computed, inject, input, output, signal, viewChild} from '@angular/core';
+
+const COMMAND_CONTEXT = Symbol('CommandContext');
+
+@Component({
+    selector: 'fb-command',
+    templateUrl: './command.component.html',
+    providers: [{provide: COMMAND_CONTEXT, useExisting: CommandComponent}],
+})
+export class CommandComponent {
+    private dialogEl = viewChild.required<ElementRef<HTMLDialogElement>>('dialogEl');
+    search = signal('');
+    selected = output<string>();
+
+    open(): void {
+        this.search.set('');
+        this.dialogEl().nativeElement.showModal();
+    }
+
+    close(): void {
+        this.dialogEl().nativeElement.close();
+    }
+
+    selectItem(value: string): void {
+        this.selected.emit(value);
+        this.close();
+    }
+
+    onSearch(event: Event): void {
+        this.search.set((event.target as HTMLInputElement).value);
+    }
+
+    hasVisibleItems(): boolean {
+        const dialog = this.dialogEl().nativeElement;
+        const items = dialog.querySelectorAll('fb-command-item:not(.hidden)');
+        return items.length > 0;
+    }
+}
+
+@Component({
+    selector: 'fb-command-group',
+    host: {class: 'block'},
+    template: `
+    <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">{{ heading() }}</div>
+    <ng-content />
+  `,
+})
+export class CommandGroupComponent {
+    heading = input('');
+}
+
+@Component({
+    selector: 'fb-command-item',
+    host: {
+        class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10',
+        '[class.hidden]': '!isVisible()',
+        '(click)': 'onSelect()',
+    },
+    template: '<ng-content />',
+})
+export class CommandItemComponent {
+    private command = inject(COMMAND_CONTEXT) as CommandComponent;
+    value = input.required<string>();
+    private el = inject(ElementRef);
+
+    isVisible = computed(() => {
+        const query = this.command.search().toLowerCase();
+        if (!query) return true;
+        const text = this.el.nativeElement.textContent?.toLowerCase() ?? '';
+        return text.includes(query);
+    });
+
+    onSelect(): void {
+        this.command.selectItem(this.value());
+    }
+}
+
+@Component({
+    selector: 'fb-command-empty',
+    host: {
+        class: 'py-6 text-center text-sm text-muted-foreground',
+        '[class.hidden]': 'command.hasVisibleItems()',
+    },
+    template: '<ng-content />',
+})
+export class CommandEmptyComponent {
+    command = inject(COMMAND_CONTEXT) as CommandComponent;
+}
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `builtin cd /Volumes/CaseSensitive/src/fantabet/frontend && npx ng test --watch=false 2>&1 | tail -20`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add frontend/src/app/shared/components/command/
+git commit -m "feat(design-system): add Command palette component with search filtering"
+```
+
+---
+
+### Task 36: Barrel Exports & Verification
 
 **Files:**
 - Create: `frontend/src/app/shared/components/index.ts`
@@ -3724,6 +5587,51 @@ export {TableComponent, TableHeaderComponent, TableBodyComponent, TableRowCompon
 export {PopoverComponent, PopoverTriggerComponent, PopoverContentComponent} from './popover/popover.component';
 export {DropdownMenuComponent, DropdownMenuTriggerComponent, DropdownMenuContentComponent, DropdownMenuItemComponent, DropdownMenuSeparatorComponent} from './dropdown-menu/dropdown-menu.component';
 export {PaginationComponent} from './pagination/pagination.component';
+export {
+    CollapsibleComponent, CollapsibleTriggerComponent, CollapsibleContentComponent
+} from './collapsible/collapsible.component';
+export {ScrollAreaComponent} from './scroll-area/scroll-area.component';
+export {InputOtpComponent} from './input-otp/input-otp.component';
+export {
+    AlertDialogComponent,
+    AlertDialogHeaderComponent,
+    AlertDialogTitleComponent,
+    AlertDialogDescriptionComponent,
+    AlertDialogFooterComponent,
+    AlertDialogActionComponent,
+    AlertDialogCancelComponent
+} from './alert-dialog/alert-dialog.component';
+export {
+    DrawerComponent, DrawerHeaderComponent, DrawerTitleComponent, DrawerDescriptionComponent, DrawerFooterComponent
+} from './drawer/drawer.component';
+export {
+    HoverCardComponent, HoverCardTriggerComponent, HoverCardContentComponent
+} from './hover-card/hover-card.component';
+export {
+    ContextMenuComponent,
+    ContextMenuTriggerComponent,
+    ContextMenuContentComponent,
+    ContextMenuItemComponent,
+    ContextMenuSeparatorComponent
+} from './context-menu/context-menu.component';
+export {
+    MenubarComponent,
+    MenubarMenuComponent,
+    MenubarTriggerComponent,
+    MenubarContentComponent,
+    MenubarItemComponent,
+    MenubarSeparatorComponent
+} from './menubar/menubar.component';
+export {
+    NavigationMenuComponent,
+    NavigationMenuItemComponent,
+    NavigationMenuTriggerComponent,
+    NavigationMenuContentComponent,
+    NavigationMenuLinkComponent
+} from './navigation-menu/navigation-menu.component';
+export {
+    CommandComponent, CommandGroupComponent, CommandItemComponent, CommandEmptyComponent
+} from './command/command.component';
 ```
 
 - [ ] **Step 2: Create directives barrel export**
