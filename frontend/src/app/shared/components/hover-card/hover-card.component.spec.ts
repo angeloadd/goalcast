@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { HoverCardComponent, HoverCardContentComponent, HoverCardTriggerComponent } from '@fb/shared/components';
+import {
+    HoverCardComponent,
+    HoverCardContentComponent,
+    HoverCardTriggerComponent,
+} from '@fb/shared/components';
 
 @Component({
     template: `
@@ -11,8 +15,7 @@ import { HoverCardComponent, HoverCardContentComponent, HoverCardTriggerComponen
     `,
     imports: [HoverCardComponent, HoverCardTriggerComponent, HoverCardContentComponent],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('HoverCardComponent', () => {
     beforeEach(async () => {

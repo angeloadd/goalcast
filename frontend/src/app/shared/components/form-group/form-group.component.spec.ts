@@ -33,7 +33,7 @@ describe('FormGroupComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const desc = fixture.nativeElement.querySelector('[data-description]') as HTMLElement;
-        expect(desc.textContent).toContain('We\'ll never share your email.');
+        expect(desc.textContent).toContain("We'll never share your email.");
     });
 
     it('should show error when control is touched and invalid', () => {

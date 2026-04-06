@@ -29,8 +29,7 @@ import {
         DropdownMenuSeparatorComponent,
     ],
 })
-class TestHostComponent {
-}
+class TestHostComponent {}
 
 describe('DropdownMenuComponent', () => {
     beforeEach(async () => {
