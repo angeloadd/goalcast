@@ -5,14 +5,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { NgClass } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
-
-const ERROR_MESSAGES: Record<string, (params?: Record<string, unknown>) => string> = {
-    required: () => 'This field is required',
-    email: () => 'Please enter a valid email',
-    minlength: (p) => `Minimum ${p.requiredLength} characters`,
-    maxlength: (p) => `Maximum ${p.requiredLength} characters`,
-    pattern: () => 'Invalid format',
-};
+import { getFirstError } from '@fb/shared/utils/form-errors';
 
 @Component({
     selector: 'gc-input-field',
@@ -29,12 +22,10 @@ export class InputFieldComponent {
     error = computed(() => {
         this.status();
         const ctrl = this.control();
-        if (!ctrl.errors || !ctrl.touched) {
+        if (!ctrl.touched) {
             return null;
         }
-        const firstKey = Object.keys(ctrl.errors)[0];
-        const messageFn = ERROR_MESSAGES[firstKey];
-        return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
+        return getFirstError(ctrl.errors);
     });
     inputId = input.required<string>();
     label = input.required<string>();

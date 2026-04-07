@@ -2,14 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { merge, switchMap } from 'rxjs';
-
-const ERROR_MESSAGES: Record<string, (params?: Record<string, unknown>) => string> = {
-    required: () => 'This field is required',
-    email: () => 'Please enter a valid email',
-    minlength: (p) => `Minimum ${p.requiredLength} characters`,
-    maxlength: (p) => `Maximum ${p.requiredLength} characters`,
-    pattern: () => 'Invalid format',
-};
+import { getFirstError } from '@fb/shared/utils/form-errors';
 
 @Component({
     selector: 'gc-form-group',
@@ -30,11 +23,9 @@ export class FormGroupComponent {
     errorMessage = computed(() => {
         this.controlEvent();
         const ctrl = this.control();
-        if (!ctrl || !ctrl.errors || !ctrl.touched) {
+        if (!ctrl || !ctrl.touched) {
             return null;
         }
-        const firstKey = Object.keys(ctrl.errors)[0];
-        const messageFn = ERROR_MESSAGES[firstKey];
-        return messageFn ? messageFn(ctrl.errors[firstKey]) : 'Invalid value';
+        return getFirstError(ctrl.errors);
     });
 }

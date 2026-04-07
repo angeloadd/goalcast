@@ -53,8 +53,8 @@ describe('LandingpageComponent', () => {
     });
 
     it('should render 4 how-it-works steps', () => {
-        const steps = compiled.querySelectorAll('.animate-fade-in');
-        expect(steps.length).toBe(4);
+        const stepNumbers = compiled.querySelectorAll('.text-accent\\/30');
+        expect(stepNumbers.length).toBe(4);
     });
 
     it('should render CTA section with Ready headline', () => {
