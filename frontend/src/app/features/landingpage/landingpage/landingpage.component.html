@@ -1,0 +1,116 @@
+<!-- Nav -->
+<nav class="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a routerLink="/" class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center">
+                <ng-icon name="bootstrapTrophy" class="text-accent-foreground" size="20" />
+            </div>
+            <span class="font-display text-xl tracking-wider">GOALCAST</span>
+        </a>
+        <div class="flex items-center gap-3">
+            <a routerLink="/login" class="btn btn-ghost btn-sm">Log In</a>
+            <a routerLink="/register" class="btn btn-gold btn-sm">Sign Up</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center space-y-6">
+        <div
+            class="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-sm text-accent"
+        >
+            <ng-icon name="bootstrapShieldShaded" size="16" />
+            FIFA World Cup 2026
+        </div>
+        <h1 class="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+            Create. Predict. <span class="text-gradient-gold">Compete.</span>
+        </h1>
+        <p class="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Set up a league, invite your friends, predict match scores, and find out who really knows football.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <a routerLink="/create-league" class="btn btn-gold btn-lg text-base">
+                Create a League
+                <ng-icon name="bootstrapArrowRight" size="20" />
+            </a>
+            <a routerLink="/login" class="btn btn-outline btn-lg text-base">Join an Existing League</a>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-20 px-6 bg-muted/30">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl font-bold mb-3">What You Get</h2>
+            <p class="text-muted-foreground">Everything you need to run a prediction league.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @for (feature of features; track feature.title) {
+                <div
+                    class="card-gradient rounded-xl border border-border p-6 space-y-3 hover:border-accent/40 transition-colors"
+                >
+                    <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <ng-icon [name]="feature.icon" class="text-accent" size="20" />
+                    </div>
+                    <h3 class="font-semibold text-lg">{{ feature.title }}</h3>
+                    <p class="text-sm text-muted-foreground leading-relaxed">{{ feature.description }}</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-20 px-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl font-bold mb-3">How It Works</h2>
+            <p class="text-muted-foreground">Get started in minutes.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-8">
+            @for (step of steps; track step.number; let i = $index) {
+                <div class="flex gap-4 animate-fade-in" [style.animation-delay]="i * 100 + 'ms'">
+                    <span class="font-display text-4xl text-accent/30 leading-none">{{ step.number }}</span>
+                    <div>
+                        <h3 class="font-semibold mb-1">{{ step.title }}</h3>
+                        <p class="text-sm text-muted-foreground">{{ step.description }}</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-20 px-6 bg-primary text-primary-foreground">
+    <div class="max-w-3xl mx-auto text-center space-y-6">
+        <h2 class="text-3xl font-bold">Ready?</h2>
+        <p class="text-primary-foreground/70">
+            Create a league in under a minute. Set rules, invite friends, start predicting.
+        </p>
+        <a routerLink="/create-league" class="btn btn-gold btn-lg text-base mt-4">
+            Get Started
+            <ng-icon name="bootstrapArrowRight" size="20" />
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-card border-t border-border py-8 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-sm text-muted-foreground">&copy; 2026 GoalCast</p>
+        <div class="flex items-center gap-6">
+            <a routerLink="/terms" class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >Terms</a
+            >
+            <a routerLink="/privacy" class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >Privacy</a
+            >
+            <a routerLink="/imprint" class="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >Imprint</a
+            >
+        </div>
+    </div>
+</footer>
