@@ -33,7 +33,7 @@ export class HoverCardContext {
 const HOVER_CARD_CONTEXT = new InjectionToken<HoverCardContext>('HoverCardContext');
 
 @Component({
-    selector: 'fb-hover-card',
+    selector: 'gc-hover-card',
     host: { class: 'relative inline-block' },
     template: '<ng-content />',
     providers: [{ provide: HOVER_CARD_CONTEXT, useFactory: () => new HoverCardContext() }],
@@ -41,7 +41,7 @@ const HOVER_CARD_CONTEXT = new InjectionToken<HoverCardContext>('HoverCardContex
 export class HoverCardComponent {}
 
 @Component({
-    selector: 'fb-hover-card-trigger',
+    selector: 'gc-hover-card-trigger',
     host: {
         class: 'inline-block',
         '(mouseenter)': 'context.scheduleOpen()',
@@ -54,7 +54,7 @@ export class HoverCardTriggerComponent {
 }
 
 @Component({
-    selector: 'fb-hover-card-content',
+    selector: 'gc-hover-card-content',
     host: {
         class: 'absolute z-50 mt-2 w-64 rounded-md border border-border bg-popover text-popover-foreground p-4 shadow-md',
         '[class.hidden]': '!context.isOpen()',

@@ -10,7 +10,7 @@ import {
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
-    selector: 'fb-input-otp',
+    selector: 'gc-input-otp',
     template: `
         <div class="flex items-center gap-2">
             @for (i of slots(); track i) {

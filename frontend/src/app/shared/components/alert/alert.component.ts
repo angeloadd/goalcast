@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 
 @Component({
-    selector: 'fb-alert',
+    selector: 'gc-alert',
     host: {
         class: 'relative w-full rounded-lg border p-4 block',
         '[class.border-border]': 'variant() === "default"',
@@ -15,14 +15,14 @@ export class AlertComponent {
 }
 
 @Component({
-    selector: 'fb-alert-title',
+    selector: 'gc-alert-title',
     host: { class: 'mb-1 font-medium leading-none tracking-tight block' },
     template: '<ng-content />',
 })
 export class AlertTitleComponent {}
 
 @Component({
-    selector: 'fb-alert-description',
+    selector: 'gc-alert-description',
     host: { class: 'text-sm [&_p]:leading-relaxed block' },
     template: '<ng-content />',
 })

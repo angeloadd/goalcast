@@ -10,16 +10,16 @@ import {
 
 @Component({
     template: `
-        <fb-dropdown-menu>
-            <fb-dropdown-menu-trigger>
+        <gc-dropdown-menu>
+            <gc-dropdown-menu-trigger>
                 <button>Menu</button>
-            </fb-dropdown-menu-trigger>
-            <fb-dropdown-menu-content>
-                <fb-dropdown-menu-item>Profile</fb-dropdown-menu-item>
-                <fb-dropdown-menu-separator></fb-dropdown-menu-separator>
-                <fb-dropdown-menu-item>Logout</fb-dropdown-menu-item>
-            </fb-dropdown-menu-content>
-        </fb-dropdown-menu>
+            </gc-dropdown-menu-trigger>
+            <gc-dropdown-menu-content>
+                <gc-dropdown-menu-item>Profile</gc-dropdown-menu-item>
+                <gc-dropdown-menu-separator></gc-dropdown-menu-separator>
+                <gc-dropdown-menu-item>Logout</gc-dropdown-menu-item>
+            </gc-dropdown-menu-content>
+        </gc-dropdown-menu>
     `,
     imports: [
         DropdownMenuComponent,
@@ -40,7 +40,7 @@ describe('DropdownMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-dropdown-menu-content',
+            'gc-dropdown-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });
@@ -49,12 +49,12 @@ describe('DropdownMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const trigger = fixture.nativeElement.querySelector(
-            'fb-dropdown-menu-trigger',
+            'gc-dropdown-menu-trigger',
         ) as HTMLElement;
         trigger.click();
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-dropdown-menu-content',
+            'gc-dropdown-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(false);
     });
@@ -63,13 +63,13 @@ describe('DropdownMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const trigger = fixture.nativeElement.querySelector(
-            'fb-dropdown-menu-trigger',
+            'gc-dropdown-menu-trigger',
         ) as HTMLElement;
         trigger.click();
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
         expect(el.textContent).toContain('Profile');
         expect(el.textContent).toContain('Logout');
-        expect(el.querySelector('fb-dropdown-menu-separator')).toBeTruthy();
+        expect(el.querySelector('gc-dropdown-menu-separator')).toBeTruthy();
     });
 });

@@ -28,7 +28,7 @@ export class RadioGroupContext {
 const RADIO_GROUP_CONTEXT = new InjectionToken<RadioGroupContext>('RadioGroupContext');
 
 @Component({
-    selector: 'fb-radio-group',
+    selector: 'gc-radio-group',
     templateUrl: './radio-group.component.html',
     providers: [
         { provide: RADIO_GROUP_CONTEXT, useFactory: () => new RadioGroupContext() },
@@ -59,7 +59,7 @@ export class RadioGroupComponent implements ControlValueAccessor {
 }
 
 @Component({
-    selector: 'fb-radio-group-item',
+    selector: 'gc-radio-group-item',
     host: { class: 'block' },
     template: `
         <label class="inline-flex items-center gap-2 cursor-pointer">

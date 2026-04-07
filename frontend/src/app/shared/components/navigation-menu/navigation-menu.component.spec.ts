@@ -10,18 +10,18 @@ import {
 
 @Component({
     template: `
-        <fb-navigation-menu>
-            <fb-navigation-menu-item>
-                <fb-navigation-menu-trigger>Features</fb-navigation-menu-trigger>
-                <fb-navigation-menu-content>
-                    <fb-navigation-menu-link>Predictions</fb-navigation-menu-link>
-                    <fb-navigation-menu-link>Leagues</fb-navigation-menu-link>
-                </fb-navigation-menu-content>
-            </fb-navigation-menu-item>
-            <fb-navigation-menu-item>
-                <fb-navigation-menu-link>Pricing</fb-navigation-menu-link>
-            </fb-navigation-menu-item>
-        </fb-navigation-menu>
+        <gc-navigation-menu>
+            <gc-navigation-menu-item>
+                <gc-navigation-menu-trigger>Features</gc-navigation-menu-trigger>
+                <gc-navigation-menu-content>
+                    <gc-navigation-menu-link>Predictions</gc-navigation-menu-link>
+                    <gc-navigation-menu-link>Leagues</gc-navigation-menu-link>
+                </gc-navigation-menu-content>
+            </gc-navigation-menu-item>
+            <gc-navigation-menu-item>
+                <gc-navigation-menu-link>Pricing</gc-navigation-menu-link>
+            </gc-navigation-menu-item>
+        </gc-navigation-menu>
     `,
     imports: [
         NavigationMenuComponent,
@@ -42,7 +42,7 @@ describe('NavigationMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const items = fixture.nativeElement.querySelectorAll(
-            'fb-navigation-menu-item',
+            'gc-navigation-menu-item',
         ) as NodeListOf<HTMLElement>;
         expect(items.length).toBe(2);
     });
@@ -51,7 +51,7 @@ describe('NavigationMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-navigation-menu-content',
+            'gc-navigation-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });
@@ -60,12 +60,12 @@ describe('NavigationMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const trigger = fixture.nativeElement.querySelector(
-            'fb-navigation-menu-trigger',
+            'gc-navigation-menu-trigger',
         ) as HTMLElement;
         trigger.click();
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-navigation-menu-content',
+            'gc-navigation-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(false);
     });

@@ -1,7 +1,7 @@
 import { Component, ElementRef, output, viewChild } from '@angular/core';
 
 @Component({
-    selector: 'fb-dialog',
+    selector: 'gc-dialog',
     templateUrl: './dialog.component.html',
 })
 export class DialogComponent {
@@ -32,28 +32,28 @@ export class DialogComponent {
 }
 
 @Component({
-    selector: 'fb-dialog-header',
+    selector: 'gc-dialog-header',
     host: { class: 'flex flex-col gap-1.5 mb-4 block' },
     template: '<ng-content />',
 })
 export class DialogHeaderComponent {}
 
 @Component({
-    selector: 'fb-dialog-title',
+    selector: 'gc-dialog-title',
     host: { class: 'text-lg font-semibold leading-none tracking-tight block' },
     template: '<ng-content />',
 })
 export class DialogTitleComponent {}
 
 @Component({
-    selector: 'fb-dialog-description',
+    selector: 'gc-dialog-description',
     host: { class: 'text-sm text-muted-foreground block' },
     template: '<ng-content />',
 })
 export class DialogDescriptionComponent {}
 
 @Component({
-    selector: 'fb-dialog-footer',
+    selector: 'gc-dialog-footer',
     host: { class: 'flex justify-end gap-2 mt-6 block' },
     template: '<ng-content />',
 })

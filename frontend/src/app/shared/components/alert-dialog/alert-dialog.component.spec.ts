@@ -12,18 +12,18 @@ import {
 
 @Component({
     template: `
-        <fb-alert-dialog #dialog>
-            <fb-alert-dialog-header>
-                <fb-alert-dialog-title>Are you sure?</fb-alert-dialog-title>
-                <fb-alert-dialog-description
+        <gc-alert-dialog #dialog>
+            <gc-alert-dialog-header>
+                <gc-alert-dialog-title>Are you sure?</gc-alert-dialog-title>
+                <gc-alert-dialog-description
                     >This action cannot be undone.
-                </fb-alert-dialog-description>
-            </fb-alert-dialog-header>
-            <fb-alert-dialog-footer>
-                <fb-alert-dialog-cancel>Cancel</fb-alert-dialog-cancel>
-                <fb-alert-dialog-action>Continue</fb-alert-dialog-action>
-            </fb-alert-dialog-footer>
-        </fb-alert-dialog>
+                </gc-alert-dialog-description>
+            </gc-alert-dialog-header>
+            <gc-alert-dialog-footer>
+                <gc-alert-dialog-cancel>Cancel</gc-alert-dialog-cancel>
+                <gc-alert-dialog-action>Continue</gc-alert-dialog-action>
+            </gc-alert-dialog-footer>
+        </gc-alert-dialog>
     `,
     imports: [
         AlertDialogComponent,
@@ -63,7 +63,7 @@ describe('AlertDialogComponent', () => {
         fixture.detectChanges();
         fixture.componentInstance.dialog().open();
         const cancel = fixture.nativeElement.querySelector(
-            'fb-alert-dialog-cancel button',
+            'gc-alert-dialog-cancel button',
         ) as HTMLElement;
         cancel.click();
         expect(fixture.nativeElement.querySelector('dialog').open).toBe(false);
@@ -76,7 +76,7 @@ describe('AlertDialogComponent', () => {
         fixture.componentInstance.dialog().confirmed.subscribe(() => (confirmed = true));
         fixture.componentInstance.dialog().open();
         const action = fixture.nativeElement.querySelector(
-            'fb-alert-dialog-action button',
+            'gc-alert-dialog-action button',
         ) as HTMLElement;
         action.click();
         expect(confirmed).toBe(true);
@@ -87,8 +87,8 @@ describe('AlertDialogComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('fb-alert-dialog-title')?.textContent).toContain('Are you sure?');
-        expect(el.querySelector('fb-alert-dialog-description')?.textContent).toContain(
+        expect(el.querySelector('gc-alert-dialog-title')?.textContent).toContain('Are you sure?');
+        expect(el.querySelector('gc-alert-dialog-description')?.textContent).toContain(
             'This action cannot be undone.',
         );
     });

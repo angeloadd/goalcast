@@ -15,7 +15,7 @@ const ERROR_MESSAGES: Record<string, (params?: Record<string, unknown>) => strin
 };
 
 @Component({
-    selector: 'fb-input-field',
+    selector: 'gc-input-field',
     templateUrl: './input-field.component.html',
     imports: [ReactiveFormsModule, NgIcon, NgClass],
     viewProviders: [provideIcons({ bootstrapExclamationCircle })],

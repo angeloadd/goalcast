@@ -1,8 +1,8 @@
-# Fantabet — Design System Definition
+# GoalCast — Design System Definition
 
 ## 1. Product Overview
 
-Fantabet is a World Football Cup prediction game dashboard. Users compete by predicting match outcomes and scorers across group and knockout stages. The UI must feel like a premium sports platform — dark navy tones, gold accents, clean data-heavy layouts that stay readable at a glance.
+GoalCast is a World Football Cup prediction game dashboard. Users compete by predicting match outcomes and scorers across group and knockout stages. The UI must feel like a premium sports platform — dark navy tones, gold accents, clean data-heavy layouts that stay readable at a glance.
 
 ---
 

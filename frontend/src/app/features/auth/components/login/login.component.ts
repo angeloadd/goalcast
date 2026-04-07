@@ -6,7 +6,7 @@ import { selectAuthError, selectAuthLoading } from '@fb/core/state/auth/auth.sel
 import { InputFieldComponent } from '@fb/shared/components/input/input-field.component';
 
 @Component({
-    selector: 'fb-login',
+    selector: 'gc-login',
     standalone: true,
     imports: [ReactiveFormsModule, InputFieldComponent],
     templateUrl: 'login.component.html',

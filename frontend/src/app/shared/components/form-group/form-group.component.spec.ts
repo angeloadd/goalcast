@@ -5,9 +5,9 @@ import { FormGroupComponent } from '@fb/shared/components';
 
 @Component({
     template: `
-        <fb-form-group label="Email" description="We'll never share your email." [control]="ctrl">
+        <gc-form-group label="Email" description="We'll never share your email." [control]="ctrl">
             <input [formControl]="ctrl" />
-        </fb-form-group>
+        </gc-form-group>
     `,
     imports: [FormGroupComponent, ReactiveFormsModule],
 })

@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 
 @Component({
-    selector: 'fb-skeleton',
+    selector: 'gc-skeleton',
     template: ` <div
         data-skeleton
         class="animate-pulse rounded-md bg-muted"

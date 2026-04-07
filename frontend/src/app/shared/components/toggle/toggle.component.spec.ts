@@ -7,7 +7,7 @@ import {
 } from './toggle.component';
 
 @Component({
-    template: ` <fb-toggle [(pressed)]="isPressed">Bold</fb-toggle>`,
+    template: ` <gc-toggle [(pressed)]="isPressed">Bold</gc-toggle>`,
     imports: [ToggleComponent],
 })
 class SingleToggleHost {
@@ -16,10 +16,10 @@ class SingleToggleHost {
 
 @Component({
     template: `
-        <fb-toggle-group type="single" [(value)]="selected">
-            <fb-toggle-group-item value="a">A</fb-toggle-group-item>
-            <fb-toggle-group-item value="b">B</fb-toggle-group-item>
-        </fb-toggle-group>
+        <gc-toggle-group type="single" [(value)]="selected">
+            <gc-toggle-group-item value="a">A</gc-toggle-group-item>
+            <gc-toggle-group-item value="b">B</gc-toggle-group-item>
+        </gc-toggle-group>
     `,
     imports: [ToggleGroupComponent, ToggleGroupItemComponent],
 })

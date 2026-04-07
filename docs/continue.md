@@ -1,4 +1,4 @@
-# Fantabet — Pending Issues & Next Steps
+# GoalCast — Pending Issues & Next Steps
 
 ## 1. `*` border-color reset overrides Tailwind utility classes
 

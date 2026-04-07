@@ -4,7 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { TextareaComponent } from './textarea.component';
 
 @Component({
-    template: ` <fb-textarea [formControl]="ctrl" placeholder="Enter text"></fb-textarea>`,
+    template: ` <gc-textarea [formControl]="ctrl" placeholder="Enter text"></gc-textarea>`,
     imports: [TextareaComponent, ReactiveFormsModule],
 })
 class TestHostComponent {

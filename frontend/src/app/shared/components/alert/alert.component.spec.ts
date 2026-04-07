@@ -4,10 +4,10 @@ import { AlertComponent, AlertDescriptionComponent, AlertTitleComponent } from '
 
 @Component({
     template: `
-        <fb-alert variant="destructive">
-            <fb-alert-title>Error</fb-alert-title>
-            <fb-alert-description>Something went wrong.</fb-alert-description>
-        </fb-alert>
+        <gc-alert variant="destructive">
+            <gc-alert-title>Error</gc-alert-title>
+            <gc-alert-description>Something went wrong.</gc-alert-description>
+        </gc-alert>
     `,
     imports: [AlertComponent, AlertTitleComponent, AlertDescriptionComponent],
 })
@@ -22,8 +22,8 @@ describe('AlertComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('fb-alert-title')?.textContent).toContain('Error');
-        expect(el.querySelector('fb-alert-description')?.textContent).toContain(
+        expect(el.querySelector('gc-alert-title')?.textContent).toContain('Error');
+        expect(el.querySelector('gc-alert-description')?.textContent).toContain(
             'Something went wrong.',
         );
     });
@@ -31,7 +31,7 @@ describe('AlertComponent', () => {
     it('should apply destructive variant styling', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
-        const alert = fixture.nativeElement.querySelector('fb-alert') as HTMLElement;
+        const alert = fixture.nativeElement.querySelector('gc-alert') as HTMLElement;
         expect(alert.classList.contains('border-destructive')).toBe(true);
     });
 });

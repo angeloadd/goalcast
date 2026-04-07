@@ -36,7 +36,7 @@ export class SelectContext {
 }
 
 @Component({
-    selector: 'fb-select',
+    selector: 'gc-select',
     templateUrl: './select.component.html',
     providers: [
         { provide: SELECT_CONTEXT, useFactory: () => new SelectContext() },
@@ -69,7 +69,7 @@ export class SelectComponent implements ControlValueAccessor {
 }
 
 @Component({
-    selector: 'fb-select-item',
+    selector: 'gc-select-item',
     host: {
         class: 'block px-3 py-2 text-sm cursor-pointer hover:bg-accent/10 transition-colors',
         '(click)': 'onSelect()',

@@ -2,7 +2,7 @@ import { Component, forwardRef, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
-    selector: 'fb-slider',
+    selector: 'gc-slider',
     templateUrl: './slider.component.html',
     providers: [
         {

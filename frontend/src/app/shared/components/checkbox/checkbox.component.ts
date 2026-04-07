@@ -2,7 +2,7 @@ import { Component, forwardRef, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
-    selector: 'fb-checkbox',
+    selector: 'gc-checkbox',
     templateUrl: './checkbox.component.html',
     providers: [
         {

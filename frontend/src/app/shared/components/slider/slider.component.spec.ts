@@ -4,7 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SliderComponent } from './slider.component';
 
 @Component({
-    template: ` <fb-slider [formControl]="ctrl" [min]="0" [max]="100"></fb-slider>`,
+    template: ` <gc-slider [formControl]="ctrl" [min]="0" [max]="100"></gc-slider>`,
     imports: [SliderComponent, ReactiveFormsModule],
 })
 class TestHostComponent {

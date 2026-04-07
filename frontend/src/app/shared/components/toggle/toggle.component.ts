@@ -32,7 +32,7 @@ export class ToggleGroupContext {
 }
 
 @Component({
-    selector: 'fb-toggle',
+    selector: 'gc-toggle',
     templateUrl: './toggle.component.html',
 })
 export class ToggleComponent {
@@ -44,7 +44,7 @@ export class ToggleComponent {
 }
 
 @Component({
-    selector: 'fb-toggle-group',
+    selector: 'gc-toggle-group',
     host: { class: 'inline-flex items-center gap-1' },
     template: '<ng-content />',
     providers: [{ provide: TOGGLE_GROUP_CONTEXT, useFactory: () => new ToggleGroupContext() }],
@@ -63,7 +63,7 @@ export class ToggleGroupComponent implements OnInit {
 }
 
 @Component({
-    selector: 'fb-toggle-group-item',
+    selector: 'gc-toggle-group-item',
     template: `
         <button
             type="button"

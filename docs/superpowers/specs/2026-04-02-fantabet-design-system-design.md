@@ -1,6 +1,6 @@
-# Fantabet Design System — Angular Porting Reference
+# GoalCast Design System — Angular Porting Reference
 
-Comprehensive design system specification for porting the World Cup Predictor React prototype into the Angular fantabet frontend. The prototype serves as the visual source of truth. The Angular implementation uses custom Tailwind-based components with opinionated, baked-in styling to minimize per-use customization.
+Comprehensive design system specification for porting the World Cup Predictor React prototype into the Angular GoalCast frontend. The prototype serves as the visual source of truth. The Angular implementation uses custom Tailwind-based components with opinionated, baked-in styling to minimize per-use customization.
 
 **Key decisions:**
 - Purely visual elements (Button, Badge, Label, Separator) are Tailwind `@utility` classes, not Angular components
@@ -632,7 +632,7 @@ Brief definitions of Angular concepts referenced throughout this section:
 - **Sub-components:** `SidebarProvider`, `Sidebar`, `SidebarHeader`, `SidebarContent`, `SidebarFooter`, `SidebarTrigger`, `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`
 - **Angular notes:** `SidebarProvider` manages open/collapsed state as a service. `SidebarTrigger` toggles on mobile. Menu items use `routerLink` with `routerLinkActive` for active styling.
 
-### 2.5 Domain Components — Fantabet-Specific
+### 2.5 Domain Components — GoalCast-Specific
 
 #### MatchCard
 - **Purpose:** Displays a match with two teams, date/time, optional scores, and phase badge
@@ -690,7 +690,7 @@ Brief definitions of Angular concepts referenced throughout this section:
 
 #### AppSidebar
 - **Purpose:** Navigation sidebar with logo, menu items, and user profile footer
-- **Design:** `sidebar-gradient` utility background. Logo: gold accent square (`w-10 h-10 rounded-xl bg-accent`) with trophy icon + "FANTABET" in Bebas Neue. Menu items: `flex items-center gap-3 px-3 py-2.5 rounded-lg` with slide-in animation (staggered 50ms). Active state: `bg-sidebar-accent text-sidebar-primary font-medium`. Footer: user name with link to profile.
+- **Design:** `sidebar-gradient` utility background. Logo: gold accent square (`w-10 h-10 rounded-xl bg-accent`) with trophy icon + "GOALCAST" in Bebas Neue. Menu items: `flex items-center gap-3 px-3 py-2.5 rounded-lg` with slide-in animation (staggered 50ms). Active state: `bg-sidebar-accent text-sidebar-primary font-medium`. Footer: user name with link to profile.
 - **Menu items:** Dashboard (Home icon), My Predictions (Edit3), Full Ranking (Trophy), Past Winners (Award), Rules (BookOpen)
 - **Angular notes:** Standalone component using `routerLink` and `routerLinkActive` directives.
 
@@ -926,7 +926,7 @@ DashboardLayout
 ```
 .min-h-screen.bg-primary.flex.items-center.justify-center.p-4
   .w-full.max-w-md.space-y-8
-    Logo: gold circle + trophy + "FANTABET" (font-display text-4xl) + subtitle
+    Logo: gold circle + trophy + "GOALCAST" (font-display text-4xl) + subtitle
     Card [backdrop-blur-md, bg-card/5, shadow-2xl]
       "Sign In" title
       Input[email, with Mail icon, auth variant]

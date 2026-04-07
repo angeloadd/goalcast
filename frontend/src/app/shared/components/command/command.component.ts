@@ -13,7 +13,7 @@ import {
 const COMMAND_CONTEXT = new InjectionToken<CommandComponent>('CommandContext');
 
 @Component({
-    selector: 'fb-command',
+    selector: 'gc-command',
     template: `
         <dialog
             #dialogEl
@@ -83,12 +83,12 @@ export class CommandComponent {
 
     hasVisibleItems(): boolean {
         const dialog = this.dialogEl().nativeElement;
-        return dialog.querySelectorAll('fb-command-item:not(.hidden)').length > 0;
+        return dialog.querySelectorAll('gc-command-item:not(.hidden)').length > 0;
     }
 }
 
 @Component({
-    selector: 'fb-command-group',
+    selector: 'gc-command-group',
     host: { class: 'block' },
     template: ` <div class="px-2 py-1.5 text-xs font-medium text-muted-foreground">
             {{ heading() }}
@@ -100,7 +100,7 @@ export class CommandGroupComponent {
 }
 
 @Component({
-    selector: 'fb-command-item',
+    selector: 'gc-command-item',
     host: {
         class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10',
         '[class.hidden]': '!isVisible()',
@@ -128,7 +128,7 @@ export class CommandItemComponent {
 }
 
 @Component({
-    selector: 'fb-command-empty',
+    selector: 'gc-command-empty',
     host: {
         class: 'py-6 text-center text-sm text-muted-foreground',
         '[class.hidden]': 'command.hasVisibleItems()',

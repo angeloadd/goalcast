@@ -12,7 +12,7 @@ const ERROR_MESSAGES: Record<string, (params?: Record<string, unknown>) => strin
 };
 
 @Component({
-    selector: 'fb-form-group',
+    selector: 'gc-form-group',
     templateUrl: './form-group.component.html',
 })
 export class FormGroupComponent {

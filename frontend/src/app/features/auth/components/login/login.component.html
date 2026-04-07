@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-primary flex place-center p-4">
     <div class="stat-card w-full">
         <form [formGroup]="form" (ngSubmit)="onLogin()">
-            <fb-input-field
+            <gc-input-field
                 inputId="email"
                 [control]="controls.email"
                 label="Email"
@@ -9,7 +9,7 @@
                 type="email"
                 [required]="true"
             />
-            <fb-input-field
+            <gc-input-field
                 inputId="password"
                 [control]="controls.password"
                 label="Password"

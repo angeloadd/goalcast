@@ -9,16 +9,16 @@ import {
 
 @Component({
     template: `
-        <fb-command #cmd>
-            <fb-command-group heading="Actions">
-                <fb-command-item value="profile">Go to Profile</fb-command-item>
-                <fb-command-item value="settings">Open Settings</fb-command-item>
-            </fb-command-group>
-            <fb-command-group heading="Pages">
-                <fb-command-item value="dashboard">Dashboard</fb-command-item>
-            </fb-command-group>
-            <fb-command-empty>No results found.</fb-command-empty>
-        </fb-command>
+        <gc-command #cmd>
+            <gc-command-group heading="Actions">
+                <gc-command-item value="profile">Go to Profile</gc-command-item>
+                <gc-command-item value="settings">Open Settings</gc-command-item>
+            </gc-command-group>
+            <gc-command-group heading="Pages">
+                <gc-command-item value="dashboard">Dashboard</gc-command-item>
+            </gc-command-group>
+            <gc-command-empty>No results found.</gc-command-empty>
+        </gc-command>
     `,
     imports: [CommandComponent, CommandGroupComponent, CommandItemComponent, CommandEmptyComponent],
 })
@@ -55,7 +55,7 @@ describe('CommandComponent', () => {
         fixture.componentInstance.cmd().open();
         fixture.detectChanges();
         const items = fixture.nativeElement.querySelectorAll(
-            'fb-command-item',
+            'gc-command-item',
         ) as NodeListOf<HTMLElement>;
         expect(items.length).toBe(3);
     });
@@ -72,7 +72,7 @@ describe('CommandComponent', () => {
         input.dispatchEvent(new Event('input'));
         fixture.detectChanges();
         const visibleItems = fixture.nativeElement.querySelectorAll(
-            'fb-command-item:not(.hidden)',
+            'gc-command-item:not(.hidden)',
         ) as NodeListOf<HTMLElement>;
         expect(visibleItems.length).toBe(1);
         expect(visibleItems[0].textContent).toContain('Go to Profile');
@@ -89,7 +89,7 @@ describe('CommandComponent', () => {
         input.value = 'zzzznothing';
         input.dispatchEvent(new Event('input'));
         fixture.detectChanges();
-        const empty = fixture.nativeElement.querySelector('fb-command-empty') as HTMLElement;
+        const empty = fixture.nativeElement.querySelector('gc-command-empty') as HTMLElement;
         expect(empty.classList.contains('hidden')).toBe(false);
     });
 
@@ -100,7 +100,7 @@ describe('CommandComponent', () => {
         fixture.componentInstance.cmd().selected.subscribe((v: string) => (selectedValue = v));
         fixture.componentInstance.cmd().open();
         fixture.detectChanges();
-        const item = fixture.nativeElement.querySelector('fb-command-item') as HTMLElement;
+        const item = fixture.nativeElement.querySelector('gc-command-item') as HTMLElement;
         item.click();
         expect(selectedValue).toBe('profile');
         expect(fixture.nativeElement.querySelector('dialog').open).toBe(false);

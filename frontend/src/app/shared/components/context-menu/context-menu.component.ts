@@ -19,7 +19,7 @@ export class ContextMenuContext {
 const CONTEXT_MENU_CONTEXT = new InjectionToken<ContextMenuContext>('ContextMenuContext');
 
 @Component({
-    selector: 'fb-context-menu',
+    selector: 'gc-context-menu',
     host: { class: 'block' },
     template: '<ng-content />',
     providers: [{ provide: CONTEXT_MENU_CONTEXT, useFactory: () => new ContextMenuContext() }],
@@ -27,7 +27,7 @@ const CONTEXT_MENU_CONTEXT = new InjectionToken<ContextMenuContext>('ContextMenu
 export class ContextMenuComponent {}
 
 @Component({
-    selector: 'fb-context-menu-trigger',
+    selector: 'gc-context-menu-trigger',
     host: { class: 'block', '(contextmenu)': 'onContextMenu($event)' },
     template: '<ng-content />',
 })
@@ -41,7 +41,7 @@ export class ContextMenuTriggerComponent {
 }
 
 @Component({
-    selector: 'fb-context-menu-content',
+    selector: 'gc-context-menu-content',
     host: {
         class: 'fixed z-50 min-w-[8rem] rounded-md border border-border bg-popover text-popover-foreground p-1 shadow-md',
         '[class.hidden]': '!context.isOpen()',
@@ -55,7 +55,7 @@ export class ContextMenuContentComponent {
 }
 
 @Component({
-    selector: 'fb-context-menu-item',
+    selector: 'gc-context-menu-item',
     host: {
         class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10 block',
         '(click)': 'context.close()',
@@ -67,7 +67,7 @@ export class ContextMenuItemComponent {
 }
 
 @Component({
-    selector: 'fb-context-menu-separator',
+    selector: 'gc-context-menu-separator',
     host: { class: 'block -mx-1 my-1 h-px bg-border' },
     template: '',
 })

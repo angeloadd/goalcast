@@ -15,14 +15,14 @@ export class MenubarMenuContext {
 const MENUBAR_MENU_CONTEXT = new InjectionToken<MenubarMenuContext>('MenubarMenuContext');
 
 @Component({
-    selector: 'fb-menubar',
+    selector: 'gc-menubar',
     host: { class: 'flex items-center gap-1 rounded-md border border-border bg-background p-1' },
     template: '<ng-content />',
 })
 export class MenubarComponent {}
 
 @Component({
-    selector: 'fb-menubar-menu',
+    selector: 'gc-menubar-menu',
     host: { class: 'relative inline-block' },
     template: '<ng-content />',
     providers: [{ provide: MENUBAR_MENU_CONTEXT, useFactory: () => new MenubarMenuContext() }],
@@ -30,7 +30,7 @@ export class MenubarComponent {}
 export class MenubarMenuComponent {}
 
 @Component({
-    selector: 'fb-menubar-trigger',
+    selector: 'gc-menubar-trigger',
     host: {
         class: 'flex items-center rounded-sm px-3 py-1.5 text-sm font-medium cursor-pointer outline-none hover:bg-accent/10 transition-colors',
         '(click)': 'context.toggle()',
@@ -42,7 +42,7 @@ export class MenubarTriggerComponent {
 }
 
 @Component({
-    selector: 'fb-menubar-content',
+    selector: 'gc-menubar-content',
     host: {
         class: 'absolute z-50 mt-1 min-w-[8rem] rounded-md border border-border bg-popover text-popover-foreground p-1 shadow-md',
         '[class.hidden]': '!context.isOpen()',
@@ -54,7 +54,7 @@ export class MenubarContentComponent {
 }
 
 @Component({
-    selector: 'fb-menubar-item',
+    selector: 'gc-menubar-item',
     host: {
         class: 'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent/10 block',
         '(click)': 'context.close()',
@@ -66,7 +66,7 @@ export class MenubarItemComponent {
 }
 
 @Component({
-    selector: 'fb-menubar-separator',
+    selector: 'gc-menubar-separator',
     host: { class: 'block -mx-1 my-1 h-px bg-border' },
     template: '',
 })

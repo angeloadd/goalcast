@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 
 @Component({
-    selector: 'fb-progress',
+    selector: 'gc-progress',
     host: { class: 'block w-full bg-secondary rounded-full overflow-hidden' },
     templateUrl: './progress.component.html',
     styles: `

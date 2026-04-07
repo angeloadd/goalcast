@@ -39,7 +39,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /opt/fantabet
+            cd /opt/goalcast
             git pull origin main
             docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f

@@ -4,16 +4,16 @@ import {
     CollapsibleComponent,
     CollapsibleContentComponent,
     CollapsibleTriggerComponent,
-} from './collapsible.component';
+} from '@fb/shared/components';
 
 @Component({
     template: `
-        <fb-collapsible [(open)]="isOpen">
-            <fb-collapsible-trigger>
+        <gc-collapsible [(open)]="isOpen">
+            <gc-collapsible-trigger>
                 <button>Toggle</button>
-            </fb-collapsible-trigger>
-            <fb-collapsible-content>Hidden content</fb-collapsible-content>
-        </fb-collapsible>
+            </gc-collapsible-trigger>
+            <gc-collapsible-content>Hidden content</gc-collapsible-content>
+        </gc-collapsible>
     `,
     imports: [CollapsibleComponent, CollapsibleTriggerComponent, CollapsibleContentComponent],
 })
@@ -30,7 +30,7 @@ describe('CollapsibleComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-collapsible-content',
+            'gc-collapsible-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });
@@ -40,7 +40,7 @@ describe('CollapsibleComponent', () => {
         fixture.componentInstance.isOpen = true;
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-collapsible-content',
+            'gc-collapsible-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(false);
     });
@@ -49,13 +49,13 @@ describe('CollapsibleComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const trigger = fixture.nativeElement.querySelector(
-            'fb-collapsible-trigger',
+            'gc-collapsible-trigger',
         ) as HTMLElement;
         trigger.click();
         fixture.detectChanges();
         expect(fixture.componentInstance.isOpen).toBe(true);
         const content = fixture.nativeElement.querySelector(
-            'fb-collapsible-content',
+            'gc-collapsible-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(false);
     });

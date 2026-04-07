@@ -5,7 +5,7 @@ import { userRegistrationStarted } from '@fb/core/state/auth/auth.actions';
 import { selectAuthError, selectAuthLoading } from '@fb/core/state/auth/auth.selectors';
 
 @Component({
-    selector: 'fb-register',
+    selector: 'gc-register',
     standalone: true,
     imports: [ReactiveFormsModule],
     templateUrl: 'register.component.html',

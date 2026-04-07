@@ -10,16 +10,16 @@ import {
 
 @Component({
     template: `
-        <fb-dialog #dialog>
-            <fb-dialog-header>
-                <fb-dialog-title>My Dialog</fb-dialog-title>
-                <fb-dialog-description>A description</fb-dialog-description>
-            </fb-dialog-header>
+        <gc-dialog #dialog>
+            <gc-dialog-header>
+                <gc-dialog-title>My Dialog</gc-dialog-title>
+                <gc-dialog-description>A description</gc-dialog-description>
+            </gc-dialog-header>
             <p>Content</p>
-            <fb-dialog-footer>
+            <gc-dialog-footer>
                 <button (click)="dialog.close()">Close</button>
-            </fb-dialog-footer>
-        </fb-dialog>
+            </gc-dialog-footer>
+        </gc-dialog>
         <button (click)="dialog.open()">Open</button>
     `,
     imports: [
@@ -68,7 +68,7 @@ describe('DialogComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('fb-dialog-title')?.textContent).toContain('My Dialog');
-        expect(el.querySelector('fb-dialog-description')?.textContent).toContain('A description');
+        expect(el.querySelector('gc-dialog-title')?.textContent).toContain('My Dialog');
+        expect(el.querySelector('gc-dialog-description')?.textContent).toContain('A description');
     });
 });

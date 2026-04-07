@@ -5,7 +5,7 @@
 >
 > **Recommended execution:** Subagent-driven — dispatch a fresh subagent per task with two-stage review between tasks.
 
-**Goal:** Build the complete Fantabet design system as reusable Angular components and Tailwind utilities, ready for page-level composition.
+**Goal:** Build the complete GoalCast design system as reusable Angular components and Tailwind utilities, ready for page-level composition.
 
 **Architecture:** Standalone Angular components with Tailwind v4 `@utility` directives for visual-only styles. Behavioral components (Dialog, Tabs, Sidebar, etc.) are Angular components. All components are headless-first — minimal internal state, inputs/outputs for external control.
 

@@ -1,11 +1,11 @@
 services:
     db:
         image: postgres:17
-        container_name: fantabet-db
+        container_name: goalcast-db
         environment:
-            POSTGRES_DB: fantabet
-            POSTGRES_USER: fantabet
-            POSTGRES_PASSWORD: fantabet_dev
+            POSTGRES_DB: goalcast
+            POSTGRES_USER: goalcast
+            POSTGRES_PASSWORD: goalcast_dev
         ports:
             - "5433:5432"
         volumes:
@@ -13,7 +13,7 @@ services:
 
     valkey:
         image: valkey/valkey:8-alpine
-        container_name: fantabet-valkey
+        container_name: goalcast-valkey
         ports:
             - "6379:6379"
         restart: unless-stopped

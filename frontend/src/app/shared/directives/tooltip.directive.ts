@@ -1,7 +1,7 @@
 import { Directive, ElementRef, HostListener, inject, input, Renderer2 } from '@angular/core';
 
 @Directive({
-    selector: '[fbTooltip]',
+    selector: '[gcTooltip]',
 })
 export class TooltipDirective {
     fbTooltip = input.required<string>();

@@ -4,7 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { SwitchComponent } from './switch.component';
 
 @Component({
-    template: ` <fb-switch [formControl]="ctrl"></fb-switch>`,
+    template: ` <gc-switch [formControl]="ctrl"></gc-switch>`,
     imports: [SwitchComponent, ReactiveFormsModule],
 })
 class TestHostComponent {

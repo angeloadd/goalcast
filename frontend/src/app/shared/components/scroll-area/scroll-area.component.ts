@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-    selector: 'fb-scroll-area',
+    selector: 'gc-scroll-area',
     host: { class: 'relative block' },
     styles: `
         .scroll-container {

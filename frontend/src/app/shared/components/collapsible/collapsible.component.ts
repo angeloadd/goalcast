@@ -3,7 +3,7 @@ import { Component, inject, InjectionToken, model } from '@angular/core';
 const COLLAPSIBLE_CONTEXT = new InjectionToken<CollapsibleComponent>('CollapsibleContext');
 
 @Component({
-    selector: 'fb-collapsible',
+    selector: 'gc-collapsible',
     host: { class: 'block' },
     template: '<ng-content />',
     providers: [{ provide: COLLAPSIBLE_CONTEXT, useExisting: CollapsibleComponent }],
@@ -17,7 +17,7 @@ export class CollapsibleComponent {
 }
 
 @Component({
-    selector: 'fb-collapsible-trigger',
+    selector: 'gc-collapsible-trigger',
     host: { class: 'block cursor-pointer', '(click)': 'collapsible.toggle()' },
     template: '<ng-content />',
 })
@@ -26,7 +26,7 @@ export class CollapsibleTriggerComponent {
 }
 
 @Component({
-    selector: 'fb-collapsible-content',
+    selector: 'gc-collapsible-content',
     host: { class: 'block', '[class.hidden]': '!collapsible.open()' },
     template: '<ng-content />',
 })

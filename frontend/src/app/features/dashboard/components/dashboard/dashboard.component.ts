@@ -6,7 +6,7 @@ import { LoginComponent } from '@fb/features/auth/components/login/login.compone
 import { RegisterComponent } from '@fb/features/auth/components/register/register.component';
 
 @Component({
-    selector: 'fb-dashboard',
+    selector: 'gc-dashboard',
     standalone: true,
     templateUrl: 'dashboard.component.html',
     styleUrl: 'dashboard.component.scss',

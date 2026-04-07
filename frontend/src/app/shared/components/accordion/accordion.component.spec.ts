@@ -9,16 +9,16 @@ import {
 
 @Component({
     template: `
-        <fb-accordion type="single">
-            <fb-accordion-item value="item1">
-                <fb-accordion-trigger>Section 1</fb-accordion-trigger>
-                <fb-accordion-content>Content 1</fb-accordion-content>
-            </fb-accordion-item>
-            <fb-accordion-item value="item2">
-                <fb-accordion-trigger>Section 2</fb-accordion-trigger>
-                <fb-accordion-content>Content 2</fb-accordion-content>
-            </fb-accordion-item>
-        </fb-accordion>
+        <gc-accordion type="single">
+            <gc-accordion-item value="item1">
+                <gc-accordion-trigger>Section 1</gc-accordion-trigger>
+                <gc-accordion-content>Content 1</gc-accordion-content>
+            </gc-accordion-item>
+            <gc-accordion-item value="item2">
+                <gc-accordion-trigger>Section 2</gc-accordion-trigger>
+                <gc-accordion-content>Content 2</gc-accordion-content>
+            </gc-accordion-item>
+        </gc-accordion>
     `,
     imports: [
         AccordionComponent,
@@ -38,7 +38,7 @@ describe('AccordionComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const contents = fixture.nativeElement.querySelectorAll(
-            'fb-accordion-content',
+            'gc-accordion-content',
         ) as NodeListOf<HTMLElement>;
         expect(contents[0].classList.contains('hidden')).toBe(true);
         expect(contents[1].classList.contains('hidden')).toBe(true);
@@ -48,12 +48,12 @@ describe('AccordionComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const triggers = fixture.nativeElement.querySelectorAll(
-            'fb-accordion-trigger',
+            'gc-accordion-trigger',
         ) as NodeListOf<HTMLElement>;
         triggers[0].click();
         fixture.detectChanges();
         const contents = fixture.nativeElement.querySelectorAll(
-            'fb-accordion-content',
+            'gc-accordion-content',
         ) as NodeListOf<HTMLElement>;
         expect(contents[0].classList.contains('hidden')).toBe(false);
         expect(contents[1].classList.contains('hidden')).toBe(true);
@@ -63,14 +63,14 @@ describe('AccordionComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const triggers = fixture.nativeElement.querySelectorAll(
-            'fb-accordion-trigger',
+            'gc-accordion-trigger',
         ) as NodeListOf<HTMLElement>;
         triggers[0].click();
         fixture.detectChanges();
         triggers[1].click();
         fixture.detectChanges();
         const contents = fixture.nativeElement.querySelectorAll(
-            'fb-accordion-content',
+            'gc-accordion-content',
         ) as NodeListOf<HTMLElement>;
         expect(contents[0].classList.contains('hidden')).toBe(true);
         expect(contents[1].classList.contains('hidden')).toBe(false);

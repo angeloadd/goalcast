@@ -10,16 +10,16 @@ import {
 
 @Component({
     template: `
-        <fb-context-menu>
-            <fb-context-menu-trigger>
+        <gc-context-menu>
+            <gc-context-menu-trigger>
                 <div style="width: 200px; height: 100px;">Right-click area</div>
-            </fb-context-menu-trigger>
-            <fb-context-menu-content>
-                <fb-context-menu-item>Copy</fb-context-menu-item>
-                <fb-context-menu-separator></fb-context-menu-separator>
-                <fb-context-menu-item>Paste</fb-context-menu-item>
-            </fb-context-menu-content>
-        </fb-context-menu>
+            </gc-context-menu-trigger>
+            <gc-context-menu-content>
+                <gc-context-menu-item>Copy</gc-context-menu-item>
+                <gc-context-menu-separator></gc-context-menu-separator>
+                <gc-context-menu-item>Paste</gc-context-menu-item>
+            </gc-context-menu-content>
+        </gc-context-menu>
     `,
     imports: [
         ContextMenuComponent,
@@ -40,7 +40,7 @@ describe('ContextMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-context-menu-content',
+            'gc-context-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });
@@ -49,14 +49,14 @@ describe('ContextMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const trigger = fixture.nativeElement.querySelector(
-            'fb-context-menu-trigger',
+            'gc-context-menu-trigger',
         ) as HTMLElement;
         trigger.dispatchEvent(
             new MouseEvent('contextmenu', { clientX: 100, clientY: 50, bubbles: true }),
         );
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-context-menu-content',
+            'gc-context-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(false);
     });
@@ -65,17 +65,17 @@ describe('ContextMenuComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const trigger = fixture.nativeElement.querySelector(
-            'fb-context-menu-trigger',
+            'gc-context-menu-trigger',
         ) as HTMLElement;
         trigger.dispatchEvent(
             new MouseEvent('contextmenu', { clientX: 100, clientY: 50, bubbles: true }),
         );
         fixture.detectChanges();
-        const item = fixture.nativeElement.querySelector('fb-context-menu-item') as HTMLElement;
+        const item = fixture.nativeElement.querySelector('gc-context-menu-item') as HTMLElement;
         item.click();
         fixture.detectChanges();
         const content = fixture.nativeElement.querySelector(
-            'fb-context-menu-content',
+            'gc-context-menu-content',
         ) as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });

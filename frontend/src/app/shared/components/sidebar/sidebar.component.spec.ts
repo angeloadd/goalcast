@@ -10,11 +10,11 @@ import {
 
 @Component({
     template: `
-        <fb-sidebar>
-            <fb-sidebar-header>Logo</fb-sidebar-header>
-            <fb-sidebar-content>Nav items</fb-sidebar-content>
-            <fb-sidebar-footer>User</fb-sidebar-footer>
-        </fb-sidebar>
+        <gc-sidebar>
+            <gc-sidebar-header>Logo</gc-sidebar-header>
+            <gc-sidebar-content>Nav items</gc-sidebar-content>
+            <gc-sidebar-footer>User</gc-sidebar-footer>
+        </gc-sidebar>
     `,
     imports: [
         SidebarComponent,
@@ -40,9 +40,9 @@ describe('SidebarComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('fb-sidebar-header')?.textContent).toContain('Logo');
-        expect(el.querySelector('fb-sidebar-content')?.textContent).toContain('Nav items');
-        expect(el.querySelector('fb-sidebar-footer')?.textContent).toContain('User');
+        expect(el.querySelector('gc-sidebar-header')?.textContent).toContain('Logo');
+        expect(el.querySelector('gc-sidebar-content')?.textContent).toContain('Nav items');
+        expect(el.querySelector('gc-sidebar-footer')?.textContent).toContain('User');
     });
 
     it('should toggle open state via service', () => {

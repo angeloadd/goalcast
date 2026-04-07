@@ -1,7 +1,7 @@
 import { Component, ElementRef, output, viewChild } from '@angular/core';
 
 @Component({
-    selector: 'fb-drawer',
+    selector: 'gc-drawer',
     template: `
         <dialog
             #dialogEl
@@ -43,28 +43,28 @@ export class DrawerComponent {
 }
 
 @Component({
-    selector: 'fb-drawer-header',
+    selector: 'gc-drawer-header',
     host: { class: 'flex flex-col gap-1.5 mb-4 block' },
     template: '<ng-content />',
 })
 export class DrawerHeaderComponent {}
 
 @Component({
-    selector: 'fb-drawer-title',
+    selector: 'gc-drawer-title',
     host: { class: 'text-lg font-semibold leading-none tracking-tight block' },
     template: '<ng-content />',
 })
 export class DrawerTitleComponent {}
 
 @Component({
-    selector: 'fb-drawer-description',
+    selector: 'gc-drawer-description',
     host: { class: 'text-sm text-muted-foreground block' },
     template: '<ng-content />',
 })
 export class DrawerDescriptionComponent {}
 
 @Component({
-    selector: 'fb-drawer-footer',
+    selector: 'gc-drawer-footer',
     host: { class: 'flex justify-end gap-2 mt-6 block' },
     template: '<ng-content />',
 })

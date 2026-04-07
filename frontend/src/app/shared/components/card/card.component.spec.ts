@@ -11,14 +11,14 @@ import {
 
 @Component({
     template: `
-        <fb-card>
-            <fb-card-header>
-                <fb-card-title>Test Title</fb-card-title>
-                <fb-card-description>Test Description</fb-card-description>
-            </fb-card-header>
-            <fb-card-content>Body content</fb-card-content>
-            <fb-card-footer>Footer content</fb-card-footer>
-        </fb-card>
+        <gc-card>
+            <gc-card-header>
+                <gc-card-title>Test Title</gc-card-title>
+                <gc-card-description>Test Description</gc-card-description>
+            </gc-card-header>
+            <gc-card-content>Body content</gc-card-content>
+            <gc-card-footer>Footer content</gc-card-footer>
+        </gc-card>
     `,
     imports: [
         CardComponent,
@@ -42,17 +42,17 @@ describe('CardComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('fb-card')).toBeTruthy();
-        expect(el.querySelector('fb-card-title')?.textContent).toContain('Test Title');
-        expect(el.querySelector('fb-card-description')?.textContent).toContain('Test Description');
-        expect(el.querySelector('fb-card-content')?.textContent).toContain('Body content');
-        expect(el.querySelector('fb-card-footer')?.textContent).toContain('Footer content');
+        expect(el.querySelector('gc-card')).toBeTruthy();
+        expect(el.querySelector('gc-card-title')?.textContent).toContain('Test Title');
+        expect(el.querySelector('gc-card-description')?.textContent).toContain('Test Description');
+        expect(el.querySelector('gc-card-content')?.textContent).toContain('Body content');
+        expect(el.querySelector('gc-card-footer')?.textContent).toContain('Footer content');
     });
 
     it('should apply card styling classes', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
-        const card = fixture.nativeElement.querySelector('fb-card') as HTMLElement;
+        const card = fixture.nativeElement.querySelector('gc-card') as HTMLElement;
         expect(card.classList.contains('bg-card')).toBe(true);
     });
 });

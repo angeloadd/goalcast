@@ -3,7 +3,7 @@ import { Component, ElementRef, inject, InjectionToken, output, viewChild } from
 const ALERT_DIALOG_CONTEXT = new InjectionToken<AlertDialogComponent>('AlertDialogContext');
 
 @Component({
-    selector: 'fb-alert-dialog',
+    selector: 'gc-alert-dialog',
     template: `
         <dialog
             #dialogEl
@@ -46,35 +46,35 @@ export class AlertDialogComponent {
 }
 
 @Component({
-    selector: 'fb-alert-dialog-header',
+    selector: 'gc-alert-dialog-header',
     host: { class: 'flex flex-col gap-1.5 mb-4 block' },
     template: '<ng-content />',
 })
 export class AlertDialogHeaderComponent {}
 
 @Component({
-    selector: 'fb-alert-dialog-title',
+    selector: 'gc-alert-dialog-title',
     host: { class: 'text-lg font-semibold leading-none tracking-tight block' },
     template: '<ng-content />',
 })
 export class AlertDialogTitleComponent {}
 
 @Component({
-    selector: 'fb-alert-dialog-description',
+    selector: 'gc-alert-dialog-description',
     host: { class: 'text-sm text-muted-foreground block' },
     template: '<ng-content />',
 })
 export class AlertDialogDescriptionComponent {}
 
 @Component({
-    selector: 'fb-alert-dialog-footer',
+    selector: 'gc-alert-dialog-footer',
     host: { class: 'flex justify-end gap-2 mt-6 block' },
     template: '<ng-content />',
 })
 export class AlertDialogFooterComponent {}
 
 @Component({
-    selector: 'fb-alert-dialog-cancel',
+    selector: 'gc-alert-dialog-cancel',
     template: ` <button class="btn btn-outline" (click)="dialog.close()">
         <ng-content />
     </button>`,
@@ -84,7 +84,7 @@ export class AlertDialogCancelComponent {
 }
 
 @Component({
-    selector: 'fb-alert-dialog-action',
+    selector: 'gc-alert-dialog-action',
     template: ` <button class="btn btn-destructive" (click)="dialog.confirm()">
         <ng-content />
     </button>`,

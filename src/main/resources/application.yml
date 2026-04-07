@@ -1,10 +1,10 @@
 spring:
     application:
-        name: fantabet
+        name: goalcast
     datasource:
-        url: jdbc:postgresql://localhost:${DB_PORT:5433}/fantabet
-        username: fantabet
-        password: ${DB_PASSWORD:fantabet_dev}
+        url: jdbc:postgresql://localhost:${DB_PORT:5433}/goalcast
+        username: goalcast
+        password: ${DB_PASSWORD:goalcast_dev}
     jpa:
         hibernate:
             ddl-auto: validate
@@ -31,5 +31,5 @@ server:
                 http-only: true
                 secure: false
                 same-site: lax
-                name: FANTABET_SESSION
+                name: GOALCAST_SESSION
             timeout: 30m

@@ -19,7 +19,7 @@ export class SidebarService {
 }
 
 @Component({
-    selector: 'fb-sidebar',
+    selector: 'gc-sidebar',
     host: { class: 'block' },
     templateUrl: './sidebar.component.html',
 })
@@ -28,28 +28,28 @@ export class SidebarComponent {
 }
 
 @Component({
-    selector: 'fb-sidebar-header',
+    selector: 'gc-sidebar-header',
     host: { class: 'p-4 border-b border-sidebar-border block' },
     template: '<ng-content />',
 })
 export class SidebarHeaderComponent {}
 
 @Component({
-    selector: 'fb-sidebar-content',
+    selector: 'gc-sidebar-content',
     host: { class: 'flex-1 overflow-y-auto p-4 block' },
     template: '<ng-content />',
 })
 export class SidebarContentComponent {}
 
 @Component({
-    selector: 'fb-sidebar-footer',
+    selector: 'gc-sidebar-footer',
     host: { class: 'p-4 border-t border-sidebar-border block' },
     template: '<ng-content />',
 })
 export class SidebarFooterComponent {}
 
 @Component({
-    selector: 'fb-sidebar-trigger',
+    selector: 'gc-sidebar-trigger',
     host: {
         class: 'lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-md cursor-pointer',
         '(click)': 'sidebarService.toggle()',

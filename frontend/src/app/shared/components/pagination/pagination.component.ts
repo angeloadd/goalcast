@@ -1,7 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 
 @Component({
-    selector: 'fb-pagination',
+    selector: 'gc-pagination',
     template: `
         <nav class="flex items-center justify-center gap-1">
             <button

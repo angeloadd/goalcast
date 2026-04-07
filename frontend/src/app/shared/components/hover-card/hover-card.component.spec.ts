@@ -8,10 +8,10 @@ import {
 
 @Component({
     template: `
-        <fb-hover-card>
-            <fb-hover-card-trigger><span>Hover me</span></fb-hover-card-trigger>
-            <fb-hover-card-content>Rich card content</fb-hover-card-content>
-        </fb-hover-card>
+        <gc-hover-card>
+            <gc-hover-card-trigger><span>Hover me</span></gc-hover-card-trigger>
+            <gc-hover-card-content>Rich card content</gc-hover-card-content>
+        </gc-hover-card>
     `,
     imports: [HoverCardComponent, HoverCardTriggerComponent, HoverCardContentComponent],
 })
@@ -25,7 +25,7 @@ describe('HoverCardComponent', () => {
     it('should hide content by default', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
-        const content = fixture.nativeElement.querySelector('fb-hover-card-content') as HTMLElement;
+        const content = fixture.nativeElement.querySelector('gc-hover-card-content') as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });
 
@@ -33,11 +33,11 @@ describe('HoverCardComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         vi.useFakeTimers();
-        const trigger = fixture.nativeElement.querySelector('fb-hover-card-trigger') as HTMLElement;
+        const trigger = fixture.nativeElement.querySelector('gc-hover-card-trigger') as HTMLElement;
         trigger.dispatchEvent(new MouseEvent('mouseenter'));
         vi.advanceTimersByTime(200);
         fixture.detectChanges();
-        const content = fixture.nativeElement.querySelector('fb-hover-card-content') as HTMLElement;
+        const content = fixture.nativeElement.querySelector('gc-hover-card-content') as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(false);
         vi.useRealTimers();
     });
@@ -46,14 +46,14 @@ describe('HoverCardComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         vi.useFakeTimers();
-        const trigger = fixture.nativeElement.querySelector('fb-hover-card-trigger') as HTMLElement;
+        const trigger = fixture.nativeElement.querySelector('gc-hover-card-trigger') as HTMLElement;
         trigger.dispatchEvent(new MouseEvent('mouseenter'));
         vi.advanceTimersByTime(200);
         fixture.detectChanges();
         trigger.dispatchEvent(new MouseEvent('mouseleave'));
         vi.advanceTimersByTime(100);
         fixture.detectChanges();
-        const content = fixture.nativeElement.querySelector('fb-hover-card-content') as HTMLElement;
+        const content = fixture.nativeElement.querySelector('gc-hover-card-content') as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
         vi.useRealTimers();
     });

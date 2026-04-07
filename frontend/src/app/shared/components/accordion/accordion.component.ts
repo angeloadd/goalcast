@@ -27,7 +27,7 @@ export class AccordionContext {
 const ACCORDION_CONTEXT = new InjectionToken<AccordionContext>('AccordionContext');
 
 @Component({
-    selector: 'fb-accordion',
+    selector: 'gc-accordion',
     host: { class: 'block' },
     template: '<div class="divide-y divide-border"><ng-content /></div>',
     providers: [{ provide: ACCORDION_CONTEXT, useFactory: () => new AccordionContext() }],
@@ -42,7 +42,7 @@ export class AccordionComponent implements OnInit {
 }
 
 @Component({
-    selector: 'fb-accordion-item',
+    selector: 'gc-accordion-item',
     host: { class: 'block py-4' },
     template: '<ng-content />',
 })
@@ -51,7 +51,7 @@ export class AccordionItemComponent {
 }
 
 @Component({
-    selector: 'fb-accordion-trigger',
+    selector: 'gc-accordion-trigger',
     host: {
         class: 'flex w-full items-center justify-between text-sm font-medium cursor-pointer transition-all hover:underline',
         '(click)': 'onClick()',
@@ -87,7 +87,7 @@ export class AccordionTriggerComponent {
 }
 
 @Component({
-    selector: 'fb-accordion-content',
+    selector: 'gc-accordion-content',
     host: {
         class: 'text-sm pt-2 block',
         '[class.hidden]': '!isOpen()',

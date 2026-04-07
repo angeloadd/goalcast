@@ -10,5 +10,5 @@ logging:
             console: logfmt
     level:
         root: INFO
-        com.fantabet: DEBUG
+        com.goalcast: DEBUG
         org.springframework.security: INFO

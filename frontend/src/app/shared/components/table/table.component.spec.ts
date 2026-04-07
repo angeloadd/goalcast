@@ -11,20 +11,20 @@ import {
 
 @Component({
     template: `
-        <fb-table>
-            <fb-table-header>
-                <fb-table-row>
-                    <fb-table-head>Name</fb-table-head>
-                    <fb-table-head>Points</fb-table-head>
-                </fb-table-row>
-            </fb-table-header>
-            <fb-table-body>
-                <fb-table-row>
-                    <fb-table-cell>Alice</fb-table-cell>
-                    <fb-table-cell>120</fb-table-cell>
-                </fb-table-row>
-            </fb-table-body>
-        </fb-table>
+        <gc-table>
+            <gc-table-header>
+                <gc-table-row>
+                    <gc-table-head>Name</gc-table-head>
+                    <gc-table-head>Points</gc-table-head>
+                </gc-table-row>
+            </gc-table-header>
+            <gc-table-body>
+                <gc-table-row>
+                    <gc-table-cell>Alice</gc-table-cell>
+                    <gc-table-cell>120</gc-table-cell>
+                </gc-table-row>
+            </gc-table-body>
+        </gc-table>
     `,
     imports: [
         TableComponent,

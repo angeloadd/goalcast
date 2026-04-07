@@ -1,4 +1,4 @@
-# Fantabet: Spring Boot (Kotlin) + Angular (TypeScript) Application Setup Guide
+# GoalCast: Spring Boot (Kotlin) + Angular (TypeScript) Application Setup Guide
 
 ## Table of Contents
 
@@ -66,7 +66,7 @@ fantabet/                              # Git repository root
 +-- src/                                # Spring Boot backend source
 |   +-- main/
 |   |   +-- kotlin/com/fantabet/fantabet/
-|   |   |   +-- FantabetApplication.kt           # Application entry point
+|   |   |   +-- GoalCastApplication.kt           # Application entry point
 |   |   |   +-- config/
 |   |   |   |   +-- WebSecurityConfig.kt          # Spring Security configuration
 |   |   |   |   +-- JacksonConfig.kt              # JSON serialization settings
@@ -276,10 +276,10 @@ Replace `application.properties` with `application.yml` for better readability:
 # application.yml
 spring:
     application:
-        name: fantabet
+        name: goalcast
     datasource:
-        url: jdbc:postgresql://localhost:5432/fantabet
-        username: fantabet
+        url: jdbc:postgresql://localhost:5432/goalcast
+        username: goalcast
         password: ${DB_PASSWORD}           # Read from environment variable
     jpa:
         hibernate:
@@ -300,7 +300,7 @@ server:
                 http-only: true                 # JavaScript cannot read the session cookie
                 secure: false                   # Set true in production (requires HTTPS)
                 same-site: lax                  # CSRF protection via SameSite cookie attribute
-                name: FANTABET_SESSION
+                name: GOALCAST_SESSION
             timeout: 30m                      # Session expires after 30 minutes of inactivity
 ```
 
@@ -905,11 +905,11 @@ For local development, run PostgreSQL in a Docker container so everyone on the t
 services:
     db:
         image: postgres:17
-        container_name: fantabet-db
+        container_name: goalcast-db
         environment:
-            POSTGRES_DB: fantabet
-            POSTGRES_USER: fantabet
-            POSTGRES_PASSWORD: fantabet_dev     # Only for local dev!
+            POSTGRES_DB: goalcast
+            POSTGRES_USER: goalcast
+            POSTGRES_PASSWORD: goalcast_dev     # Only for local dev!
         ports:
             - "5432:5432"
         volumes:
@@ -1085,7 +1085,7 @@ services:
 
     valkey:
         image: valkey/valkey:8-alpine
-        container_name: fantabet-valkey
+        container_name: goalcast-valkey
         ports:
             - "6379:6379"
         restart: unless-stopped
@@ -1155,7 +1155,7 @@ The HTTP response includes a `Set-Cookie` header:
 
 ```
 HTTP/1.1 200 OK
-Set-Cookie: FANTABET_SESSION=abc123def456; Path=/; HttpOnly; SameSite=Lax
+Set-Cookie: GOALCAST_SESSION=abc123def456; Path=/; HttpOnly; SameSite=Lax
 Content-Type: application/json
 
 {"username": "cicciofrizzo", "roles": ["USER"]}
@@ -1181,7 +1181,7 @@ Every subsequent HTTP request to the same origin automatically includes the cook
 
 ```
 GET /api/users/me
-Cookie: FANTABET_SESSION=abc123def456
+Cookie: GOALCAST_SESSION=abc123def456
 ```
 
 Spring Boot receives the request, reads the session ID from the cookie, looks up the session on the server, finds the
@@ -1191,14 +1191,14 @@ Spring Boot receives the request, reads the session ID from the cookie, looks up
 
 ```
 POST /api/auth/logout
-Cookie: FANTABET_SESSION=abc123def456
+Cookie: GOALCAST_SESSION=abc123def456
 ```
 
 Spring Security invalidates the server-side session and responds with a `Set-Cookie` that clears the cookie:
 
 ```
 HTTP/1.1 200 OK
-Set-Cookie: FANTABET_SESSION=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax
+Set-Cookie: GOALCAST_SESSION=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax
 ```
 
 ### Backend Security Configuration (Spring Security)
@@ -1248,7 +1248,7 @@ class WebSecurityConfig(
                 logoutUrl = "/api/auth/logout"
                 logoutSuccessHandler = HttpStatusReturningLogoutSuccessHandler()
                 invalidateHttpSession = true
-                deleteCookies("FANTABET_SESSION")
+                deleteCookies("GOALCAST_SESSION")
             }
         }
 
@@ -1657,16 +1657,16 @@ export interface User {
 
 ### CORS Configuration (Not Needed for Same-Origin)
 
-Since both frontend and backend will be served from the **same origin** (`https://fantabet.com/` for Angular static
-files and `https://fantabet.com/api/**` for REST endpoints), **no CORS configuration is needed at all** -- neither in
+Since both frontend and backend will be served from the **same origin** (`https://goalcast.club/` for Angular static
+files and `https://goalcast.club/api/**` for REST endpoints), **no CORS configuration is needed at all** -- neither in
 development nor in production.
 
 Here is why:
 
-- **Same origin** means same scheme (`https`), same host (`fantabet.com`), and same port (443, the default for HTTPS).
+- **Same origin** means same scheme (`https`), same host (`goalcast.club`), and same port (443, the default for HTTPS).
   The `/api` path prefix does not affect the origin -- it is just a path on the same domain.
-- The browser's Same-Origin Policy only blocks requests to a **different** origin (e.g., `https://api.fantabet.com`would
-  be a different origin from `https://fantabet.com`).
+- The browser's Same-Origin Policy only blocks requests to a **different** origin (e.g., `https://api.goalcast.club`would
+  be a different origin from `https://goalcast.club`).
 - Since our setup is single-origin, the browser treats all requests from the Angular app to `/api/**` as same-origin and
   sends cookies automatically without any CORS headers.
 
@@ -1674,7 +1674,7 @@ Here is why:
 `localhost:4200` to `localhost:8080`. The browser only sees `localhost:4200`.
 
 **In production**, Spring Boot serves both the Angular static files and the API endpoints. Everything is
-`https://fantabet.com`, so there is no cross-origin concern.
+`https://goalcast.club`, so there is no cross-origin concern.
 
 ```
 Development:
@@ -1685,14 +1685,14 @@ Development:
            http://localhost:8080 (Spring Boot)
 
 Production:
-  Browser -> https://fantabet.com (Spring Boot serves everything)
+  Browser -> https://goalcast.club (Spring Boot serves everything)
                   |
                   | /api/** -> Spring Boot REST handlers
                   | /**     -> Angular's index.html (SPA fallback)
 ```
 
 **You do not need a `CorsConfig.kt` class.** If you ever change the architecture to use separate domains (e.g.,
-`api.fantabet.com`), you would need to add CORS at that point, but for this single-origin setup you can skip it
+`api.goalcast.club`), you would need to add CORS at that point, but for this single-origin setup you can skip it
 entirely.
 
 ---
@@ -1943,7 +1943,7 @@ class AuthControllerTest {
             content = """{"username": "cicciofrizzo", "password": "Adamo123"}"""
         }.andExpect {
             status { isOk() }
-            cookie { exists("FANTABET_SESSION") }
+            cookie { exists("GOALCAST_SESSION") }
             jsonPath("$.username") { value("cicciofrizzo") }
         }
     }
@@ -2073,7 +2073,7 @@ deploy.
 
 4. **Run:**
    ```bash
-   java -jar target/fantabet-0.0.1-SNAPSHOT.jar
+   java -jar target/goalcast-0.0.1-SNAPSHOT.jar
    ```
 
 #### SPA Fallback Controller
@@ -2126,7 +2126,7 @@ RUN mvn clean package -DskipTests
 # Stage 3: Runtime (Amazon Corretto - AWS's production-grade OpenJDK)
 FROM amazoncorretto:21-alpine
 WORKDIR /app
-COPY --from=backend-build /app/target/fantabet-*.jar app.jar
+COPY --from=backend-build /app/target/goalcast-*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
@@ -2142,14 +2142,14 @@ static files, handles API requests, and manages TLS termination can be handled a
 
 #### Option 1: Docker Compose on a VPS (Simplest)
 
-For a small app like Fantabet, running Docker Compose on a single VPS (DigitalOcean Droplet, Hetzner, AWS EC2, etc.) is
+For a small app like GoalCast, running Docker Compose on a single VPS (DigitalOcean Droplet, Hetzner, AWS EC2, etc.) is
 the most straightforward approach:
 
 ```yaml
 # docker-compose.prod.yml
 services:
     app:
-        image: fantabet:latest
+        image: goalcast:latest
         build: .
         ports:
             - "8080:8080"
@@ -2165,8 +2165,8 @@ services:
     db:
         image: postgres:17
         environment:
-            POSTGRES_DB: fantabet
-            POSTGRES_USER: fantabet
+            POSTGRES_DB: goalcast
+            POSTGRES_USER: goalcast
             POSTGRES_PASSWORD: ${DB_PASSWORD}
         volumes:
             - pgdata:/var/lib/postgresql/data
@@ -2200,7 +2200,7 @@ the simplest option because it automatically obtains and renews Let's Encrypt ce
 
 ```
 # Caddyfile
-fantabet.com {
+goalcast.club {
     reverse_proxy app:8080
 }
 ```
@@ -2208,7 +2208,7 @@ fantabet.com {
 That's the entire config. Caddy will:
 
 1. Listen on ports 80 and 443
-2. Automatically obtain a TLS certificate from Let's Encrypt for `fantabet.com`
+2. Automatically obtain a TLS certificate from Let's Encrypt for `goalcast.club`
 3. Redirect all HTTP traffic to HTTPS
 4. Forward all requests to the Spring Boot container on port 8080
 5. Automatically renew the certificate before it expires
@@ -2238,8 +2238,8 @@ curl -fsSL https://get.docker.com | sh
 apt install docker-compose-plugin
 
 # Create the app directory
-mkdir -p /opt/fantabet
-cd /opt/fantabet
+mkdir -p /opt/goalcast
+cd /opt/goalcast
 
 # Create the .env file with secrets
 cat > .env << 'EOF'
@@ -2264,7 +2264,7 @@ Generate a dedicated SSH key pair for deployment:
 
 ```bash
 # On your local machine
-ssh-keygen -t ed25519 -C "fantabet-deploy" -f fantabet-deploy-key
+ssh-keygen -t ed25519 -C "goalcast-deploy" -f goalcast-deploy-key
 # Don't set a passphrase (the CI needs to use it non-interactively)
 ```
 
@@ -2293,7 +2293,7 @@ jobs:
                     username: ${{ secrets.DEPLOY_USER }}
                     key: ${{ secrets.DEPLOY_SSH_KEY }}
                     script: |
-                        cd /opt/fantabet
+                        cd /opt/goalcast
                         # Pull latest code
                         git pull origin main
                         # Rebuild and restart containers (only rebuilds what changed)
@@ -2397,14 +2397,14 @@ logging:
             console: logfmt                  # Structured log format (key=value pairs)
     level:
         root: INFO
-        com.fantabet: DEBUG                # More verbose logging for our code
+        com.goalcast: DEBUG                # More verbose logging for our code
         org.springframework.security: INFO
 ```
 
 This outputs logs like:
 
 ```
-timestamp=2026-03-12T10:00:00Z level=INFO logger=com.fantabet.fantabet.controller.AuthController message="User logged in" username=cicciofrizzo
+timestamp=2026-03-12T10:00:00Z level=INFO logger=com.goalcast.controller.AuthController message="User logged in" username=cicciofrizzo
 ```
 
 Which is much easier to search in Dozzle than unstructured text.
@@ -2495,7 +2495,7 @@ Now the complete build is a single command:
 ./mvnw clean package
 
 # The resulting JAR includes Angular's files in /static and is fully self-contained
-java -jar target/fantabet-0.0.1-SNAPSHOT.jar
+java -jar target/goalcast-0.0.1-SNAPSHOT.jar
 ```
 
 This also simplifies the Dockerfile since you don't need a separate Node.js build stage:
@@ -2512,7 +2512,7 @@ RUN mvn clean package -DskipTests
 # Stage 2: Runtime
 FROM amazoncorretto:21-alpine
 WORKDIR /app
-COPY --from=build /app/target/fantabet-*.jar app.jar
+COPY --from=build /app/target/goalcast-*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
 ```

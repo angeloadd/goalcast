@@ -1,6 +1,6 @@
 services:
   app:
-    image: fantabet:latest
+    image: goalcast:latest
     build: .
     ports:
       - "8080:8080"
@@ -16,8 +16,8 @@ services:
   db:
     image: postgres:17
     environment:
-      POSTGRES_DB: fantabet
-      POSTGRES_USER: fantabet
+      POSTGRES_DB: goalcast
+      POSTGRES_USER: goalcast
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data

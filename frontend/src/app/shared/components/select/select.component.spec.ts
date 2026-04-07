@@ -5,11 +5,11 @@ import { SelectComponent, SelectItemComponent } from './select.component';
 
 @Component({
     template: `
-        <fb-select [formControl]="ctrl" placeholder="Choose...">
-            <fb-select-item value="a">Alpha</fb-select-item>
-            <fb-select-item value="b">Beta</fb-select-item>
-            <fb-select-item value="c">Gamma</fb-select-item>
-        </fb-select>
+        <gc-select [formControl]="ctrl" placeholder="Choose...">
+            <gc-select-item value="a">Alpha</gc-select-item>
+            <gc-select-item value="b">Beta</gc-select-item>
+            <gc-select-item value="c">Gamma</gc-select-item>
+        </gc-select>
     `,
     imports: [SelectComponent, SelectItemComponent, ReactiveFormsModule],
 })
@@ -49,7 +49,7 @@ describe('SelectComponent', () => {
         trigger.click();
         fixture.detectChanges();
         const items = fixture.nativeElement.querySelectorAll(
-            'fb-select-item',
+            'gc-select-item',
         ) as NodeListOf<HTMLElement>;
         items[1].click();
         fixture.detectChanges();

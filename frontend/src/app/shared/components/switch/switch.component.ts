@@ -2,7 +2,7 @@ import { Component, forwardRef, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
-    selector: 'fb-switch',
+    selector: 'gc-switch',
     templateUrl: './switch.component.html',
     providers: [
         {

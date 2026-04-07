@@ -20,7 +20,7 @@ export class TabsContext {
 const TABS_CONTEXT = new InjectionToken<TabsContext>('TabsContext');
 
 @Component({
-    selector: 'fb-tabs',
+    selector: 'gc-tabs',
     host: { class: 'block' },
     template: '<ng-content />',
     providers: [{ provide: TABS_CONTEXT, useFactory: () => new TabsContext() }],
@@ -35,14 +35,14 @@ export class TabsComponent implements OnInit {
 }
 
 @Component({
-    selector: 'fb-tabs-list',
+    selector: 'gc-tabs-list',
     host: { class: 'inline-flex items-center gap-1 border-b border-border w-full block' },
     template: '<ng-content />',
 })
 export class TabsListComponent {}
 
 @Component({
-    selector: 'fb-tabs-trigger',
+    selector: 'gc-tabs-trigger',
     host: {
         class: 'inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors',
         '[attr.data-state]': 'isActive() ? "active" : "inactive"',
@@ -65,7 +65,7 @@ export class TabsTriggerComponent {
 }
 
 @Component({
-    selector: 'fb-tabs-content',
+    selector: 'gc-tabs-content',
     host: {
         class: 'mt-4 block',
         '[class.hidden]': '!isActive()',

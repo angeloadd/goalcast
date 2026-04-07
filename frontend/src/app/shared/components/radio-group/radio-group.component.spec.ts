@@ -5,11 +5,11 @@ import { RadioGroupComponent, RadioGroupItemComponent } from '@fb/shared/compone
 
 @Component({
     template: `
-        <fb-radio-group [formControl]="ctrl">
-            <fb-radio-group-item value="a">Option A</fb-radio-group-item>
-            <fb-radio-group-item value="b">Option B</fb-radio-group-item>
-            <fb-radio-group-item value="c">Option C</fb-radio-group-item>
-        </fb-radio-group>
+        <gc-radio-group [formControl]="ctrl">
+            <gc-radio-group-item value="a">Option A</gc-radio-group-item>
+            <gc-radio-group-item value="b">Option B</gc-radio-group-item>
+            <gc-radio-group-item value="c">Option C</gc-radio-group-item>
+        </gc-radio-group>
     `,
     imports: [RadioGroupComponent, RadioGroupItemComponent, ReactiveFormsModule],
 })
@@ -27,7 +27,7 @@ describe('RadioGroupComponent', () => {
     it('should render all radio items', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
-        const items = fixture.nativeElement.querySelectorAll('fb-radio-group-item');
+        const items = fixture.nativeElement.querySelectorAll('gc-radio-group-item');
         expect(items.length).toBe(3);
     });
 

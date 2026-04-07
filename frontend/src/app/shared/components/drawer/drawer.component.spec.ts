@@ -10,16 +10,16 @@ import {
 
 @Component({
     template: `
-        <fb-drawer #drawer>
-            <fb-drawer-header>
-                <fb-drawer-title>Edit Profile</fb-drawer-title>
-                <fb-drawer-description>Make changes to your profile.</fb-drawer-description>
-            </fb-drawer-header>
+        <gc-drawer #drawer>
+            <gc-drawer-header>
+                <gc-drawer-title>Edit Profile</gc-drawer-title>
+                <gc-drawer-description>Make changes to your profile.</gc-drawer-description>
+            </gc-drawer-header>
             <p>Drawer body</p>
-            <fb-drawer-footer>
+            <gc-drawer-footer>
                 <button (click)="drawer.close()">Close</button>
-            </fb-drawer-footer>
-        </fb-drawer>
+            </gc-drawer-footer>
+        </gc-drawer>
     `,
     imports: [
         DrawerComponent,
@@ -71,7 +71,7 @@ describe('DrawerComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const el = fixture.nativeElement as HTMLElement;
-        expect(el.querySelector('fb-drawer-title')?.textContent).toContain('Edit Profile');
-        expect(el.querySelector('fb-drawer-description')?.textContent).toContain('Make changes');
+        expect(el.querySelector('gc-drawer-title')?.textContent).toContain('Edit Profile');
+        expect(el.querySelector('gc-drawer-description')?.textContent).toContain('Make changes');
     });
 });

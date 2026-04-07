@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
-    selector: 'fb-root',
+    selector: 'gc-root',
     imports: [RouterOutlet],
     template: '<router-outlet/>',
 })

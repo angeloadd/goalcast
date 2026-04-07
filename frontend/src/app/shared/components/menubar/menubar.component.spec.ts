@@ -11,22 +11,22 @@ import {
 
 @Component({
     template: `
-        <fb-menubar>
-            <fb-menubar-menu>
-                <fb-menubar-trigger>File</fb-menubar-trigger>
-                <fb-menubar-content>
-                    <fb-menubar-item>New</fb-menubar-item>
-                    <fb-menubar-separator></fb-menubar-separator>
-                    <fb-menubar-item>Open</fb-menubar-item>
-                </fb-menubar-content>
-            </fb-menubar-menu>
-            <fb-menubar-menu>
-                <fb-menubar-trigger>Edit</fb-menubar-trigger>
-                <fb-menubar-content>
-                    <fb-menubar-item>Undo</fb-menubar-item>
-                </fb-menubar-content>
-            </fb-menubar-menu>
-        </fb-menubar>
+        <gc-menubar>
+            <gc-menubar-menu>
+                <gc-menubar-trigger>File</gc-menubar-trigger>
+                <gc-menubar-content>
+                    <gc-menubar-item>New</gc-menubar-item>
+                    <gc-menubar-separator></gc-menubar-separator>
+                    <gc-menubar-item>Open</gc-menubar-item>
+                </gc-menubar-content>
+            </gc-menubar-menu>
+            <gc-menubar-menu>
+                <gc-menubar-trigger>Edit</gc-menubar-trigger>
+                <gc-menubar-content>
+                    <gc-menubar-item>Undo</gc-menubar-item>
+                </gc-menubar-content>
+            </gc-menubar-menu>
+        </gc-menubar>
     `,
     imports: [
         MenubarComponent,
@@ -48,7 +48,7 @@ describe('MenubarComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const triggers = fixture.nativeElement.querySelectorAll(
-            'fb-menubar-trigger',
+            'gc-menubar-trigger',
         ) as NodeListOf<HTMLElement>;
         expect(triggers.length).toBe(2);
         expect(triggers[0].textContent).toContain('File');
@@ -58,7 +58,7 @@ describe('MenubarComponent', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
         const contents = fixture.nativeElement.querySelectorAll(
-            'fb-menubar-content',
+            'gc-menubar-content',
         ) as NodeListOf<HTMLElement>;
         expect(contents[0].classList.contains('hidden')).toBe(true);
         expect(contents[1].classList.contains('hidden')).toBe(true);
@@ -67,11 +67,11 @@ describe('MenubarComponent', () => {
     it('should open menu on trigger click', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
-        const trigger = fixture.nativeElement.querySelector('fb-menubar-trigger') as HTMLElement;
+        const trigger = fixture.nativeElement.querySelector('gc-menubar-trigger') as HTMLElement;
         trigger.click();
         fixture.detectChanges();
         const contents = fixture.nativeElement.querySelectorAll(
-            'fb-menubar-content',
+            'gc-menubar-content',
         ) as NodeListOf<HTMLElement>;
         expect(contents[0].classList.contains('hidden')).toBe(false);
     });
@@ -79,13 +79,13 @@ describe('MenubarComponent', () => {
     it('should close menu on item click', () => {
         const fixture = TestBed.createComponent(TestHostComponent);
         fixture.detectChanges();
-        const trigger = fixture.nativeElement.querySelector('fb-menubar-trigger') as HTMLElement;
+        const trigger = fixture.nativeElement.querySelector('gc-menubar-trigger') as HTMLElement;
         trigger.click();
         fixture.detectChanges();
-        const item = fixture.nativeElement.querySelector('fb-menubar-item') as HTMLElement;
+        const item = fixture.nativeElement.querySelector('gc-menubar-item') as HTMLElement;
         item.click();
         fixture.detectChanges();
-        const content = fixture.nativeElement.querySelector('fb-menubar-content') as HTMLElement;
+        const content = fixture.nativeElement.querySelector('gc-menubar-content') as HTMLElement;
         expect(content.classList.contains('hidden')).toBe(true);
     });
 });

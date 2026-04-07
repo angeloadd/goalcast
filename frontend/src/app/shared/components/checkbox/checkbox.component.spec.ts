@@ -4,7 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CheckboxComponent } from './checkbox.component';
 
 @Component({
-    template: ` <fb-checkbox [formControl]="ctrl"></fb-checkbox>`,
+    template: ` <gc-checkbox [formControl]="ctrl"></gc-checkbox>`,
     imports: [CheckboxComponent, ReactiveFormsModule],
 })
 class TestHostComponent {

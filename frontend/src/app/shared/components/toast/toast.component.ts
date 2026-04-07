@@ -9,7 +9,7 @@ import {
 } from '@ng-icons/bootstrap-icons';
 
 @Component({
-    selector: 'fb-toaster',
+    selector: 'gc-toaster',
     imports: [NgIcon],
     viewProviders: [
         provideIcons({

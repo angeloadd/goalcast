@@ -4,7 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { InputOtpComponent } from './input-otp.component';
 
 @Component({
-    template: ` <fb-input-otp [formControl]="ctrl" [length]="6"></fb-input-otp>`,
+    template: ` <gc-input-otp [formControl]="ctrl" [length]="6"></gc-input-otp>`,
     imports: [InputOtpComponent, ReactiveFormsModule],
 })
 class TestHostComponent {
