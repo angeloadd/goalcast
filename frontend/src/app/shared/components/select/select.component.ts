@@ -15,7 +15,9 @@ export class SelectContext {
     selectedValue = signal('');
     selectedLabel = signal('');
     isOpen = signal(false);
-    private onChange: (value: string) => void = () => {};
+    private onChange: (value: string) => void = () => {
+        /* noop */
+    };
 
     registerOnChange(fn: (value: string) => void): void {
         this.onChange = fn;
@@ -60,7 +62,10 @@ export class SelectComponent implements ControlValueAccessor {
         this.context.registerOnChange(fn);
     }
 
-    registerOnTouched(fn: () => void): void {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    registerOnTouched(_fn: () => void): void {
+        /* noop */
+    }
 }
 
 @Component({

@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { merge, switchMap } from 'rxjs';
 
-const ERROR_MESSAGES: Record<string, (params?: any) => string> = {
+const ERROR_MESSAGES: Record<string, (params?: Record<string, unknown>) => string> = {
     required: () => 'This field is required',
     email: () => 'Please enter a valid email',
     minlength: (p) => `Minimum ${p.requiredLength} characters`,

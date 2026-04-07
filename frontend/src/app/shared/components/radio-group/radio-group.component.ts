@@ -11,7 +11,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export class RadioGroupContext {
     selectedValue = signal<string>('');
-    private onChange: (value: string) => void = () => {};
+    private onChange: (value: string) => void = () => {
+        /* noop */
+    };
 
     registerOnChange(fn: (value: string) => void): void {
         this.onChange = fn;
@@ -39,7 +41,9 @@ const RADIO_GROUP_CONTEXT = new InjectionToken<RadioGroupContext>('RadioGroupCon
 })
 export class RadioGroupComponent implements ControlValueAccessor {
     private context = inject(RADIO_GROUP_CONTEXT);
-    private onTouched: () => void = () => {};
+    private onTouched: () => void = () => {
+        /* noop */
+    };
 
     writeValue(value: string): void {
         this.context.selectedValue.set(value ?? '');

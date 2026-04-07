@@ -32,8 +32,8 @@ export class AlertDialogComponent {
 
     close(): void {
         const el = this.dialogEl().nativeElement;
-        if (typeof (el as any).close === 'function') {
-            (el as any).close();
+        if (typeof el.close === 'function') {
+            el.close();
         } else {
             el.removeAttribute('open');
         }

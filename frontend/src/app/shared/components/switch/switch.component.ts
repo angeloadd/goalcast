@@ -16,8 +16,12 @@ export class SwitchComponent implements ControlValueAccessor {
     checked = signal(false);
     isDisabled = signal(false);
 
-    private onChange: (value: boolean) => void = () => {};
-    private onTouched: () => void = () => {};
+    private onChange: (value: boolean) => void = () => {
+        /* noop */
+    };
+    private onTouched: () => void = () => {
+        /* noop */
+    };
 
     writeValue(value: boolean): void {
         this.checked.set(value);

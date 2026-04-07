@@ -1,5 +1,6 @@
 <div class="space-y-2 mb-4">
     @if (label()) {
+        <!-- eslint-disable-next-line @angular-eslint/template/label-has-associated-control -->
         <label class="text-sm font-medium">{{ label() }}</label>
     }
     <ng-content />

@@ -44,8 +44,12 @@ export class InputOtpComponent implements ControlValueAccessor {
     isDisabled = signal(false);
     private otpInputs = viewChildren<ElementRef<HTMLInputElement>>('otpInput');
 
-    private onChange: (value: string) => void = () => {};
-    private onTouched: () => void = () => {};
+    private onChange: (value: string) => void = () => {
+        /* noop */
+    };
+    private onTouched: () => void = () => {
+        /* noop */
+    };
 
     writeValue(value: string): void {
         const chars = (value ?? '').split('').slice(0, this.length());
