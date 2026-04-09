@@ -4,35 +4,36 @@
       <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center">
         <ng-icon name="bootstrapTrophy" class="text-accent-foreground" size="20"/>
       </div>
-      <span class="font-display text-xl tracking-wider">GOALCAST</span>
+      <span class="font-display text-2xl tracking-tighter font-bold">GOALCAST</span>
     </a>
     <div class="flex items-center gap-3">
-      <a routerLink="/login" class="btn btn-ghost btn-sm">Log In</a>
-      <a routerLink="/register" class="btn btn-gold btn-sm">Sign Up</a>
+      <a routerLink="/login" class="btn btn-ghost btn-sm" i18n="@@nav.login">Log In</a>
+      <a routerLink="/register" class="btn btn-gold btn-sm" i18n="@@nav.signup">Sign Up</a>
     </div>
   </div>
 </nav>
 
-<section class="py-24 px-6">
+<section class="py-16 px-6">
   <div class="max-w-4xl mx-auto text-center space-y-6">
     <div
       class="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-sm text-accent"
     >
       <ng-icon name="bootstrapShieldShaded" size="16"/>
-      FIFA World Cup 2026
+      <span i18n="@@hero.badge">FIFA World Cup 2026</span>
     </div>
     <h1 class="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
-      Create. Predict. <span class="text-gradient-gold">Compete.</span>
+      <span i18n="@@hero.titleStart">Create. Predict.</span>
+      <span class="text-gradient-gold" i18n="@@hero.titleHighlight">Compete.</span>
     </h1>
-    <p class="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+    <p class="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed" i18n="@@hero.subtitle">
       Set up a league, invite your friends, predict match scores, and find out who really knows football.
     </p>
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
       <a routerLink="/create-league" class="btn btn-gold btn-lg text-base">
-        Create a League
+        <span i18n="@@hero.createLeague">Create a League</span>
         <ng-icon name="bootstrapArrowRight" size="20"/>
       </a>
-      <a routerLink="/login" class="btn btn-outline btn-lg text-base">Join an Existing League</a>
+      <a routerLink="/login" class="btn btn-outline btn-lg text-base" i18n="@@hero.joinLeague">Join an Existing League</a>
     </div>
   </div>
 </section>
@@ -40,8 +41,8 @@
 <section class="py-20 px-6 bg-muted/30">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-14">
-      <h2 class="text-3xl font-bold mb-3">What You Get</h2>
-      <p class="text-muted-foreground">Everything you need to run a prediction league.</p>
+      <h2 class="text-3xl font-bold mb-3" i18n="@@features.heading">What You Get</h2>
+      <p class="text-muted-foreground" i18n="@@features.subheading">Everything you need to run a prediction league.</p>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
       @for (feature of features; track feature.title) {
@@ -63,8 +64,8 @@
 <section class="py-20 px-6">
   <div class="max-w-4xl mx-auto">
     <div class="text-center mb-14">
-      <h2 class="text-3xl font-bold mb-3">How It Works</h2>
-      <p class="text-muted-foreground">Get started in minutes.</p>
+      <h2 class="text-3xl font-bold mb-3" i18n="@@howItWorks.heading">How It Works</h2>
+      <p class="text-muted-foreground" i18n="@@howItWorks.subheading">Get started in minutes.</p>
     </div>
     <div class="grid sm:grid-cols-2 gap-8">
       @for (step of steps; track $index) {
@@ -82,12 +83,12 @@
 
 <section class="py-20 px-6 bg-primary text-primary-foreground">
   <div class="max-w-3xl mx-auto text-center space-y-6">
-    <h2 class="text-3xl font-bold">Ready?</h2>
-    <p class="text-primary-foreground/70">
+    <h2 class="text-3xl font-bold" i18n="@@cta.heading">Ready?</h2>
+    <p class="text-primary-foreground/70" i18n="@@cta.subtitle">
       Create a league in under a minute. Set rules, invite friends, start predicting.
     </p>
     <a routerLink="/create-league" class="btn btn-gold btn-lg text-base mt-4">
-      Get Started
+      <span i18n="@@cta.button">Get Started</span>
       <ng-icon name="bootstrapArrowRight" size="20"/>
     </a>
   </div>
@@ -98,14 +99,11 @@
     <p class="text-sm text-muted-foreground">&copy; 2026 GoalCast</p>
     <div class="flex items-center gap-6">
       <a routerLink="/terms" class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >Terms</a
-      >
+        i18n="@@footer.terms">Terms</a>
       <a routerLink="/privacy" class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >Privacy</a
-      >
+        i18n="@@footer.privacy">Privacy</a>
       <a routerLink="/imprint" class="text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >Imprint</a
-      >
+        i18n="@@footer.imprint">Imprint</a>
     </div>
   </div>
 </footer>

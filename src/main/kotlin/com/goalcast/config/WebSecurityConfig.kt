@@ -25,6 +25,7 @@ class WebSecurityConfig {
             authorizeHttpRequests {
                 authorize("/api/auth/login", permitAll)
                 authorize("/api/auth/register", permitAll)
+                authorize("/api/locale", permitAll)
                 authorize("/api/**", authenticated)
                 authorize(anyRequest, permitAll)
             }

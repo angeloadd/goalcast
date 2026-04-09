@@ -33,42 +33,42 @@ export class LandingpageComponent {
     features = [
         {
             icon: 'bootstrapBullseye',
-            title: 'Predict Results',
-            description: 'Call the score for every match. See who gets it right.',
+            title: $localize`:@@feature.predictResults.title:Predict Results`,
+            description: $localize`:@@feature.predictResults.desc:Call the score for every match. See who gets it right.`,
         },
         {
             icon: 'bootstrapPeople',
-            title: 'Invite Friends',
-            description: 'Create a league, share a link, and compete against your crew.',
+            title: $localize`:@@feature.inviteFriends.title:Invite Friends`,
+            description: $localize`:@@feature.inviteFriends.desc:Create a league, share a link, and compete against your crew.`,
         },
         {
             icon: 'bootstrapLightning',
-            title: 'Bonus Predictions',
-            description: 'Predict scorers and the tournament winner for extra points.',
+            title: $localize`:@@feature.bonusPredictions.title:Bonus Predictions`,
+            description: $localize`:@@feature.bonusPredictions.desc:Predict scorers and the tournament winner for extra points.`,
         },
         {
             icon: 'bootstrapSliders',
-            title: 'Customize Your League',
-            description: 'Set prediction timeframes, enable bonus rules, and play your way.',
+            title: $localize`:@@feature.customizeLeague.title:Customize Your League`,
+            description: $localize`:@@feature.customizeLeague.desc:Set prediction timeframes, enable bonus rules, and play your way.`,
         },
     ];
 
     steps = [
         {
-            title: 'Create a League',
-            description: 'Pick a tournament, set the rules, and name your league.',
+            title: $localize`:@@step.createLeague.title:Create a League`,
+            description: $localize`:@@step.createLeague.desc:Pick a tournament, set the rules, and name your league.`,
         },
         {
-            title: 'Invite Friends',
-            description: 'Share the link or send email invites.',
+            title: $localize`:@@step.inviteFriends.title:Invite Friends`,
+            description: $localize`:@@step.inviteFriends.desc:Share the link or send email invites.`,
         },
         {
-            title: 'Predict Scores',
-            description: 'Submit your predictions before kickoff.',
+            title: $localize`:@@step.predictScores.title:Predict Scores`,
+            description: $localize`:@@step.predictScores.desc:Submit your predictions before kickoff.`,
         },
         {
-            title: 'Climb the Ranking',
-            description: 'Earn points and see who comes out on top.',
+            title: $localize`:@@step.climbRanking.title:Climb the Ranking`,
+            description: $localize`:@@step.climbRanking.desc:Earn points and see who comes out on top.`,
         },
     ];
 }
