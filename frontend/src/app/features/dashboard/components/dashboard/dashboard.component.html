@@ -1,8 +1,0 @@
-@if (isLoggedIn()) {
-    <h1>Welcome, {{ user()?.username }}</h1>
-    <button (click)="onLogout()">Logout</button>
-} @else {
-    <p>Please login to view the dashboard.</p>
-    <gc-login></gc-login>
-    <gc-register></gc-register>
-}
