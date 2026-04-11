@@ -33,3 +33,9 @@ server:
                 same-site: lax
                 name: GOALCAST_SESSION
             timeout: 30m
+
+apisport:
+    base-url: https://v3.football.api-sports.io
+    api-key: ${APISPORT_API_KEY:}
+    league-id: ${APISPORT_LEAGUE_ID:1}
+    season: ${APISPORT_SEASON:2026}

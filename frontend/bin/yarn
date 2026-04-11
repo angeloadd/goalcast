@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ "$@" != "" ]]; then
+    DOT_YARN="$(dirname $0)/../.yarn"
+    BIN_YARN=`ls ${DOT_YARN}/releases`
+
+    exec ${DOT_YARN}/releases/${BIN_YARN} "$@"
+fi
