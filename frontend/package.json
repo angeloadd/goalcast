@@ -14,7 +14,18 @@
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,json}\""
   },
   "private": true,
-  "packageManager": "npm@10.9.4",
+  "dependenciesMeta": {
+    "@parcel/watcher": {
+      "built": true
+    },
+    "esbuild": {
+      "built": true
+    },
+    "lmdb": {
+      "built": true
+    }
+  },
+  "packageManager": "yarn@4.13.0",
   "dependencies": {
     "@angular/common": "^21.2.8",
     "@angular/compiler": "^21.2.8",

@@ -39,6 +39,12 @@ testem.log
 /typings
 __screenshots__/
 
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/patches
+
 # System files
 .DS_Store
 Thumbs.db
