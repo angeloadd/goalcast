@@ -1,0 +1,2 @@
+-- Everything is already not_started from 00_common.sql. Nothing to do.
+-- This file exists for completeness — load 00_common.sql alone for this stage.
