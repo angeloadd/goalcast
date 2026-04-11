@@ -14,7 +14,7 @@ class SpaFallbackController {
     }
 
     @RequestMapping(
-        value = ["/{path:^(?!api|static|assets|.*\\.).*}/**"],
+        value = ["/", "/{path:^(?!api|static|assets|en|it|.*\\.).*}/**"],
         method = [RequestMethod.GET]
     )
     fun forward(@CookieValue(name = "gclocale", defaultValue = DEFAULT_LOCALE) locale: String): String {
