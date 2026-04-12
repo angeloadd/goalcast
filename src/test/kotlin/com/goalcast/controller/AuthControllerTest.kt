@@ -39,10 +39,10 @@ class AuthControllerTest {
     fun `login with valid credentials returns 200 and user data`() {
         mockMvc.post("/api/auth/login") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"username": "cicciofrizzo", "password": "Adamo123"}"""
+            content = """{"email": "ciccio@email.com", "password": "Adamo123"}"""
         }.andExpect {
             status { isOk() }
-            jsonPath("$.username") { value("cicciofrizzo") }
+            jsonPath("$.email") { value("ciccio@email.com") }
             jsonPath("$.roles[0]") { value("ROLE_USER") }
         }
     }
@@ -51,7 +51,7 @@ class AuthControllerTest {
     fun `login with invalid credentials returns 401`() {
         mockMvc.post("/api/auth/login") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"username": "cicciofrizzo", "password": "wrong"}"""
+            content = """{"email": "ciccio@email.com", "password": "wrong"}"""
         }.andExpect {
             status { isUnauthorized() }
         }
@@ -68,7 +68,7 @@ class AuthControllerTest {
     fun `register creates new user and returns 201`() {
         mockMvc.post("/api/auth/register") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"username": "newuser", "email": "new@email.com", "password": "password123"}"""
+            content = """{"username": "newuser", "email": "new@email.com", "password": "password1234"}"""
         }.andExpect {
             status { isCreated() }
             jsonPath("$.username") { value("newuser") }
@@ -79,7 +79,7 @@ class AuthControllerTest {
     fun `register with existing username returns 400`() {
         mockMvc.post("/api/auth/register") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"username": "cicciofrizzo", "email": "another@email.com", "password": "password123"}"""
+            content = """{"username": "cicciofrizzo", "email": "another@email.com", "password": "password1234"}"""
         }.andExpect {
             status { isBadRequest() }
         }
