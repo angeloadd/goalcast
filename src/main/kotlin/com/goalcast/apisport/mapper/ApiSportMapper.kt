@@ -7,6 +7,7 @@ import com.goalcast.apisport.dto.SyncedPlayer
 import com.goalcast.apisport.dto.SyncedTeam
 import com.goalcast.apisport.dto.SyncedGoal
 import com.goalcast.apisport.dto.SyncedTournament
+import com.goalcast.apisport.dto.SyncedTopScorer
 import com.goalcast.apisport.exception.MissingApiSportPropException
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
@@ -119,5 +120,15 @@ class ApiSportMapper {
         "FT", "AET", "PEN" -> GameStatus.FINISHED
         "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE" -> GameStatus.ONGOING
         else -> GameStatus.NOT_STARTED
+    }
+
+    fun mapToSyncedTopScorers(response: List<JsonNode>): List<SyncedTopScorer> {
+        if (response.isEmpty()) return emptyList()
+        val topGoals = response[0].path("statistics")[0].path("goals").path("total").asInt()
+        return response.takeWhile {
+            it.path("statistics")[0].path("goals").path("total").asInt() >= topGoals
+        }.map {
+            SyncedTopScorer(playerApiId = it.path("player").path("id").asInt())
+        }
     }
 }
