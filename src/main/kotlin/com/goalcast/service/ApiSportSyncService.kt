@@ -1,31 +1,18 @@
 package com.goalcast.service
 
-import com.goalcast.apisport.client.ApiSportClient
-import com.goalcast.apisport.dto.SyncedTournament
-import com.goalcast.entity.Game
-import com.goalcast.entity.GameGoal
-import com.goalcast.entity.GameTeam
-import com.goalcast.entity.Player
-import com.goalcast.entity.PlayerTournament
-import com.goalcast.entity.Team
-import com.goalcast.entity.TeamTournament
-import com.goalcast.entity.Tournament
-import com.goalcast.repository.GameGoalRepository
-import com.goalcast.repository.GameRepository
-import com.goalcast.repository.GameTeamRepository
-import com.goalcast.repository.PlayerRepository
-import com.goalcast.repository.PlayerTournamentRepository
-import com.goalcast.repository.TeamRepository
-import com.goalcast.repository.TeamTournamentRepository
-import com.goalcast.repository.TournamentRepository
+import com.goalcast.apisport.dto.*
+import com.goalcast.apisport.service.ApiSportService
+import com.goalcast.entity.*
+import com.goalcast.repository.*
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
+import java.time.Clock
 
 @Service
 class ApiSportSyncService(
-    private val client: ApiSportClient,
+    private val apiSportService: ApiSportService,
+    private val clock: Clock,
     private val tournamentRepository: TournamentRepository,
     private val teamRepository: TeamRepository,
     private val playerRepository: PlayerRepository,
@@ -43,183 +30,189 @@ class ApiSportSyncService(
     }
 
     @Transactional
-    fun syncTournament(syncedTournament: SyncedTournament): Tournament {
-        val tournament = tournamentRepository.findByApiId(syncedTournament.apiId)
-            ?: Tournament(
-                apiId = syncedTournament.apiId, name = syncedTournament.name,
-                season = syncedTournament.season,
-                country = syncedTournament.country,
-            )
+    fun syncTournament(synced: SyncedTournament): Tournament {
+        val tournament = tournamentRepository.findByApiId(synced.apiId)
+            ?: Tournament(apiId = synced.apiId, name = synced.name, season = synced.season, country = synced.country)
 
         tournament.apply {
-            name = syncedTournament.name
-            country = syncedTournament.country
-            logo = syncedTournament.logo
-            isCup = syncedTournament.isCup
-            updatedAt = Instant.now()
+            name = synced.name
+            country = synced.country
+            logo = synced.logo
+            isCup = synced.isCup
+            updatedAt = clock.instant()
         }
         tournamentRepository.save(tournament)
-        log.info(
-            "Tournament[name={},id={},season={}]: synced successfully",
-            syncedTournament.name,
-            syncedTournament.apiId,
-            syncedTournament.season
-        )
+        log.info("Tournament[name={},apiId={},season={}]: synced", synced.name, synced.apiId, synced.season)
         return tournament
     }
 
-    private fun getTournament(): Tournament {
+    fun getTournament(): Tournament {
         return requireNotNull(tournamentRepository.findByApiId(LEAGUE_ID)) {
             "Tournament not synced yet. Run syncTournament() first."
         }
     }
 
-    @Transactional
-    fun syncTeams() {
-        val results = client.get("teams", leagueSeasonParams())
+    fun getTeamApiIdsForTournament(): List<Int> {
         val tournament = getTournament()
+        return teamTournamentRepository.findByTournamentId(tournament.id).map { it.team.apiId }
+    }
 
-        for (node in results) {
-            val t = node.path("team")
-            val apiId = t.path("id").asInt()
-            val team = teamRepository.findByApiId(apiId)
-                ?: Team(apiId = apiId, name = t.path("name").asString())
-            team.name = t.path("name").asString()
-            team.code = t.path("code").asString(null)
-            team.logo = t.path("logo").asString(null)
-            team.isNational = t.path("national").asBoolean(false)
-            team.updatedAt = Instant.now()
-            teamRepository.save(team)
+    @Transactional
+    fun syncTeams(teams: List<SyncedTeam>) {
+        val tournament = getTournament()
+        val existingTeams = teamRepository.findAll().associateBy { it.apiId }
+        val existingTT = teamTournamentRepository.findByTournamentId(tournament.id).associateBy { it.team.apiId }
 
-            if (teamTournamentRepository.findByTeamIdAndTournamentId(team.id, tournament.id) == null) {
-                teamTournamentRepository.save(TeamTournament(team = team, tournament = tournament))
+        val teamsToSave = mutableListOf<Team>()
+        val ttToSave = mutableListOf<TeamTournament>()
+
+        for (synced in teams) {
+            val team = existingTeams[synced.apiId]
+                ?: Team(apiId = synced.apiId, name = synced.name)
+            team.name = synced.name
+            team.code = synced.code
+            team.logo = synced.logo
+            team.isNational = synced.isNational
+            team.updatedAt = clock.instant()
+            teamsToSave.add(team)
+
+            if (synced.apiId !in existingTT) {
+                ttToSave.add(TeamTournament(team = team, tournament = tournament))
             }
         }
-        log.info("Synced {} teams", results.size)
+
+        teamRepository.saveAll(teamsToSave)
+        teamTournamentRepository.saveAll(ttToSave)
+        log.info("Synced {} teams", teams.size)
     }
 
     @Transactional
-    fun syncPlayers() {
+    fun syncPlayers(teamApiId: Int, players: List<SyncedPlayer>) {
         val tournament = getTournament()
-        val teamTournaments = teamTournamentRepository.findByTournamentId(tournament.id)
+        val team = teamRepository.findByApiId(teamApiId) ?: return
+        val existingPlayers = playerRepository.findAll().associateBy { it.apiId }
+        val existingPT = playerTournamentRepository.findByTournamentId(tournament.id).associateBy { it.player.apiId }
 
-        for (tt in teamTournaments) {
-            val results = client.get("players/squads", mapOf("team" to tt.team.apiId.toString()))
-            if (results.isEmpty()) continue
+        val playersToSave = mutableListOf<Player>()
+        val ptToSave = mutableListOf<PlayerTournament>()
 
-            val playersNode = results[0].path("players")
-            for (p in playersNode) {
-                val apiId = p.path("id").asInt()
-                val player = playerRepository.findByApiId(apiId)
-                    ?: Player(apiId = apiId, displayedName = p.path("name").asString())
-                player.displayedName = p.path("name").asString()
-                player.national = tt.team
-                player.updatedAt = Instant.now()
-                playerRepository.save(player)
+        for (synced in players) {
+            val player = existingPlayers[synced.apiId]
+                ?: Player(apiId = synced.apiId, displayedName = synced.displayedName)
+            player.displayedName = synced.displayedName
+            player.national = team
+            player.updatedAt = clock.instant()
+            playersToSave.add(player)
 
-                if (playerTournamentRepository.findByPlayerIdAndTournamentId(player.id, tournament.id) == null) {
-                    playerTournamentRepository.save(PlayerTournament(player = player, tournament = tournament))
-                }
+            if (synced.apiId !in existingPT) {
+                ptToSave.add(PlayerTournament(player = player, tournament = tournament))
             }
-            log.info("Synced players for team {}", tt.team.name)
         }
+
+        playerRepository.saveAll(playersToSave)
+        playerTournamentRepository.saveAll(ptToSave)
+        log.info("Synced {} players for team apiId={}", players.size, teamApiId)
     }
 
     @Transactional
-    fun syncGames() {
+    fun syncGames(games: List<SyncedGame>) {
         val tournament = getTournament()
-        val results = client.get("fixtures", leagueSeasonParams())
+        val existingGames = gameRepository.findByTournamentIdOrderByStartedAt(tournament.id).associateBy { it.apiId }
+        val existingTeams = teamRepository.findAll().associateBy { it.apiId }
+        val existingGameTeams = gameTeamRepository.findAll().groupBy { it.game.id }
 
-        for (node in results) {
-            val fixture = node.path("fixture")
-            val apiId = fixture.path("id").asInt()
-            val startedAt = Instant.ofEpochSecond(fixture.path("timestamp").asLong())
-            val round = node.path("league").path("round").asString()
-            val phase = mapRoundToPhase(round)
-            val statusShort = fixture.path("status").path("short").asString()
+        val gamesToSave = mutableListOf<Game>()
+        val gameTeamsToSave = mutableListOf<GameTeam>()
+        var hasNewGames = false
 
-            val game = gameRepository.findByApiId(apiId)
-                ?: Game(apiId = apiId, tournament = tournament, stage = round, phase = phase, startedAt = startedAt)
-            game.stage = round
-            game.phase = phase
-            game.status = mapApiStatus(statusShort)
-            game.startedAt = startedAt
-            game.updatedAt = Instant.now()
-            gameRepository.save(game)
+        for (synced in games) {
+            val isNew = synced.apiId !in existingGames
+            if (isNew) hasNewGames = true
 
-            val homeTeamApiId = node.path("teams").path("home").path("id").asInt()
-            val awayTeamApiId = node.path("teams").path("away").path("id").asInt()
-            val homeScore = node.path("goals").path("home").let { if (it.isNull) null else it.asInt() }
-            val awayScore = node.path("goals").path("away").let { if (it.isNull) null else it.asInt() }
-
-            upsertGameTeam(game, homeTeamApiId, isAway = false, score = homeScore)
-            upsertGameTeam(game, awayTeamApiId, isAway = true, score = awayScore)
+            val game = existingGames[synced.apiId]
+                ?: Game(apiId = synced.apiId, tournament = tournament, stage = synced.stage, phase = synced.phase.dbValue, startedAt = synced.startedAt)
+            game.stage = synced.stage
+            game.phase = synced.phase.dbValue
+            game.status = synced.status.dbValue
+            game.startedAt = synced.startedAt
+            game.updatedAt = clock.instant()
+            gamesToSave.add(game)
         }
-        log.info("Synced {} games", results.size)
-        updateTournamentDates(tournament)
+
+        gameRepository.saveAll(gamesToSave)
+
+        // Second pass for game teams (needs game IDs from save)
+        for (synced in games) {
+            val game = gamesToSave.find { it.apiId == synced.apiId } ?: continue
+            val existingGT = existingGameTeams[game.id] ?: emptyList()
+            val homeTeam = existingTeams[synced.homeTeamApiId] ?: continue
+            val awayTeam = existingTeams[synced.awayTeamApiId] ?: continue
+
+            val existingHome = existingGT.find { it.team.id == homeTeam.id }
+            val existingAway = existingGT.find { it.team.id == awayTeam.id }
+
+            if (existingHome != null) {
+                existingHome.score = synced.homeScore
+                gameTeamsToSave.add(existingHome)
+            } else {
+                gameTeamsToSave.add(GameTeam(game = game, team = homeTeam, isAway = false, score = synced.homeScore))
+            }
+
+            if (existingAway != null) {
+                existingAway.score = synced.awayScore
+                gameTeamsToSave.add(existingAway)
+            } else {
+                gameTeamsToSave.add(GameTeam(game = game, team = awayTeam, isAway = true, score = synced.awayScore))
+            }
+        }
+
+        gameTeamRepository.saveAll(gameTeamsToSave)
+        log.info("Synced {} games", games.size)
+
+        if (hasNewGames) updateTournamentDates(tournament)
     }
 
     @Transactional
-    fun syncGoals(gameApiId: Int) {
+    fun syncGoals(gameApiId: Int, goals: List<SyncedGoal>) {
         val game = gameRepository.findByApiId(gameApiId) ?: return
-        val results = client.get("fixtures/events", mapOf("fixture" to gameApiId.toString(), "type" to "Goal"))
-
         gameGoalRepository.deleteByGameId(game.id)
 
         val gameTeams = gameTeamRepository.findByGameId(game.id)
         val homeTeam = gameTeams.find { !it.isAway }?.team
         val awayTeam = gameTeams.find { it.isAway }?.team
+        val allPlayers = playerRepository.findAll().associateBy { it.apiId }
 
-        for (node in results) {
-            val detail = node.path("detail").asString()
-            if (detail.contains("Missed")) continue
-
-            val time = node.path("time")
-            val elapsed = time.path("elapsed").asInt()
-            val extra = if (time.path("extra").isNull) 0 else time.path("extra").asInt()
-            val comment = node.path("comments").asString("")
-
-            if (elapsed == 120 && extra > 0 && comment.contains("Penalty", ignoreCase = true)) continue
-
-            val playerApiId = node.path("player").path("id").asInt()
-            val player = playerRepository.findByApiId(playerApiId) ?: continue
-            val isOwnGoal = detail.contains("Own", ignoreCase = true)
-
-            val scoringTeamApiId = node.path("team").path("id").asInt()
-            val creditedTeam = if (isOwnGoal) {
-                if (scoringTeamApiId == homeTeam?.apiId) awayTeam else homeTeam
+        val goalsToSave = goals.mapNotNull { synced ->
+            val player = allPlayers[synced.playerApiId] ?: return@mapNotNull null
+            val creditedTeam = if (synced.isOwnGoal) {
+                if (synced.scoringTeamApiId == homeTeam?.apiId) awayTeam else homeTeam
             } else {
-                if (scoringTeamApiId == homeTeam?.apiId) homeTeam else awayTeam
+                if (synced.scoringTeamApiId == homeTeam?.apiId) homeTeam else awayTeam
             }
-
-            if (creditedTeam != null) {
-                gameGoalRepository.save(
-                    GameGoal(
-                        game = game,
-                        player = player,
-                        team = creditedTeam,
-                        isOwnGoal = isOwnGoal,
-                        scoredAt = elapsed + extra
-                    )
-                )
+            creditedTeam?.let {
+                GameGoal(game = game, player = player, team = it, isOwnGoal = synced.isOwnGoal, scoredAt = synced.scoredAt)
             }
         }
-        log.info("Synced goals for game apiId={}", gameApiId)
+
+        gameGoalRepository.saveAll(goalsToSave)
+        log.info("Synced {} goals for game apiId={}", goalsToSave.size, gameApiId)
     }
 
-    /**
-     * Checks for games that need a status update:
-     * - not_started games with started_at in the past → should be ongoing or finished
-     * - ongoing games → might have finished
-     *
-     * If any such games exist, makes ONE call to the fixtures endpoint and updates
-     * all matching games from the response.
-     *
-     * Returns the list of games whose status changed to "finished" (for goal sync).
-     */
+    @Transactional
+    fun syncTopScorers(topScorers: List<SyncedTopScorer>) {
+        val tournament = getTournament()
+        for (synced in topScorers) {
+            val player = playerRepository.findByApiId(synced.playerApiId) ?: continue
+            val pt = playerTournamentRepository.findByPlayerIdAndTournamentId(player.id, tournament.id) ?: continue
+            pt.isTopScorer = true
+            playerTournamentRepository.save(pt)
+        }
+        log.info("Synced {} top scorers", topScorers.size)
+    }
+
     @Transactional
     fun syncGameStatuses(): List<Game> {
-        val now = Instant.now()
+        val now = clock.instant()
         val shouldHaveStarted = gameRepository.findByStatusAndStartedAtBefore("not_started", now)
         val ongoing = gameRepository.findByStatus("ongoing")
         val gamesToCheck = shouldHaveStarted + ongoing
@@ -231,57 +224,39 @@ class ApiSportSyncService(
 
         log.info("Checking status for {} games", gamesToCheck.size)
 
-        // One API call to get all fixtures for the league — the response includes current status
-        val results = client.get("fixtures", leagueSeasonParams())
-        val apiIdToStatus = results.associate { node ->
-            val fixtureId = node.path("fixture").path("id").asInt()
-            val statusShort = node.path("fixture").path("status").path("short").asString()
-            val homeScore = node.path("goals").path("home").let { if (it.isNull) null else it.asInt() }
-            val awayScore = node.path("goals").path("away").let { if (it.isNull) null else it.asInt() }
-            fixtureId to Triple(mapApiStatus(statusShort), homeScore, awayScore)
-        }
+        val allGames = apiSportService.getGames(LEAGUE_ID, SEASON)
+        val apiIdToGame = allGames.associateBy { it.apiId }
 
         val newlyFinished = mutableListOf<Game>()
 
         for (game in gamesToCheck) {
             val apiId = game.apiId ?: continue
-            val (newStatus, homeScore, awayScore) = apiIdToStatus[apiId] ?: continue
+            val synced = apiIdToGame[apiId] ?: continue
+            val newStatus = synced.status.dbValue
 
-            val oldStatus = game.status
-            if (oldStatus != newStatus) {
+            if (game.status != newStatus) {
+                val oldStatus = game.status
                 game.status = newStatus
-                game.updatedAt = Instant.now()
+                game.updatedAt = clock.instant()
                 gameRepository.save(game)
-                log.info("Game {} (apiId={}) status: {} → {}", game.id, apiId, oldStatus, newStatus)
+                log.info("Game {} (apiId={}) status: {} -> {}", game.id, apiId, oldStatus, newStatus)
 
-                // Update scores
                 val gameTeams = gameTeamRepository.findByGameId(game.id)
                 val home = gameTeams.find { !it.isAway }
                 val away = gameTeams.find { it.isAway }
-                if (home != null && homeScore != null) {
-                    home.score = homeScore; gameTeamRepository.save(home)
-                }
-                if (away != null && awayScore != null) {
-                    away.score = awayScore; gameTeamRepository.save(away)
-                }
+                if (home != null && synced.homeScore != null) { home.score = synced.homeScore; gameTeamRepository.save(home) }
+                if (away != null && synced.awayScore != null) { away.score = synced.awayScore; gameTeamRepository.save(away) }
 
-                if (newStatus == "finished") {
-                    newlyFinished.add(game)
-                }
+                if (newStatus == "finished") newlyFinished.add(game)
             }
         }
 
         return newlyFinished
     }
 
-    /**
-     * Checks finished games for missing goals. A game's goal count should match
-     * home_score + away_score. If it doesn't, re-syncs goals for that game.
-     * Only checks games finished in the last 24 hours to avoid unnecessary work.
-     */
     @Transactional
     fun syncMissingGoals() {
-        val cutoff = Instant.now().minusSeconds(24 * 3600)
+        val cutoff = clock.instant().minusSeconds(24 * 3600)
         val tournament = getTournament()
         val finishedGames = gameRepository.findByStatusAndTournamentId("finished", tournament.id)
             .filter { it.updatedAt.isAfter(cutoff) }
@@ -296,30 +271,10 @@ class ApiSportSyncService(
             if (actualGoals.toInt() != expectedGoals) {
                 val apiId = game.apiId ?: continue
                 log.info("Game {} (apiId={}) has {}/{} goals, re-syncing", game.id, apiId, actualGoals, expectedGoals)
-                syncGoals(apiId)
+                val goals = apiSportService.getGoals(apiId)
+                syncGoals(apiId, goals)
             }
         }
-    }
-
-    @Transactional
-    fun syncTopScorers() {
-        val tournament = getTournament()
-        val results = client.get("players/topscorers", leagueSeasonParams())
-        if (results.isEmpty()) return
-
-        val topScorerGoals = results[0].path("statistics")[0].path("goals").path("total").asInt()
-
-        for (node in results) {
-            val goals = node.path("statistics")[0].path("goals").path("total").asInt()
-            if (goals < topScorerGoals) break
-
-            val playerApiId = node.path("player").path("id").asInt()
-            val player = playerRepository.findByApiId(playerApiId) ?: continue
-            val pt = playerTournamentRepository.findByPlayerIdAndTournamentId(player.id, tournament.id) ?: continue
-            pt.isTopScorer = true
-            playerTournamentRepository.save(pt)
-        }
-        log.info("Synced top scorers")
     }
 
     @Transactional
@@ -339,45 +294,12 @@ class ApiSportSyncService(
         log.info("Tournament winner: {}", winner.name)
     }
 
-    private fun upsertGameTeam(game: Game, teamApiId: Int, isAway: Boolean, score: Int?) {
-        val team = teamRepository.findByApiId(teamApiId) ?: return
-        val existing = gameTeamRepository.findByGameId(game.id).find { it.team.id == team.id }
-        if (existing != null) {
-            existing.score = score
-            gameTeamRepository.save(existing)
-        } else {
-            gameTeamRepository.save(GameTeam(game = game, team = team, isAway = isAway, score = score))
-        }
-    }
-
     private fun updateTournamentDates(tournament: Tournament) {
-        val games = gameRepository.findByTournamentIdOrderByStartedAt(tournament.id)
-        if (games.isEmpty()) return
-        tournament.startedAt = games.first().startedAt
-        val finalGame = games.firstOrNull { it.isFinal() }
+        val firstGame = gameRepository.findFirstByTournamentIdOrderByStartedAtAsc(tournament.id)
+        val finalGame = gameRepository.findFirstByTournamentIdAndPhaseOrderByStartedAtAsc(tournament.id, "final")
+        if (firstGame != null) tournament.startedAt = firstGame.startedAt
         if (finalGame != null) tournament.finalStartedAt = finalGame.startedAt
-        tournament.updatedAt = Instant.now()
+        tournament.updatedAt = clock.instant()
         tournamentRepository.save(tournament)
-    }
-
-    private fun leagueSeasonParams() = mapOf("league" to LEAGUE_ID.toString(), "season" to SEASON.toString())
-
-    fun mapRoundToPhase(round: String): String {
-        val lower = round.lowercase()
-        return when {
-            lower.contains("group") -> "group"
-            lower.contains("32") -> "round_of_32"
-            lower.contains("16") -> "round_of_16"
-            lower.contains("quarter") -> "quarter"
-            lower.contains("semi") -> "semi"
-            lower.contains("final") && !lower.contains("semi") -> "final"
-            else -> "group"
-        }
-    }
-
-    fun mapApiStatus(short: String): String = when (short) {
-        "FT", "AET", "PEN" -> "finished"
-        "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE" -> "ongoing"
-        else -> "not_started"
     }
 }
