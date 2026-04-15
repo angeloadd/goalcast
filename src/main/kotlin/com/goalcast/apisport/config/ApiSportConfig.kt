@@ -1,26 +1,30 @@
-package com.goalcast.config
+package com.goalcast.apisport.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.web.client.RestClient
 
 @ConfigurationProperties(prefix = "apisport")
+@Profile("!testing")
 data class ApiSportProperties(
-    val baseUrl: String = "https://v3.football.api-sports.io",
+    val baseUrl: String = "",
     val apiKey: String = "",
-    val leagueId: Int = 1,
-    val season: Int = 2026,
 )
 
 @Configuration
+@Profile("!testing")
 class ApiSportConfig {
+    companion object {
+        private const val APISPORT_KEY_HEADER = "x-apisports-key"
+    }
 
     @Bean
     fun apiSportRestClient(properties: ApiSportProperties): RestClient {
         return RestClient.builder()
             .baseUrl(properties.baseUrl)
-            .defaultHeader("x-apisports-key", properties.apiKey)
+            .defaultHeader(APISPORT_KEY_HEADER, properties.apiKey)
             .build()
     }
 }
