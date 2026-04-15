@@ -5,6 +5,7 @@ import com.goalcast.apisport.dto.GameStatus
 import com.goalcast.apisport.dto.SyncedGame
 import com.goalcast.apisport.dto.SyncedPlayer
 import com.goalcast.apisport.dto.SyncedTeam
+import com.goalcast.apisport.dto.SyncedGoal
 import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.exception.MissingApiSportPropException
 import org.springframework.stereotype.Component
@@ -74,6 +75,29 @@ class ApiSportMapper {
                 awayTeamApiId = node.path("teams").path("away").path("id").asInt(),
                 homeScore = node.path("goals").path("home").let { if (it.isNull) null else it.asInt() },
                 awayScore = node.path("goals").path("away").let { if (it.isNull) null else it.asInt() },
+            )
+        }
+    }
+
+    fun mapToSyncedGoals(response: List<JsonNode>): List<SyncedGoal> {
+        return response.mapNotNull { node ->
+            val detail = node.path("detail").asString()
+            if (detail.contains("Missed")) return@mapNotNull null
+
+            val time = node.path("time")
+            val elapsed = time.path("elapsed").asInt()
+            val extra = if (time.path("extra").isNull) 0 else time.path("extra").asInt()
+            val comment = node.path("comments").let { if (it.isNull) "" else it.asString() }
+
+            if (elapsed == 120 && extra > 0 && comment.contains("Penalty", ignoreCase = true)) {
+                return@mapNotNull null
+            }
+
+            SyncedGoal(
+                playerApiId = node.path("player").path("id").asInt(),
+                scoringTeamApiId = node.path("team").path("id").asInt(),
+                isOwnGoal = detail.contains("Own", ignoreCase = true),
+                scoredAt = elapsed + extra,
             )
         }
     }
