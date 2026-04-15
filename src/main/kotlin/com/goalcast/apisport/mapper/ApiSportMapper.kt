@@ -1,5 +1,6 @@
 package com.goalcast.apisport.mapper
 
+import com.goalcast.apisport.dto.SyncedTeam
 import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.exception.MissingApiSportPropException
 import org.springframework.stereotype.Component
@@ -29,5 +30,18 @@ class ApiSportMapper {
             isCup = leagueNode.requireString("type", id, season).equals("cup", true),
             season = season,
         )
+    }
+
+    fun mapToSyncedTeams(response: List<JsonNode>): List<SyncedTeam> {
+        return response.map { node ->
+            val t = node.path("team")
+            SyncedTeam(
+                apiId = t.path("id").asInt(),
+                name = t.path("name").asString(),
+                code = t.path("code").asString(null),
+                logo = t.path("logo").asString(null),
+                isNational = t.path("national").asBoolean(false),
+            )
+        }
     }
 }
