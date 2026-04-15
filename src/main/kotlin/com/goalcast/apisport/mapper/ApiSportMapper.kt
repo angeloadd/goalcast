@@ -1,5 +1,6 @@
 package com.goalcast.apisport.mapper
 
+import com.goalcast.apisport.dto.SyncedPlayer
 import com.goalcast.apisport.dto.SyncedTeam
 import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.exception.MissingApiSportPropException
@@ -41,6 +42,16 @@ class ApiSportMapper {
                 code = t.path("code").asString(null),
                 logo = t.path("logo").asString(null),
                 isNational = t.path("national").asBoolean(false),
+            )
+        }
+    }
+
+    fun mapToSyncedPlayers(response: List<JsonNode>): List<SyncedPlayer> {
+        if (response.isEmpty()) return emptyList()
+        return response[0].path("players").map { p ->
+            SyncedPlayer(
+                apiId = p.path("id").asInt(),
+                displayedName = p.path("name").asString(),
             )
         }
     }
