@@ -6,7 +6,9 @@ import com.goalcast.apisport.dto.GameStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.MethodSource
 import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 
@@ -100,5 +102,22 @@ class SyncedGameApiSportMapperTest : BaseUnitTest() {
         val nodes = parse(fixtureJson(statusShort = statusShort)).toList()
         val result = mapper.mapToSyncedGames(nodes)
         assertThat(result[0].status).isEqualTo(expected)
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("winnerCases")
+    @Suppress("UNUSED_PARAMETER")
+    fun `mapWinnerTeamApiId returns correct winner`(description: String, homeWinner: String, awayWinner: String, expected: Int?) {
+        val json = """{"teams": {"home": {"id": 26, "winner": $homeWinner}, "away": {"id": 2, "winner": $awayWinner}}}"""
+        assertThat(mapper.mapWinnerTeamApiId(parse(json))).isEqualTo(expected)
+    }
+
+    companion object {
+        @JvmStatic
+        fun winnerCases(): java.util.stream.Stream<Arguments> = java.util.stream.Stream.of(
+            Arguments.of("home wins", "true", "false", 26),
+            Arguments.of("away wins", "false", "true", 2),
+            Arguments.of("no winner", "null", "null", null),
+        )
     }
 }

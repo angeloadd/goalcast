@@ -14,15 +14,22 @@ import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
 
 class SyncedTopScorerApiSportServiceTest : BaseUnitTest() {
-    @InjectMockKs lateinit var apiSportService: ApiSportService
-    @MockK lateinit var apiSportClient: ApiSportClient
-    @MockK lateinit var mapper: ApiSportMapper
+    @InjectMockKs
+    lateinit var apiSportService: ApiSportService
+
+    @MockK
+    lateinit var apiSportClient: ApiSportClient
+
+    @MockK
+    lateinit var mapper: ApiSportMapper
 
     @Test
     fun `getTopScorers calls client and mapper with correct params`() {
         val node = mockk<JsonNode>()
         val expected = listOf(SyncedTopScorer(100))
-        every { apiSportClient.get("players/topscorers", mapOf("league" to "1", "season" to "2026")) } returns listOf(node)
+        every { apiSportClient.get("players/topscorers", mapOf("league" to "1", "season" to "2026")) } returns listOf(
+            node
+        )
         every { mapper.mapToSyncedTopScorers(listOf(node)) } returns expected
 
         val result = apiSportService.getTopScorers(1, 2026)

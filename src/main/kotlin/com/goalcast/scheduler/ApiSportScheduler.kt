@@ -63,6 +63,7 @@ class ApiSportScheduler(
                 log.info("{} games just finished, checking goals", newlyFinished.size)
             }
             syncService.syncMissingGoals()
+            syncService.syncWinnerAndTopScorers()
         }
     }
 

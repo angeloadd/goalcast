@@ -1,9 +1,28 @@
 package com.goalcast.service
 
-import com.goalcast.apisport.dto.*
+import com.goalcast.apisport.dto.SyncedGame
+import com.goalcast.apisport.dto.SyncedGoal
+import com.goalcast.apisport.dto.SyncedPlayer
+import com.goalcast.apisport.dto.SyncedTeam
+import com.goalcast.apisport.dto.SyncedTopScorer
+import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.service.ApiSportService
-import com.goalcast.entity.*
-import com.goalcast.repository.*
+import com.goalcast.entity.Game
+import com.goalcast.entity.GameGoal
+import com.goalcast.entity.GameTeam
+import com.goalcast.entity.Player
+import com.goalcast.entity.PlayerTournament
+import com.goalcast.entity.Team
+import com.goalcast.entity.TeamTournament
+import com.goalcast.entity.Tournament
+import com.goalcast.repository.GameGoalRepository
+import com.goalcast.repository.GameRepository
+import com.goalcast.repository.GameTeamRepository
+import com.goalcast.repository.PlayerRepository
+import com.goalcast.repository.PlayerTournamentRepository
+import com.goalcast.repository.TeamRepository
+import com.goalcast.repository.TeamTournamentRepository
+import com.goalcast.repository.TournamentRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +45,7 @@ class ApiSportSyncService(
 
     companion object {
         const val LEAGUE_ID = 1
-        const val SEASON = 2026
+        const val SEASON = 2024
     }
 
     @Transactional
@@ -130,7 +149,13 @@ class ApiSportSyncService(
             if (isNew) hasNewGames = true
 
             val game = existingGames[synced.apiId]
-                ?: Game(apiId = synced.apiId, tournament = tournament, stage = synced.stage, phase = synced.phase.dbValue, startedAt = synced.startedAt)
+                ?: Game(
+                    apiId = synced.apiId,
+                    tournament = tournament,
+                    stage = synced.stage,
+                    phase = synced.phase.dbValue,
+                    startedAt = synced.startedAt
+                )
             game.stage = synced.stage
             game.phase = synced.phase.dbValue
             game.status = synced.status.dbValue
@@ -190,7 +215,13 @@ class ApiSportSyncService(
                 if (synced.scoringTeamApiId == homeTeam?.apiId) homeTeam else awayTeam
             }
             creditedTeam?.let {
-                GameGoal(game = game, player = player, team = it, isOwnGoal = synced.isOwnGoal, scoredAt = synced.scoredAt)
+                GameGoal(
+                    game = game,
+                    player = player,
+                    team = it,
+                    isOwnGoal = synced.isOwnGoal,
+                    scoredAt = synced.scoredAt
+                )
             }
         }
 
@@ -244,8 +275,12 @@ class ApiSportSyncService(
                 val gameTeams = gameTeamRepository.findByGameId(game.id)
                 val home = gameTeams.find { !it.isAway }
                 val away = gameTeams.find { it.isAway }
-                if (home != null && synced.homeScore != null) { home.score = synced.homeScore; gameTeamRepository.save(home) }
-                if (away != null && synced.awayScore != null) { away.score = synced.awayScore; gameTeamRepository.save(away) }
+                if (home != null && synced.homeScore != null) {
+                    home.score = synced.homeScore; gameTeamRepository.save(home)
+                }
+                if (away != null && synced.awayScore != null) {
+                    away.score = synced.awayScore; gameTeamRepository.save(away)
+                }
 
                 if (newStatus == "finished") newlyFinished.add(game)
             }
@@ -278,20 +313,31 @@ class ApiSportSyncService(
     }
 
     @Transactional
-    fun syncWinner() {
+    fun syncWinnerAndTopScorers() {
         val tournament = getTournament()
-        val finalGames = gameRepository.findByTournamentIdOrderByStartedAt(tournament.id)
-            .filter { it.isFinal() && it.isFinished() }
-        if (finalGames.isEmpty()) return
 
-        val finalGame = finalGames.last()
-        val gameTeams = gameTeamRepository.findByGameId(finalGame.id)
-        val winner = gameTeams.maxByOrNull { it.score ?: 0 }?.team ?: return
+        val finalGame = gameRepository.findFirstByTournamentIdAndPhaseOrderByStartedAtAsc(tournament.id, "final")
+        if (finalGame == null || !finalGame.isFinished()) return
 
-        val tt = teamTournamentRepository.findByTeamIdAndTournamentId(winner.id, tournament.id) ?: return
-        tt.isWinner = true
-        teamTournamentRepository.save(tt)
-        log.info("Tournament winner: {}", winner.name)
+        val apiId = finalGame.apiId ?: return
+
+        // Sync winner — use API's winner flag (handles penalty shootouts correctly)
+        val winnerTeamApiId = apiSportService.getFixtureWinnerTeamApiId(apiId)
+        if (winnerTeamApiId != null) {
+            val winnerTeam = teamRepository.findByApiId(winnerTeamApiId)
+            if (winnerTeam != null) {
+                val tt = teamTournamentRepository.findByTeamIdAndTournamentId(winnerTeam.id, tournament.id)
+                if (tt != null && !tt.isWinner) {
+                    tt.isWinner = true
+                    teamTournamentRepository.save(tt)
+                    log.info("Tournament winner: {}", winnerTeam.name)
+                }
+            }
+        }
+
+        // Sync top scorers
+        val topScorers = apiSportService.getTopScorers(LEAGUE_ID, SEASON)
+        syncTopScorers(topScorers)
     }
 
     private fun updateTournamentDates(tournament: Tournament) {

@@ -16,11 +16,16 @@ import org.springframework.test.web.servlet.post
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles("testing")
 class AuthControllerTest {
-    @Autowired lateinit var mockMvc: MockMvc
-    @Autowired lateinit var userRepository: UserRepository
-    @Autowired lateinit var passwordEncoder: PasswordEncoder
+    @Autowired
+    lateinit var mockMvc: MockMvc
+
+    @Autowired
+    lateinit var userRepository: UserRepository
+
+    @Autowired
+    lateinit var passwordEncoder: PasswordEncoder
 
     @BeforeEach
     fun setup() {

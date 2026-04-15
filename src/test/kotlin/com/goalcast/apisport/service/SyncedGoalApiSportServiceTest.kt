@@ -14,15 +14,25 @@ import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
 
 class SyncedGoalApiSportServiceTest : BaseUnitTest() {
-    @InjectMockKs lateinit var apiSportService: ApiSportService
-    @MockK lateinit var apiSportClient: ApiSportClient
-    @MockK lateinit var mapper: ApiSportMapper
+    @InjectMockKs
+    lateinit var apiSportService: ApiSportService
+
+    @MockK
+    lateinit var apiSportClient: ApiSportClient
+
+    @MockK
+    lateinit var mapper: ApiSportMapper
 
     @Test
     fun `getGoals calls client with fixture id and type Goal`() {
         val node = mockk<JsonNode>()
         val expected = listOf(SyncedGoal(6126, 463, false, 25))
-        every { apiSportClient.get("fixtures/events", mapOf("fixture" to "999", "type" to "Goal")) } returns listOf(node)
+        every {
+            apiSportClient.get(
+                "fixtures/events",
+                mapOf("fixture" to "999", "type" to "Goal")
+            )
+        } returns listOf(node)
         every { mapper.mapToSyncedGoals(listOf(node)) } returns expected
 
         val result = apiSportService.getGoals(999)

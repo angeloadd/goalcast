@@ -16,8 +16,8 @@ class Tournament(
     @Column(nullable = false)
     var name: String,
 
-    @Column
-    var country: String? = null,
+    @Column(nullable = false)
+    var country: String,
 
     @Column
     var logo: String? = null,

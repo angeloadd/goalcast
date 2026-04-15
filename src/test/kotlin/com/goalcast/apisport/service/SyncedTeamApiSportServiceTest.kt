@@ -14,9 +14,14 @@ import org.junit.jupiter.api.Test
 import tools.jackson.databind.JsonNode
 
 class SyncedTeamApiSportServiceTest : BaseUnitTest() {
-    @InjectMockKs lateinit var apiSportService: ApiSportService
-    @MockK lateinit var apiSportClient: ApiSportClient
-    @MockK lateinit var mapper: ApiSportMapper
+    @InjectMockKs
+    lateinit var apiSportService: ApiSportService
+
+    @MockK
+    lateinit var apiSportClient: ApiSportClient
+
+    @MockK
+    lateinit var mapper: ApiSportMapper
 
     @Test
     fun `getTeams calls client and mapper with correct params`() {

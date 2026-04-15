@@ -16,12 +16,6 @@ class Player(
     @Column(name = "displayed_name", nullable = false)
     var displayedName: String,
 
-    @Column(name = "first_name")
-    var firstName: String? = null,
-
-    @Column(name = "last_name")
-    var lastName: String? = null,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "club_id")
     var club: Team? = null,

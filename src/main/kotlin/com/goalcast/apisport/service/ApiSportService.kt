@@ -50,6 +50,15 @@ class ApiSportService(private val apiSportClient: ApiSportClient, private val ma
         return mapper.mapToSyncedGoals(results)
     }
 
+    fun getFixtureWinnerTeamApiId(fixtureId: Int): Int? {
+        val results = apiSportClient.get(
+            "fixtures",
+            mapOf("id" to fixtureId.toString())
+        )
+        if (results.isEmpty()) return null
+        return mapper.mapWinnerTeamApiId(results[0])
+    }
+
     fun getTopScorers(leagueId: Int, season: Int): List<SyncedTopScorer> {
         val results = apiSportClient.get(
             "players/topscorers",

@@ -122,6 +122,16 @@ class ApiSportMapper {
         else -> GameStatus.NOT_STARTED
     }
 
+    fun mapWinnerTeamApiId(fixtureNode: JsonNode): Int? {
+        val home = fixtureNode.path("teams").path("home")
+        val away = fixtureNode.path("teams").path("away")
+        return when {
+            home.path("winner").asBoolean(false) -> home.path("id").asInt()
+            away.path("winner").asBoolean(false) -> away.path("id").asInt()
+            else -> null
+        }
+    }
+
     fun mapToSyncedTopScorers(response: List<JsonNode>): List<SyncedTopScorer> {
         if (response.isEmpty()) return emptyList()
         val topGoals = response[0].path("statistics")[0].path("goals").path("total").asInt()
