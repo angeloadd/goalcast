@@ -26,6 +26,7 @@ class WebSecurityConfig {
                 authorize("/api/auth/login", permitAll)
                 authorize("/api/auth/register", permitAll)
                 authorize("/api/locale", permitAll)
+                authorize("/api/sync/**", permitAll) // TODO: remove, temporary for testing
                 authorize("/api/**", authenticated)
                 authorize(anyRequest, permitAll)
             }
