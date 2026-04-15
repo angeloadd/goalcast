@@ -1,5 +1,8 @@
 package com.goalcast.apisport.mapper
 
+import com.goalcast.apisport.dto.GamePhase
+import com.goalcast.apisport.dto.GameStatus
+import com.goalcast.apisport.dto.SyncedGame
 import com.goalcast.apisport.dto.SyncedPlayer
 import com.goalcast.apisport.dto.SyncedTeam
 import com.goalcast.apisport.dto.SyncedTournament
@@ -7,6 +10,7 @@ import com.goalcast.apisport.exception.MissingApiSportPropException
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.exc.JsonNodeException
+import java.time.Instant
 
 private fun JsonNode.requireString(field: String, id: Int, season: Int): String {
     return try {
@@ -54,5 +58,42 @@ class ApiSportMapper {
                 displayedName = p.path("name").asString(),
             )
         }
+    }
+
+    fun mapToSyncedGames(response: List<JsonNode>): List<SyncedGame> {
+        return response.map { node ->
+            val fixture = node.path("fixture")
+            val round = node.path("league").path("round").asString()
+            SyncedGame(
+                apiId = fixture.path("id").asInt(),
+                stage = round,
+                phase = mapRoundToPhase(round),
+                status = mapApiStatus(fixture.path("status").path("short").asString()),
+                startedAt = Instant.ofEpochSecond(fixture.path("timestamp").asLong()),
+                homeTeamApiId = node.path("teams").path("home").path("id").asInt(),
+                awayTeamApiId = node.path("teams").path("away").path("id").asInt(),
+                homeScore = node.path("goals").path("home").let { if (it.isNull) null else it.asInt() },
+                awayScore = node.path("goals").path("away").let { if (it.isNull) null else it.asInt() },
+            )
+        }
+    }
+
+    private fun mapRoundToPhase(round: String): GamePhase {
+        val lower = round.lowercase()
+        return when {
+            lower.contains("group") -> GamePhase.GROUP
+            lower.contains("32") -> GamePhase.ROUND_OF_32
+            lower.contains("16") -> GamePhase.ROUND_OF_16
+            lower.contains("quarter") -> GamePhase.QUARTER
+            lower.contains("semi") -> GamePhase.SEMI
+            lower.contains("final") && !lower.contains("semi") -> GamePhase.FINAL
+            else -> GamePhase.GROUP
+        }
+    }
+
+    private fun mapApiStatus(short: String): GameStatus = when (short) {
+        "FT", "AET", "PEN" -> GameStatus.FINISHED
+        "1H", "HT", "2H", "ET", "BT", "P", "SUSP", "INT", "LIVE" -> GameStatus.ONGOING
+        else -> GameStatus.NOT_STARTED
     }
 }
