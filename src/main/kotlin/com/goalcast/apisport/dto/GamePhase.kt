@@ -6,5 +6,6 @@ enum class GamePhase(val dbValue: String) {
     ROUND_OF_16("round_of_16"),
     QUARTER("quarter"),
     SEMI("semi"),
+    FINAL_3_4("final_3_4"),
     FINAL("final");
 }

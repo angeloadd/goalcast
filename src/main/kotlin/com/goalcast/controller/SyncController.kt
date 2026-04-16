@@ -2,9 +2,8 @@ package com.goalcast.controller
 
 import com.goalcast.apisport.service.ApiSportService
 import com.goalcast.service.ApiSportSyncService
-import com.goalcast.service.ApiSportSyncService.Companion.LEAGUE_ID
-import com.goalcast.service.ApiSportSyncService.Companion.SEASON
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -22,12 +21,12 @@ class SyncController(
 ) {
     @PostMapping("/tournament")
     @ResponseStatus(HttpStatus.OK)
-    fun syncTournament() = mapOf("result" to syncService.syncTournament(apiSportService.getTournament(LEAGUE_ID, SEASON)).name)
+    fun syncTournament() = mapOf("result" to syncService.syncTournament(apiSportService.getTournament(1, 2022)).name)
 
     @PostMapping("/teams")
     @ResponseStatus(HttpStatus.OK)
     fun syncTeams(): Map<String, String> {
-        syncService.syncTeams(apiSportService.getTeams(LEAGUE_ID, SEASON))
+        syncService.syncTeams(apiSportService.getTeams(1, 2022))
         return mapOf("result" to "ok")
     }
 
@@ -41,10 +40,17 @@ class SyncController(
         return mapOf("result" to "ok")
     }
 
+    @PostMapping("/players/{teamApiId}")
+    @ResponseStatus(HttpStatus.OK)
+    fun syncPlayersForTeam(@PathVariable teamApiId: Int): Map<String, String> {
+        syncService.syncPlayers(teamApiId, apiSportService.getPlayers(teamApiId))
+        return mapOf("result" to "ok")
+    }
+
     @PostMapping("/games")
     @ResponseStatus(HttpStatus.OK)
     fun syncGames(): Map<String, String> {
-        syncService.syncGames(apiSportService.getGames(LEAGUE_ID, SEASON))
+        syncService.syncGames(apiSportService.getGames(1, 2022))
         return mapOf("result" to "ok")
     }
 
@@ -57,8 +63,32 @@ class SyncController(
 
     @PostMapping("/goals")
     @ResponseStatus(HttpStatus.OK)
-    fun syncGoals(): Map<String, String> {
+    fun syncMissingGoals(): Map<String, String> {
         syncService.syncMissingGoals()
+        return mapOf("result" to "ok")
+    }
+
+    @PostMapping("/goals/{gameApiId}")
+    @ResponseStatus(HttpStatus.OK)
+    fun syncGoalsForGame(@PathVariable gameApiId: Int): Map<String, String> {
+        val goals = apiSportService.getGoals(gameApiId)
+        syncService.syncGoals(gameApiId, goals)
+        return mapOf("result" to "ok", "goals" to goals.size.toString())
+    }
+
+    @PostMapping("/winner")
+    @ResponseStatus(HttpStatus.OK)
+    fun syncWinnerAndTopScorers(): Map<String, String> {
+        syncService.syncWinnerAndTopScorers()
+        return mapOf("result" to "ok")
+    }
+
+    @PostMapping("/all")
+    @ResponseStatus(HttpStatus.OK)
+    fun syncAll(): Map<String, String> {
+        syncService.syncTournament(apiSportService.getTournament(1, 2022))
+        syncService.syncTeams(apiSportService.getTeams(1, 2022))
+        syncService.syncGames(apiSportService.getGames(1, 2022))
         return mapOf("result" to "ok")
     }
 }

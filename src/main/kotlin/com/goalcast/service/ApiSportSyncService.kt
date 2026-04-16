@@ -4,7 +4,6 @@ import com.goalcast.apisport.dto.SyncedGame
 import com.goalcast.apisport.dto.SyncedGoal
 import com.goalcast.apisport.dto.SyncedPlayer
 import com.goalcast.apisport.dto.SyncedTeam
-import com.goalcast.apisport.dto.SyncedTopScorer
 import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.service.ApiSportService
 import com.goalcast.entity.Game
@@ -43,11 +42,6 @@ class ApiSportSyncService(
 ) {
     private val log = LoggerFactory.getLogger(ApiSportSyncService::class.java)
 
-    companion object {
-        const val LEAGUE_ID = 1
-        const val SEASON = 2024
-    }
-
     @Transactional
     fun syncTournament(synced: SyncedTournament): Tournament {
         val tournament = tournamentRepository.findByApiId(synced.apiId)
@@ -66,7 +60,7 @@ class ApiSportSyncService(
     }
 
     fun getTournament(): Tournament {
-        return requireNotNull(tournamentRepository.findByApiId(LEAGUE_ID)) {
+        return requireNotNull(tournamentRepository.findByApiId(1)) {
             "Tournament not synced yet. Run syncTournament() first."
         }
     }
@@ -230,18 +224,6 @@ class ApiSportSyncService(
     }
 
     @Transactional
-    fun syncTopScorers(topScorers: List<SyncedTopScorer>) {
-        val tournament = getTournament()
-        for (synced in topScorers) {
-            val player = playerRepository.findByApiId(synced.playerApiId) ?: continue
-            val pt = playerTournamentRepository.findByPlayerIdAndTournamentId(player.id, tournament.id) ?: continue
-            pt.isTopScorer = true
-            playerTournamentRepository.save(pt)
-        }
-        log.info("Synced {} top scorers", topScorers.size)
-    }
-
-    @Transactional
     fun syncGameStatuses(): List<Game> {
         val now = clock.instant()
         val shouldHaveStarted = gameRepository.findByStatusAndStartedAtBefore("not_started", now)
@@ -255,7 +237,7 @@ class ApiSportSyncService(
 
         log.info("Checking status for {} games", gamesToCheck.size)
 
-        val allGames = apiSportService.getGames(LEAGUE_ID, SEASON)
+        val allGames = apiSportService.getGames(1, 2022)
         val apiIdToGame = allGames.associateBy { it.apiId }
 
         val newlyFinished = mutableListOf<Game>()
@@ -336,8 +318,14 @@ class ApiSportSyncService(
         }
 
         // Sync top scorers
-        val topScorers = apiSportService.getTopScorers(LEAGUE_ID, SEASON)
-        syncTopScorers(topScorers)
+        val topScorers = apiSportService.getTopScorers(1, 2022)
+        for (synced in topScorers) {
+            val player = playerRepository.findByApiId(synced.playerApiId) ?: continue
+            val pt = playerTournamentRepository.findByPlayerIdAndTournamentId(player.id, tournament.id) ?: continue
+            pt.isTopScorer = true
+            playerTournamentRepository.save(pt)
+        }
+        log.info("Synced {} top scorers", topScorers.size)
     }
 
     private fun updateTournamentDates(tournament: Tournament) {

@@ -3,11 +3,11 @@ package com.goalcast.apisport.mapper
 import com.goalcast.apisport.dto.GamePhase
 import com.goalcast.apisport.dto.GameStatus
 import com.goalcast.apisport.dto.SyncedGame
+import com.goalcast.apisport.dto.SyncedGoal
 import com.goalcast.apisport.dto.SyncedPlayer
 import com.goalcast.apisport.dto.SyncedTeam
-import com.goalcast.apisport.dto.SyncedGoal
-import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.dto.SyncedTopScorer
+import com.goalcast.apisport.dto.SyncedTournament
 import com.goalcast.apisport.exception.MissingApiSportPropException
 import org.springframework.stereotype.Component
 import tools.jackson.databind.JsonNode
@@ -104,15 +104,17 @@ class ApiSportMapper {
     }
 
     private fun mapRoundToPhase(round: String): GamePhase {
-        val lower = round.lowercase()
-        return when {
-            lower.contains("group") -> GamePhase.GROUP
-            lower.contains("32") -> GamePhase.ROUND_OF_32
-            lower.contains("16") -> GamePhase.ROUND_OF_16
-            lower.contains("quarter") -> GamePhase.QUARTER
-            lower.contains("semi") -> GamePhase.SEMI
-            lower.contains("final") && !lower.contains("semi") -> GamePhase.FINAL
-            else -> GamePhase.GROUP
+        return round.lowercase().let {
+            when {
+                it.contains("group") -> GamePhase.GROUP
+                it.contains("32") -> GamePhase.ROUND_OF_32
+                it.contains("16") -> GamePhase.ROUND_OF_16
+                it.contains("quarter") -> GamePhase.QUARTER
+                it.contains("semi") -> GamePhase.SEMI
+                it.contains("3rd") -> GamePhase.FINAL_3_4
+                it.contains("final") && !it.contains("semi") && !it.contains("quarter") && !it.contains("3rd") -> GamePhase.FINAL
+                else -> GamePhase.GROUP
+            }
         }
     }
 

@@ -4,7 +4,7 @@ CREATE TABLE games (
     tournament_id BIGINT NOT NULL REFERENCES tournaments(id),
     stage         VARCHAR(100) NOT NULL,
     phase         VARCHAR(20) NOT NULL CHECK (
-        phase IN ('group', 'round_of_32', 'round_of_16', 'quarter', 'semi', 'final')
+        phase IN ('group', 'round_of_32', 'round_of_16', 'quarter', 'semi', 'final_3_4', 'final')
     ),
     status        VARCHAR(20) NOT NULL DEFAULT 'not_started' CHECK (
         status IN ('not_started', 'ongoing', 'finished')

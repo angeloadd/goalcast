@@ -2,8 +2,6 @@ package com.goalcast.scheduler
 
 import com.goalcast.apisport.service.ApiSportService
 import com.goalcast.service.ApiSportSyncService
-import com.goalcast.service.ApiSportSyncService.Companion.LEAGUE_ID
-import com.goalcast.service.ApiSportSyncService.Companion.SEASON
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -19,7 +17,7 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 0 6 * * *")
     fun syncTournament() {
         runSync("tournament") {
-            val synced = apiSportService.getTournament(LEAGUE_ID, SEASON)
+            val synced = apiSportService.getTournament(1, 2022)
             syncService.syncTournament(synced)
         }
     }
@@ -28,7 +26,7 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 0 7 * * *")
     fun syncTeams() {
         runSync("teams") {
-            val teams = apiSportService.getTeams(LEAGUE_ID, SEASON)
+            val teams = apiSportService.getTeams(1, 2022)
             syncService.syncTeams(teams)
         }
     }
@@ -49,7 +47,7 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 0 9 * * *")
     fun syncGames() {
         runSync("games") {
-            val games = apiSportService.getGames(LEAGUE_ID, SEASON)
+            val games = apiSportService.getGames(1, 2022)
             syncService.syncGames(games)
         }
     }

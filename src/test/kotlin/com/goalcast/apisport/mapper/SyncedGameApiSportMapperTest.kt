@@ -83,6 +83,7 @@ class SyncedGameApiSportMapperTest : BaseUnitTest() {
         "Round of 16, ROUND_OF_16",
         "Quarter-finals, QUARTER",
         "Semi-finals, SEMI",
+        "3rd Place Final, FINAL_3_4",
         "Final, FINAL",
         "Unknown Round, GROUP",
     )
