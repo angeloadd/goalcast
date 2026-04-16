@@ -11,13 +11,17 @@ class ApiSportScheduler(
     private val apiSportService: ApiSportService,
     private val syncService: ApiSportSyncService,
 ) {
-    private val log = LoggerFactory.getLogger(ApiSportScheduler::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(ApiSportScheduler::class.java)
+        private const val SEASON = 2026
+        private const val API_ID = 1
+    }
 
     // Daily at 06:00 UTC (08:00 Berlin) — sync tournament metadata
     @Scheduled(cron = "0 0 6 * * *")
     fun syncTournament() {
         runSync("tournament") {
-            val synced = apiSportService.getTournament(1, 2022)
+            val synced = apiSportService.getTournament(API_ID, SEASON)
             syncService.syncTournament(synced)
         }
     }
@@ -26,8 +30,8 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 0 7 * * *")
     fun syncTeams() {
         runSync("teams") {
-            val teams = apiSportService.getTeams(1, 2022)
-            syncService.syncTeams(teams)
+            val teams = apiSportService.getTeams(API_ID, SEASON)
+            syncService.syncTeamsForTournamentWithApiIdAndSeason(API_ID, SEASON, teams)
         }
     }
 
@@ -35,10 +39,9 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 0 8 * * *")
     fun syncPlayers() {
         runSync("players") {
-            val teamApiIds = syncService.getTeamApiIdsForTournament()
-            for (teamApiId in teamApiIds) {
-                val players = apiSportService.getPlayers(teamApiId)
-                syncService.syncPlayers(teamApiId, players)
+            syncService.getTeamApiIdsForTournament(API_ID, SEASON).forEach {
+                val players = apiSportService.getPlayers(it)
+                syncService.syncPlayers(API_ID, SEASON, it, players)
             }
         }
     }
@@ -47,8 +50,8 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 0 9 * * *")
     fun syncGames() {
         runSync("games") {
-            val games = apiSportService.getGames(1, 2022)
-            syncService.syncGames(games)
+            val games = apiSportService.getGames(API_ID, SEASON)
+            syncService.syncGames(API_ID, SEASON, games)
         }
     }
 
@@ -56,12 +59,12 @@ class ApiSportScheduler(
     @Scheduled(cron = "0 */5 15-23,0-5 * * *")
     fun liveSync() {
         runSync("live") {
-            val newlyFinished = syncService.syncGameStatuses()
+            val newlyFinished = syncService.syncGameStatuses(API_ID, SEASON)
             if (newlyFinished.isNotEmpty()) {
                 log.info("{} games just finished, checking goals", newlyFinished.size)
             }
-            syncService.syncMissingGoals()
-            syncService.syncWinnerAndTopScorers()
+            syncService.syncMissingGoals(API_ID, SEASON)
+            syncService.syncWinnerAndTopScorers(API_ID, SEASON)
         }
     }
 

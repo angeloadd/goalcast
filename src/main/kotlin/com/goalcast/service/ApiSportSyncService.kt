@@ -44,7 +44,7 @@ class ApiSportSyncService(
 
     @Transactional
     fun syncTournament(synced: SyncedTournament): Tournament {
-        val tournament = tournamentRepository.findByApiId(synced.apiId)
+        val tournament = tournamentRepository.findByApiIdAndSeason(synced.apiId, synced.season)
             ?: Tournament(apiId = synced.apiId, name = synced.name, season = synced.season, country = synced.country)
 
         tournament.apply {
@@ -54,82 +54,81 @@ class ApiSportSyncService(
             isCup = synced.isCup
             updatedAt = clock.instant()
         }
+
         tournamentRepository.save(tournament)
+
         log.info("Tournament[name={},apiId={},season={}]: synced", synced.name, synced.apiId, synced.season)
+
         return tournament
     }
 
-    fun getTournament(): Tournament {
-        return requireNotNull(tournamentRepository.findByApiId(1)) {
-            "Tournament not synced yet. Run syncTournament() first."
-        }
-    }
+    fun getTeamApiIdsForTournament(tournamentApiId: Int, season: Int): List<Int> {
+        val tournament = getTournament(tournamentApiId, season)
 
-    fun getTeamApiIdsForTournament(): List<Int> {
-        val tournament = getTournament()
         return teamTournamentRepository.findByTournamentId(tournament.id).map { it.team.apiId }
     }
 
     @Transactional
-    fun syncTeams(teams: List<SyncedTeam>) {
-        val tournament = getTournament()
-        val existingTeams = teamRepository.findAll().associateBy { it.apiId }
-        val existingTT = teamTournamentRepository.findByTournamentId(tournament.id).associateBy { it.team.apiId }
+    fun syncTeamsForTournamentWithApiIdAndSeason(tournamentApiId: Int, season: Int, teams: List<SyncedTeam>) {
+        val tournament = getTournament(tournamentApiId, season)
+        val existingTT =
+            teamTournamentRepository.findByTournamentIdWithTeams(tournament.id).associateBy { it.team.apiId }
 
-        val teamsToSave = mutableListOf<Team>()
-        val ttToSave = mutableListOf<TeamTournament>()
-
-        for (synced in teams) {
-            val team = existingTeams[synced.apiId]
-                ?: Team(apiId = synced.apiId, name = synced.name)
-            team.name = synced.name
-            team.code = synced.code
-            team.logo = synced.logo
-            team.isNational = synced.isNational
-            team.updatedAt = clock.instant()
-            teamsToSave.add(team)
-
-            if (synced.apiId !in existingTT) {
-                ttToSave.add(TeamTournament(team = team, tournament = tournament))
+        teams.associate {
+            val team = existingTT[it.apiId]?.team
+                ?: Team(apiId = it.apiId, name = it.name)
+            team.apply {
+                name = it.name
+                code = it.code
+                logo = it.logo
+                isNational = it.isNational
+                updatedAt = clock.instant()
             }
-        }
 
-        teamRepository.saveAll(teamsToSave)
-        teamTournamentRepository.saveAll(ttToSave)
-        log.info("Synced {} teams", teams.size)
+            val tt = existingTT[it.apiId] ?: TeamTournament(team = team, tournament = tournament)
+
+            tt to team
+        }.run {
+            teamRepository.saveAll(values)
+            teamTournamentRepository.saveAll(keys)
+            log.info("Synced {} teams", teams.size)
+        }
     }
 
     @Transactional
-    fun syncPlayers(teamApiId: Int, players: List<SyncedPlayer>) {
-        val tournament = getTournament()
-        val team = teamRepository.findByApiId(teamApiId) ?: return
-        val existingPlayers = playerRepository.findAll().associateBy { it.apiId }
-        val existingPT = playerTournamentRepository.findByTournamentId(tournament.id).associateBy { it.player.apiId }
+    fun syncPlayers(tournamentApiId: Int, season: Int, teamApiId: Int, players: List<SyncedPlayer>) {
+        val tournament = getTournament(tournamentApiId, season)
+        val team = teamRepository.findByApiId(teamApiId)
+        if (team == null) {
+            log.info("No Team[apiId={} found for tournament={}", tournamentApiId, tournament.name)
 
-        val playersToSave = mutableListOf<Player>()
-        val ptToSave = mutableListOf<PlayerTournament>()
+            return
+        }
+        val existingPT =
+            playerTournamentRepository.findByTournamentIdWithPlayers(tournament.id).associateBy { it.player.apiId }
 
-        for (synced in players) {
-            val player = existingPlayers[synced.apiId]
+        players.associate { synced ->
+            val player = existingPT[synced.apiId]?.player
                 ?: Player(apiId = synced.apiId, displayedName = synced.displayedName)
-            player.displayedName = synced.displayedName
-            player.national = team
-            player.updatedAt = clock.instant()
-            playersToSave.add(player)
-
-            if (synced.apiId !in existingPT) {
-                ptToSave.add(PlayerTournament(player = player, tournament = tournament))
+            player.apply {
+                displayedName = synced.displayedName
+                national = team
+                updatedAt = clock.instant()
             }
-        }
 
-        playerRepository.saveAll(playersToSave)
-        playerTournamentRepository.saveAll(ptToSave)
-        log.info("Synced {} players for team apiId={}", players.size, teamApiId)
+            val pt = existingPT[synced.apiId] ?: PlayerTournament(player = player, tournament = tournament)
+
+            pt to player
+        }.run {
+            playerRepository.saveAll(values)
+            playerTournamentRepository.saveAll(keys)
+            log.info("Synced {} players for Team[apiId={}]", players.size, teamApiId)
+        }
     }
 
     @Transactional
-    fun syncGames(games: List<SyncedGame>) {
-        val tournament = getTournament()
+    fun syncGames(tournamentApiId: Int, season: Int, games: List<SyncedGame>) {
+        val tournament = getTournament(tournamentApiId, season)
         val existingGames = gameRepository.findByTournamentIdOrderByStartedAt(tournament.id).associateBy { it.apiId }
         val existingTeams = teamRepository.findAll().associateBy { it.apiId }
         val existingGameTeams = gameTeamRepository.findAll().groupBy { it.game.id }
@@ -224,7 +223,7 @@ class ApiSportSyncService(
     }
 
     @Transactional
-    fun syncGameStatuses(): List<Game> {
+    fun syncGameStatuses(tournamentApiId: Int, season: Int): List<Game> {
         val now = clock.instant()
         val shouldHaveStarted = gameRepository.findByStatusAndStartedAtBefore("not_started", now)
         val ongoing = gameRepository.findByStatus("ongoing")
@@ -237,7 +236,7 @@ class ApiSportSyncService(
 
         log.info("Checking status for {} games", gamesToCheck.size)
 
-        val allGames = apiSportService.getGames(1, 2022)
+        val allGames = apiSportService.getGames(tournamentApiId, season)
         val apiIdToGame = allGames.associateBy { it.apiId }
 
         val newlyFinished = mutableListOf<Game>()
@@ -272,9 +271,9 @@ class ApiSportSyncService(
     }
 
     @Transactional
-    fun syncMissingGoals() {
+    fun syncMissingGoals(tournamentApiId: Int, season: Int) {
         val cutoff = clock.instant().minusSeconds(24 * 3600)
-        val tournament = getTournament()
+        val tournament = getTournament(tournamentApiId, season)
         val finishedGames = gameRepository.findByStatusAndTournamentId("finished", tournament.id)
             .filter { it.updatedAt.isAfter(cutoff) }
 
@@ -295,8 +294,8 @@ class ApiSportSyncService(
     }
 
     @Transactional
-    fun syncWinnerAndTopScorers() {
-        val tournament = getTournament()
+    fun syncWinnerAndTopScorers(tournamentApiId: Int, season: Int) {
+        val tournament = getTournament(tournamentApiId, season)
 
         val finalGame = gameRepository.findFirstByTournamentIdAndPhaseOrderByStartedAtAsc(tournament.id, "final")
         if (finalGame == null || !finalGame.isFinished()) return
@@ -318,7 +317,7 @@ class ApiSportSyncService(
         }
 
         // Sync top scorers
-        val topScorers = apiSportService.getTopScorers(1, 2022)
+        val topScorers = apiSportService.getTopScorers(tournamentApiId, season)
         for (synced in topScorers) {
             val player = playerRepository.findByApiId(synced.playerApiId) ?: continue
             val pt = playerTournamentRepository.findByPlayerIdAndTournamentId(player.id, tournament.id) ?: continue
@@ -335,5 +334,11 @@ class ApiSportSyncService(
         if (finalGame != null) tournament.finalStartedAt = finalGame.startedAt
         tournament.updatedAt = clock.instant()
         tournamentRepository.save(tournament)
+    }
+
+    private fun getTournament(id: Int, season: Int): Tournament {
+        return requireNotNull(tournamentRepository.findByApiIdAndSeason(id, season)) {
+            "Tournament not synced yet. Run syncTournament() first."
+        }
     }
 }
