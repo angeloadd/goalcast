@@ -100,7 +100,7 @@ class ApiSportSyncService(
         val tournament = getTournament(tournamentApiId, season)
         val team = teamRepository.findByApiId(teamApiId)
         if (team == null) {
-            log.info("No Team[apiId={} found for tournament={}", tournamentApiId, tournament.name)
+            log.info("No Team[apiId={}] found for Tournament[apiId={}]", teamApiId, tournamentApiId)
 
             return
         }
