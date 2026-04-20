@@ -4,7 +4,7 @@ import { Directive, ElementRef, HostListener, inject, input, Renderer2 } from '@
     selector: '[gcTooltip]',
 })
 export class TooltipDirective {
-    fbTooltip = input.required<string>();
+    gcTooltip = input.required<string>();
     private el = inject(ElementRef);
     private renderer = inject(Renderer2);
     private tooltipEl: HTMLElement | null = null;
@@ -34,7 +34,7 @@ export class TooltipDirective {
         this.renderer.addClass(this.tooltipEl, 'py-1.5');
         this.renderer.addClass(this.tooltipEl, 'text-xs');
         this.renderer.addClass(this.tooltipEl, 'shadow-md');
-        const text = this.renderer.createText(this.fbTooltip());
+        const text = this.renderer.createText(this.gcTooltip());
         this.renderer.appendChild(this.tooltipEl, text);
 
         const hostEl = this.el.nativeElement as HTMLElement;
