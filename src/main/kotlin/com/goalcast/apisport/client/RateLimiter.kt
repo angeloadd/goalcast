@@ -1,6 +1,6 @@
 package com.goalcast.apisport.client
 
-import com.goalcast.service.Sleeper
+import com.goalcast.service.SleepInterface
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Clock
@@ -8,7 +8,7 @@ import java.time.Duration
 import java.time.Instant
 
 @Component
-class RateLimiter(private val clock: Clock, private val sleeper: Sleeper) {
+class RateLimiter(private val clock: Clock, private val sleepInterface: SleepInterface) {
     companion object {
         private val log = LoggerFactory.getLogger(RateLimiter::class.java)
     }
@@ -20,7 +20,7 @@ class RateLimiter(private val clock: Clock, private val sleeper: Sleeper) {
         if (now.isBefore(waitUntil)) {
             val waitMs = Duration.between(now, waitUntil).toMillis()
             log.info("Rate limit cooldown, waiting {}ms", waitMs)
-            sleeper.sleep(waitMs)
+            sleepInterface.sleep(waitMs)
         }
     }
 

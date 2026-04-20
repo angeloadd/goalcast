@@ -1,5 +1,5 @@
 package com.goalcast.service
 
-interface Sleeper {
+interface SleepInterface {
     fun sleep(millis: Long)
 }

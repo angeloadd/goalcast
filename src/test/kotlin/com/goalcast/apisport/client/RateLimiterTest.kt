@@ -1,7 +1,7 @@
 package com.goalcast.apisport.client
 
 import BaseUnitTest
-import com.goalcast.service.Sleeper
+import com.goalcast.service.SleepInterface
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -21,21 +21,21 @@ class RateLimiterTest : BaseUnitTest() {
     lateinit var clock: Clock
 
     @MockK(relaxUnitFun = true)
-    lateinit var sleeper: Sleeper
+    lateinit var sleepService: SleepInterface
 
     @Test
     fun `waitIfNeeded calls sleeper if waitUntil is in the future`() {
         every { clock.instant() } returns Instant.EPOCH.minusSeconds(1)
         rateLimiter.waitIfNeeded()
 
-        verify(exactly = 1) { sleeper.sleep(1_000) }
+        verify(exactly = 1) { sleepService.sleep(1_000) }
     }
 
     @Test
     fun `waitIfNeeded does not call sleeper if waitUntil is in the past`() {
         every { clock.instant() } returns Instant.EPOCH.plusSeconds(1)
         rateLimiter.waitIfNeeded()
-        verify(exactly = 0) { sleeper.sleep(any()) }
+        verify(exactly = 0) { sleepService.sleep(any()) }
     }
 
     @Test
